@@ -1,0 +1,40 @@
+---
+- request:
+    jsonrpc: "2.0"
+    id: 0
+    method: set_program
+    params:
+      name: test-program
+      graphics:
+        objects:
+          - object_id: {{ objects["test.graphics"] }}
+            args:
+              - name: test_name
+                value: foobar
+        connections: []
+      audio:
+        objects:
+          - object_id: {{ objects["test.audio"] }}
+            args:
+              - name: test_name
+                value: foobar
+        connections: []
+  response:
+    jsonrpc: "2.0"
+    id: 0
+    result:
+      name: test-program
+      graphics:
+        connections: []
+        objects:
+          - object_id: {{ objects["test.graphics"] }}
+            instance_id: 1
+            inlets: 0
+            outlets: 0
+      audio:
+        connections: []
+        objects:
+          - object_id: {{ objects["test.audio"] }}
+            instance_id: 0
+            inlets: 0
+            outlets: 0

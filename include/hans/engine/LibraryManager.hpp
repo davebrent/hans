@@ -1,0 +1,32 @@
+#ifndef HANS_LIBRARYMANAGER_H_
+#define HANS_LIBRARYMANAGER_H_
+
+#include "hans/common/types.hpp"
+#include "hans/memory/StringManager.hpp"
+#include <vector>
+
+namespace hans {
+namespace engine {
+
+class LibraryManager {
+ public:
+  LibraryManager(hans::memory::StringManager& string_manager,
+                 std::vector<hans_object>& objects);
+  ~LibraryManager();
+
+  void load_libraries(std::vector<hans_library>& libraries);
+  bool register_object(const char* name, size_t size, hans_new_object make,
+                       hans_del_object destroy);
+
+  std::vector<hans_object> filter_objects(hans_object_type type);
+
+ private:
+  hans::memory::StringManager& m_string_manager;
+  std::vector<void*> m_handles;
+  std::vector<hans_object>& m_objects;
+};
+
+} // namespace engine
+} // namespace hans
+
+#endif // HANS_LIBRARYMANAGER_H_

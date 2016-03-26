@@ -1,0 +1,37 @@
+---
+name: libhans.test.all
+strings:
+  HANS_TEST_PARAM_GFX_1: hans_test_graphics_1
+  HANS_TEST_PARAM_GFX_2: hans_test_graphics_2
+  HANS_TEST_PARAM_AUDIO_1: hans_test_audio_1
+  HANS_TEST_PARAM_AUDIO_2: hans_test_audio_2
+objects:
+  test.graphics:
+    type: graphics
+    help: A test module for hans graphics
+
+    parameters:
+      - name: hans_test_graphics_1
+        size: 1
+        defaults: [1]
+        help: This is a test graphics parameter 1
+
+      - name: hans_test_graphics_2
+        size: 2
+        defaults: [3, 2]
+        help: This is a test graphics parameter 2
+
+  test.audio:
+    type: audio
+    help: A test module for hans audio
+
+    parameters:
+      - name: hans_test_audio_1
+        size: 1
+        defaults: [1]
+        help: This is a test audio parameter 1
+
+      - name: hans_test_audio_2
+        size: 2
+        defaults: [3, 2]
+        help: This is a test audio parameter 2

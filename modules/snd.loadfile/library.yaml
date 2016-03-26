@@ -1,0 +1,8 @@
+---
+name: libhans.snd.loadfile
+strings:
+    LOADSF_ARG_FILEPATH: filepath
+objects:
+  snd.loadfile:
+    type: audio
+    help: Loads a sound file into a named audio buffer

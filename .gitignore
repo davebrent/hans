@@ -1,0 +1,5 @@
+.DS_Store
+*.sqlite
+.vagrant/
+build/
+env/

@@ -1,0 +1,19 @@
+---
+- request:
+    jsonrpc: "2.0"
+    id: 0
+    method: set_program
+    params:
+      name: test-program
+      graphics:
+        objects: []
+      audio:
+        objects: []
+  response:
+    jsonrpc: "2.0"
+    id: 0
+    error:
+      message: Invalid parameters (-32602)
+      code: "-32602"
+      data:
+        - graphics

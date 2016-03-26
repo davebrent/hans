@@ -1,0 +1,22 @@
+add_executable(hans-engine main.cpp)
+set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
+
+target_link_libraries(hans-engine
+    hans
+    hansmodule
+    ${OPENGL_LIBRARIES}
+    ${GLFW_LIBRARIES}
+    ${EPOXY_LIBRARIES}
+    ${LIBAVCODEC_LIBRARIES}
+    ${LIBAVDEVICE_LIBRARIES}
+    ${LIBAVFILTER_LIBRARIES}
+    ${LIBAVFORMAT_LIBRARIES}
+    ${LIBAVRESAMPLE_LIBRARIES}
+    ${LIBSWSCALE_LIBRARIES}
+    ${LIBAVUTIL_LIBRARIES}
+    ${PORTAUDIO_LIBRARIES}
+    ${SQLITE3_LIBRARIES}
+    ${LIBZMQ_LIBRARIES}
+)
+
+install(TARGETS hans-engine DESTINATION bin)

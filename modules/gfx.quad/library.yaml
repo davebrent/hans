@@ -1,0 +1,29 @@
+---
+name: libhans.gfx.quad
+strings:
+  LIBQUAD_VERT_SHADER: quad-vertex
+  LIBQUAD_FRAG_SHADER: quad-fragment
+objects:
+  gfx.quad:
+    type: graphics
+
+    frame_buffer:
+      stencil_buffer: true
+
+      attachments:
+        - type: color
+          help: Output color buffer
+          width: 1184
+          height: 640
+          components: 4
+
+    resources:
+      - uri: quad-vertex
+        type: shader
+        shader_type: vertex
+        path: ./quad.vert
+
+      - uri: quad-fragment
+        type: shader
+        shader_type: fragment
+        path: ./quad.frag

@@ -1,0 +1,8 @@
+---
+BasedOnStyle: Google
+AllowShortIfStatementsOnASingleLine: false
+AllowShortLoopsOnASingleLine: false
+AllowShortFunctionsOnASingleLine: false
+MaxEmptyLinesToKeep: 1
+IndentCaseLabels: false
+SpacesBeforeTrailingComments: 1
