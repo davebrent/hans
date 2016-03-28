@@ -23,9 +23,6 @@ void jsonrpc::GetObjects::execute(const jsonrpc::Message& request,
     case HANS_GRAPHICS:
       data["type"] = "graphics";
       break;
-    case HANS_UNKOWN:
-      data["type"] = nullptr;
-      break;
     }
 
     result.push_back(data);

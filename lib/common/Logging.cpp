@@ -74,9 +74,6 @@ void common::StreamLogger::log(Logger::level level,
     case HANS_GRAPHICS:
       type = "graphics";
       break;
-    case HANS_UNKOWN:
-      type = "unknown";
-      break;
     default:
       type = "error";
       break;

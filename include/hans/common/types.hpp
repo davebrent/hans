@@ -128,7 +128,7 @@ typedef void (*hans_new_object)(hans_constructor_api *api, void *buffer,
                                 size_t size);
 typedef void (*hans_del_object)(void *instance);
 
-enum hans_object_type { HANS_AUDIO, HANS_GRAPHICS, HANS_UNKOWN };
+enum hans_object_type { HANS_AUDIO, HANS_GRAPHICS };
 
 /// A hans object, that when created may produce pixels OR sound
 typedef struct {
