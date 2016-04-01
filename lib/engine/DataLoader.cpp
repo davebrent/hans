@@ -235,7 +235,6 @@ std::vector<hans_shader> engine::DataLoader::get_shaders() const {
 
   while (sqlite3_step(st) != SQLITE_DONE) {
     hans_shader shader;
-    shader.resource_id = sqlite3_column_int(st, 0);
     shader.uri = m_string_manager.intern(sqlite3_column_text(st, 1));
 
     switch (sqlite3_column_int(st, 2)) {

@@ -71,11 +71,11 @@ static std::vector<hans_parameter> PARAMETERS = {
 
 static std::vector<hans_shader> SHADERS = {
     {HANS_SHADER_VERTEX, s.intern("vertex-shader-1"),
-     s.intern("some vertex shader code"), 0},
+     s.intern("some vertex shader code")},
     {HANS_SHADER_VERTEX, s.intern("vertex-shader-2"),
-     s.intern("some vertex shader code"), 1},
+     s.intern("some vertex shader code")},
     {HANS_SHADER_FRAGMENT, s.intern("fragment-shader-1"),
-     s.intern("some fragment shader code"), 2}};
+     s.intern("some fragment shader code")}};
 
 static std::vector<hans_fbo> FRAME_BUFFERS = {};
 

@@ -164,7 +164,6 @@ typedef struct {
   hans_shader_type type;
   hans_hash uri;
   hans_hash code;
-  hans_resource_id resource_id;
 } hans_shader;
 
 typedef uint16_t hans_shader_handle;

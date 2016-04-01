@@ -13,7 +13,6 @@ void jsonrpc::GetShaders::execute(const jsonrpc::Message& request,
 
   for (auto& shader : m_shaders) {
     auto obj = nlohmann::json::object();
-    obj["id"] = shader.resource_id;
     obj["uri"] = m_string_manager.lookup(shader.uri);
     obj["code"] = m_string_manager.lookup(shader.code);
     result.push_back(obj);
