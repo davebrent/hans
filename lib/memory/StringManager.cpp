@@ -100,3 +100,11 @@ const char* memory::StringManager::lookup(const hans_hash& hash) const {
   }
   return nullptr;
 }
+
+void* memory::StringManager::start() const {
+  return m_allocator.start();
+}
+
+void* memory::StringManager::end() const {
+  return m_allocator.end();
+}

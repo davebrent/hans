@@ -20,6 +20,8 @@ class StringManager {
 
   /// Return the original string for a given hash
   const char* lookup(const hans_hash& hash) const;
+  void* start() const;
+  void* end() const;
 
  private:
   memory::LinearAllocator m_allocator;
