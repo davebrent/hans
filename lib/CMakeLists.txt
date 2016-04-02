@@ -34,6 +34,8 @@ set(HANS_SOURCES
     graphics/Window.cpp
 )
 
+add_subdirectory(sequencer)
+
 add_library(hansmodule ${HANS_MODULE_SOURCES})
 add_library(hans ${HANS_SOURCES})
 

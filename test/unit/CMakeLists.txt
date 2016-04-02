@@ -10,6 +10,7 @@ set(HANS_TEST_SOURCES
 	jsonrpc/utils.cpp
 	memory/LinearAllocator.cpp
 	memory/StringManager.cpp
+	sequencer/Device.cpp
 	main.cpp
 )
 
@@ -18,6 +19,7 @@ add_executable(hans-unittest ${HANS_TEST_SOURCES})
 target_link_libraries(hans-unittest
     hans
     hansmodule
+    hans-sequencer-bindings
     ${OPENGL_LIBRARIES}
     ${GLFW_LIBRARIES}
     ${EPOXY_LIBRARIES}

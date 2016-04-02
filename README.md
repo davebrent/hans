@@ -12,4 +12,6 @@ A modular audio visual toolkit
 * [ZeroMQ](http://zeromq.org/)
 * [json.hpp](https://github.com/nlohmann/json)
 * [cxxopts](https://github.com/jarro2783/cxxopts)
+* [RtMidi](https://www.music.mcgill.ca/~gary/rtmidi/)
+* [Guile](http://www.gnu.org/software/guile/)
 * [Catch](https://github.com/philsquared/Catch)

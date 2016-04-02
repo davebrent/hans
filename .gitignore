@@ -1,5 +1,6 @@
 .DS_Store
 *.sqlite
+*.log
 .vagrant/
 TODO
 build/
