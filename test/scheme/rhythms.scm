@@ -1,0 +1,33 @@
+(define-module (hans test rhythms)
+  #:use-module (srfi srfi-64)
+  #:use-module (hans rhythms))
+
+(test-begin "test-rhythms")
+
+(define E make-euclidean-rhythm)
+
+(test-equal '(1 0) (E 1 2))
+(test-equal '(1 0 0) (E 1 3))
+(test-equal '(1 0 0 1 0 0 1 0 0 1 0 0) (E 4 12))
+(test-equal '(1 0 1) (E 2 3))
+(test-equal '(1 0 1 0 0) (E 2 5))
+(test-equal '(1 0 1 1) (E 3 4))
+(test-equal '(1 0 1 0 1) (E 3 5))
+(test-equal '(1 0 1 0 1 0 0) (E 3 7))
+(test-equal '(1 0 0 1 0 0 1 0) (E 3 8))
+(test-equal '(1 0 1 0 1 0 1) (E 4 7))
+(test-equal '(1 0 1 0 1 0 1 0 0) (E 4 9))
+(test-equal '(1 0 0 1 0 0 1 0 0 1 0) (E 4 11))
+(test-equal '(1 0 1 1 1 1) (E 5 6))
+(test-equal '(1 0 1 1 0 1 1) (E 5 7))
+(test-equal '(1 0 1 1 0 1 1 0) (E 5 8))
+(test-equal '(1 0 1 0 1 0 1 0 1) (E 5 9))
+(test-equal '(1 0 1 0 1 0 1 0 1 0 0) (E 5 11))
+(test-equal '(1 0 0 1 0 1 0 0 1 0 1 0) (E 5 12))
+(test-equal '(1 0 1 1 0 1 0 1 1 0 1 0) (E 7 12))
+(test-equal '(1 0 0 1 0 0 1 0 0 1 0 0 1 0 0 0) (E 5 16))
+(test-equal '(1 0 1 1 1 1 1 1) (E 7 8))
+
+(define B make-binary-rhythm)
+
+(test-equal '(1 0 0 1 0 0 1 0 0 0 1 0 1 0 0 0) (B '(9 2 2 8) 4))
