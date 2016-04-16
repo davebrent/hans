@@ -1,6 +1,6 @@
-#include "hans/engine/object.hpp"
-#include "./snd.utils_generated.h"
 #include <cassert>
+#include "./snd.utils_generated.h"
+#include "hans/engine/object.hpp"
 
 typedef struct { float gain; } hans_gain_data;
 

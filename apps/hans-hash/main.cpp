@@ -1,6 +1,6 @@
-#include "hans/memory/StringManager.hpp"
-#include <iostream>
 #include <cxxopts.hpp>
+#include <iostream>
+#include "hans/memory/StringManager.hpp"
 
 using namespace hans;
 

@@ -1,9 +1,9 @@
-#include "hans/engine/object.hpp"
-#include "./test.all_generated.h"
 #include <math.h>
 #include <cassert>
-#include <sstream>
 #include <exception>
+#include <sstream>
+#include "./test.all_generated.h"
+#include "hans/engine/object.hpp"
 
 using namespace hans;
 

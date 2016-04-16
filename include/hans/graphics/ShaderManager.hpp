@@ -1,11 +1,11 @@
 #ifndef HANS_GRAPHICS_SHADERMANAGER_H_
 #define HANS_GRAPHICS_SHADERMANAGER_H_
 
-#include "hans/common/types.hpp"
+#include <vector>
 #include "hans/common/Logger.hpp"
+#include "hans/common/types.hpp"
 #include "hans/graphics/gl.h"
 #include "hans/memory/StringManager.hpp"
-#include <vector>
 
 namespace hans {
 namespace graphics {

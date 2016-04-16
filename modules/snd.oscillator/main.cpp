@@ -1,10 +1,10 @@
-#include "hans/engine/object.hpp"
+#include <math.h>
+#include <cassert>
+#include <cstdlib>
+#include <iostream>
 #include "./buffers.h"
 #include "./snd.oscillator_generated.h"
-#include <math.h>
-#include <cstdlib>
-#include <cassert>
-#include <iostream>
+#include "hans/engine/object.hpp"
 
 typedef struct {
   unsigned samplerate;

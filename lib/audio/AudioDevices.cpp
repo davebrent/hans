@@ -1,7 +1,7 @@
 #include "hans/audio/AudioDevices.hpp"
+#include <portaudio.h>
 #include <stdexcept>
 #include <vector>
-#include <portaudio.h>
 
 using namespace hans;
 

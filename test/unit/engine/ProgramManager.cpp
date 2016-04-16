@@ -1,7 +1,7 @@
-#include "hans/common/Logging.hpp"
-#include "hans/engine/ProgramResources.hpp"
 #include "hans/engine/ProgramManager.hpp"
 #include <catch.hpp>
+#include "hans/common/Logging.hpp"
+#include "hans/engine/ProgramResources.hpp"
 
 using namespace hans;
 

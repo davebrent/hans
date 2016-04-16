@@ -1,9 +1,9 @@
-#include "hans/common/types.hpp"
-#include "hans/common/ObjectGraph.hpp"
-#include "hans/memory/StringManager.hpp"
 #include "hans/jsonrpc/methods/utils.hpp"
 #include <catch.hpp>
 #include <json.hpp>
+#include "hans/common/ObjectGraph.hpp"
+#include "hans/common/types.hpp"
+#include "hans/memory/StringManager.hpp"
 
 using namespace hans;
 using namespace nlohmann;

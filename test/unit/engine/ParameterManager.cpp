@@ -1,7 +1,7 @@
-#include "hans/memory/StringManager.hpp"
 #include "hans/engine/ParameterManager.hpp"
 #include <catch.hpp>
 #include <memory>
+#include "hans/memory/StringManager.hpp"
 
 using namespace hans;
 

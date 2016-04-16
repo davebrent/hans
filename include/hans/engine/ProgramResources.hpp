@@ -1,12 +1,12 @@
 #ifndef HANS_ENGINE_PROGRAMRESOURCES_H_
 #define HANS_ENGINE_PROGRAMRESOURCES_H_
 
-#include "hans/common/types.hpp"
-#include "hans/common/Logger.hpp"
-#include "hans/memory/StringManager.hpp"
-#include "hans/engine/object.hpp"
-#include "hans/audio/AudioBusManager.hpp"
 #include <vector>
+#include "hans/audio/AudioBusManager.hpp"
+#include "hans/common/Logger.hpp"
+#include "hans/common/types.hpp"
+#include "hans/engine/object.hpp"
+#include "hans/memory/StringManager.hpp"
 
 namespace hans {
 namespace engine {

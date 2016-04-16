@@ -1,12 +1,12 @@
 #ifndef HANS_ENGINE_OBJECTCHAIN_H_
 #define HANS_ENGINE_OBJECTCHAIN_H_
 
-#include "hans/common/types.hpp"
-#include "hans/memory/LinearAllocator.hpp"
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <vector>
-#include <algorithm>
+#include "hans/common/types.hpp"
+#include "hans/memory/LinearAllocator.hpp"
 
 namespace hans {
 namespace engine {

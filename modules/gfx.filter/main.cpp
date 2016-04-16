@@ -1,7 +1,7 @@
-#include "hans/engine/object.hpp"
-#include "./gfx.filter_generated.h"
-#include <iostream>
 #include <cassert>
+#include <iostream>
+#include "./gfx.filter_generated.h"
+#include "hans/engine/object.hpp"
 
 using namespace hans;
 

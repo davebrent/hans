@@ -1,8 +1,8 @@
 #include "hans/common/Logging.hpp"
-#include "hans/common/ObjectGraph.hpp"
-#include <sstream>
-#include <iomanip>
 #include <chrono>
+#include <iomanip>
+#include <sstream>
+#include "hans/common/ObjectGraph.hpp"
 
 using namespace hans;
 

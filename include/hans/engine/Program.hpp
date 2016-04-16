@@ -1,11 +1,11 @@
 #ifndef HANS_ENGINE_PROGRAM_H_
 #define HANS_ENGINE_PROGRAM_H_
 
-#include "hans/common/types.hpp"
 #include "hans/common/ObjectGraph.hpp"
-#include "hans/engine/object.hpp"
-#include "hans/engine/ProgramResources.hpp"
+#include "hans/common/types.hpp"
 #include "hans/engine/ObjectChain.hpp"
+#include "hans/engine/ProgramResources.hpp"
+#include "hans/engine/object.hpp"
 
 namespace hans {
 namespace engine {

@@ -8,7 +8,8 @@ docs:
 	@doxygen Doxyfile
 
 format:
-	@find lib include modules test apps \( -name '*.h' -or -name '*.hpp' -or -name '*.cpp' \) -print0 | \
+	@find lib include modules test apps \
+		\( -name '*.h' -or -name '*.hpp' -or -name '*.cpp' \) -print0 | \
 		xargs -0 "clang-format" -i
 
 build/:

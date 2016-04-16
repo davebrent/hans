@@ -1,9 +1,9 @@
 #ifndef HANS_LIBRARYMANAGER_H_
 #define HANS_LIBRARYMANAGER_H_
 
+#include <vector>
 #include "hans/common/types.hpp"
 #include "hans/memory/StringManager.hpp"
-#include <vector>
 
 namespace hans {
 namespace engine {

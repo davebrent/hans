@@ -2,8 +2,8 @@
 #define HANS_JSONRPC_METHODS_GETSHADERS_H_
 
 #include "hans/common/types.hpp"
-#include "hans/memory/StringManager.hpp"
 #include "hans/jsonrpc/Method.hpp"
+#include "hans/memory/StringManager.hpp"
 
 namespace hans {
 namespace jsonrpc {

@@ -1,6 +1,6 @@
 #include "hans/memory/LinearAllocator.hpp"
-#include <cstdlib>
 #include <cassert>
+#include <cstdlib>
 #include <memory>
 
 using namespace hans;

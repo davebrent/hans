@@ -1,6 +1,6 @@
 #include "hans/engine/RegisterManager.hpp"
-#include <cstring>
 #include <cassert>
+#include <cstring>
 
 using namespace hans;
 

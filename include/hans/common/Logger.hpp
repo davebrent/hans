@@ -1,8 +1,8 @@
 #ifndef HANS_COMMON_LOGGER_H_
 #define HANS_COMMON_LOGGER_H_
 
-#include "hans/common/types.hpp"
 #include <vector>
+#include "hans/common/types.hpp"
 
 namespace hans {
 namespace common {

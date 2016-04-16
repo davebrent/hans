@@ -1,11 +1,11 @@
 #include "hans/common/ObjectGraph.hpp"
 #include <algorithm>
+#include <cassert>
 #include <cstdlib>
 #include <cstring>
+#include <iostream>
 #include <memory>
 #include <vector>
-#include <iostream>
-#include <cassert>
 
 using namespace hans::common;
 

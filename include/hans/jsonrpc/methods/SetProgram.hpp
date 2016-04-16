@@ -2,8 +2,8 @@
 #define HANS_JSONRPC_METHODS_SETPROGRAM_H_
 
 #include "hans/common/types.hpp"
-#include "hans/jsonrpc/Method.hpp"
 #include "hans/engine/ProgramManager.hpp"
+#include "hans/jsonrpc/Method.hpp"
 
 namespace hans {
 namespace jsonrpc {

@@ -1,10 +1,10 @@
 #ifndef HANS_JSONRPC_MESSAGE_H_
 #define HANS_JSONRPC_MESSAGE_H_
 
-#include "hans/common/types.hpp"
+#include <json.hpp>
 #include <vector>
 #include <zmq.hpp>
-#include <json.hpp>
+#include "hans/common/types.hpp"
 
 namespace hans {
 namespace jsonrpc {

@@ -1,10 +1,10 @@
 #ifndef HANS_JSONRPC_METHODS_UTILS_H_
 #define HANS_JSONRPC_METHODS_UTILS_H_
 
-#include "hans/common/types.hpp"
-#include "hans/common/ObjectGraph.hpp"
-#include "hans/memory/StringManager.hpp"
 #include <json.hpp>
+#include "hans/common/ObjectGraph.hpp"
+#include "hans/common/types.hpp"
+#include "hans/memory/StringManager.hpp"
 
 namespace hans {
 namespace jsonrpc {

@@ -1,9 +1,9 @@
 #include "hans/engine/DataLoader.hpp"
 #include <sqlite3.h>
-#include <cstdlib>
-#include <string>
-#include <stdexcept>
 #include <cassert>
+#include <cstdlib>
+#include <stdexcept>
+#include <string>
 
 using namespace hans;
 

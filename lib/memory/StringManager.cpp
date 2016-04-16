@@ -1,7 +1,7 @@
 #include "hans/memory/StringManager.hpp"
+#include <algorithm>
 #include <cassert>
 #include <cstring>
-#include <algorithm>
 
 using namespace hans;
 

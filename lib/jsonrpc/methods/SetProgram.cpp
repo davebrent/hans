@@ -1,5 +1,5 @@
-#include "hans/common/ObjectGraph.hpp"
 #include "hans/jsonrpc/methods/SetProgram.hpp"
+#include "hans/common/ObjectGraph.hpp"
 #include "hans/jsonrpc/methods/utils.hpp"
 
 using namespace hans;

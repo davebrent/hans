@@ -1,5 +1,4 @@
 #include "hans/graphics/Window.hpp"
-#include "hans/graphics/gl.h"
 #include <GLFW/glfw3.h>
 #include <cassert>
 

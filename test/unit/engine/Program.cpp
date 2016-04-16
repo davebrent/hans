@@ -1,8 +1,8 @@
-#include "hans/common/types.hpp"
-#include "hans/common/Logging.hpp"
 #include "hans/engine/Program.hpp"
-#include "hans/graphics/Window.hpp"
 #include <catch.hpp>
+#include "hans/common/Logging.hpp"
+#include "hans/common/types.hpp"
+#include "hans/graphics/Window.hpp"
 
 using namespace hans;
 

@@ -1,8 +1,8 @@
-#include "hans/engine/object.hpp"
-#include "./snd.loadfile_generated.h"
 #include <math.h>
-#include <cstdlib>
 #include <cassert>
+#include <cstdlib>
+#include "./snd.loadfile_generated.h"
+#include "hans/engine/object.hpp"
 
 extern "C" {
 #include <libavcodec/avcodec.h>

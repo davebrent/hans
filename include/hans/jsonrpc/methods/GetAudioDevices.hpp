@@ -1,9 +1,9 @@
 #ifndef HANS_JSONRPC_METHODS_GETAUDIODEVICES_H_
 #define HANS_JSONRPC_METHODS_GETAUDIODEVICES_H_
 
+#include "hans/audio/AudioDevices.hpp"
 #include "hans/common/types.hpp"
 #include "hans/jsonrpc/Method.hpp"
-#include "hans/audio/AudioDevices.hpp"
 
 namespace hans {
 namespace jsonrpc {

@@ -1,9 +1,9 @@
 #ifndef HANS_JSONRPC_SERVER_H_
 #define HANS_JSONRPC_SERVER_H_
 
+#include <zmq.hpp>
 #include "hans/common/config.hpp"
 #include "hans/memory/StringManager.hpp"
-#include <zmq.hpp>
 
 #include "./Handler.hpp"
 #include "./Message.hpp"

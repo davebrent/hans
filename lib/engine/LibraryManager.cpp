@@ -1,6 +1,6 @@
 #include "hans/engine/LibraryManager.hpp"
-#include <algorithm>
 #include <dlfcn.h>
+#include <algorithm>
 
 using namespace hans;
 

@@ -1,6 +1,8 @@
 #ifndef HANS_GRAPHICS_WINDOW_H_
 #define HANS_GRAPHICS_WINDOW_H_
 
+#include "hans/graphics/gl.h"
+
 struct GLFWwindow;
 
 namespace hans {

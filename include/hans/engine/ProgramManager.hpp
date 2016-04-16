@@ -1,11 +1,11 @@
 #ifndef HANS_ENGINE_PROGRAMMANAGER_H_
 #define HANS_ENGINE_PROGRAMMANAGER_H_
 
+#include <memory>
+#include <vector>
 #include "hans/common/types.hpp"
 #include "hans/engine/Program.hpp"
 #include "hans/engine/ProgramResources.hpp"
-#include <vector>
-#include <memory>
 
 namespace hans {
 namespace engine {

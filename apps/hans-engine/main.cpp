@@ -1,18 +1,18 @@
-#include "hans/common/Logging.hpp"
-#include "hans/engine/DataLoader.hpp"
-#include "hans/engine/ProgramManager.hpp"
-#include "hans/engine/ProgramResources.hpp"
-#include "hans/engine/Program.hpp"
-#include "hans/engine/LibraryManager.hpp"
-#include "hans/audio/AudioDevices.hpp"
-#include "hans/audio/AudioStream.hpp"
-#include "hans/jsonrpc/Server.hpp"
-#include "hans/jsonrpc/Message.hpp"
-#include "hans/jsonrpc/Handler.hpp"
-#include "hans/jsonrpc/methods.hpp"
-#include "hans/graphics/Window.hpp"
 #include <cxxopts.hpp>
 #include <iostream>
+#include "hans/audio/AudioDevices.hpp"
+#include "hans/audio/AudioStream.hpp"
+#include "hans/common/Logging.hpp"
+#include "hans/engine/DataLoader.hpp"
+#include "hans/engine/LibraryManager.hpp"
+#include "hans/engine/Program.hpp"
+#include "hans/engine/ProgramManager.hpp"
+#include "hans/engine/ProgramResources.hpp"
+#include "hans/graphics/Window.hpp"
+#include "hans/jsonrpc/Handler.hpp"
+#include "hans/jsonrpc/Message.hpp"
+#include "hans/jsonrpc/Server.hpp"
+#include "hans/jsonrpc/methods.hpp"
 
 using namespace hans;
 

@@ -1,12 +1,12 @@
 #ifndef HANS_JSONRPC_HANDLER_H_
 #define HANS_JSONRPC_HANDLER_H_
 
-#include "hans/common/types.hpp"
+#include <cstdint>
+#include <vector>
 #include "hans/common/Logging.hpp"
+#include "hans/common/types.hpp"
 #include "hans/jsonrpc/Message.hpp"
 #include "hans/jsonrpc/Method.hpp"
-#include <vector>
-#include <cstdint>
 
 namespace hans {
 namespace jsonrpc {

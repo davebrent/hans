@@ -1,7 +1,7 @@
-#include "hans/engine/object.hpp"
-#include "./snd.io_generated.h"
 #include <cassert>
 #include <iostream>
+#include "./snd.io_generated.h"
+#include "hans/engine/object.hpp"
 
 typedef struct {
   // Audio bus to read/write data from

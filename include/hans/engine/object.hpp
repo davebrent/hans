@@ -1,17 +1,17 @@
 #ifndef HANS_ENGINE_OBJECT_H
 #define HANS_ENGINE_OBJECT_H
 
-#include "hans/common/types.hpp"
-#include "hans/common/config.hpp"
-#include "hans/common/Logger.hpp"
-#include "hans/engine/RegisterManager.hpp"
-#include "hans/engine/ParameterManager.hpp"
-#include "hans/memory/StringManager.hpp"
 #include "hans/audio/AudioBufferManager.hpp"
 #include "hans/audio/AudioBusManager.hpp"
-#include "hans/graphics/gl.h"
+#include "hans/common/Logger.hpp"
+#include "hans/common/config.hpp"
+#include "hans/common/types.hpp"
+#include "hans/engine/ParameterManager.hpp"
+#include "hans/engine/RegisterManager.hpp"
 #include "hans/graphics/FrameBufferManager.hpp"
 #include "hans/graphics/ShaderManager.hpp"
+#include "hans/graphics/gl.h"
+#include "hans/memory/StringManager.hpp"
 
 typedef struct {
   hans_config* config;

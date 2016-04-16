@@ -1,6 +1,6 @@
-#include "hans/graphics/gl.h"
 #include "hans/graphics/FrameBufferManager.hpp"
 #include <cassert>
+#include "hans/graphics/gl.h"
 
 using namespace hans;
 

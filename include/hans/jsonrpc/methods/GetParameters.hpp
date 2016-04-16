@@ -1,10 +1,10 @@
 #ifndef HANS_JSONRPC_METHODS_GETPARAMETERS_H_
 #define HANS_JSONRPC_METHODS_GETPARAMETERS_H_
 
-#include "hans/common/types.hpp"
-#include "hans/memory/StringManager.hpp"
-#include "hans/jsonrpc/Method.hpp"
 #include <vector>
+#include "hans/common/types.hpp"
+#include "hans/jsonrpc/Method.hpp"
+#include "hans/memory/StringManager.hpp"
 
 namespace hans {
 namespace jsonrpc {

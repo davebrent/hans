@@ -1,10 +1,10 @@
 #ifndef HANS_MEMORY_STRINGMANAGER_H_
 #define HANS_MEMORY_STRINGMANAGER_H_
 
+#include <string>
+#include <vector>
 #include "hans/common/types.hpp"
 #include "hans/memory/LinearAllocator.hpp"
-#include <vector>
-#include <string>
 
 namespace hans {
 namespace memory {

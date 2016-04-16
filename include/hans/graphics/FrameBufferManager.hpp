@@ -1,8 +1,8 @@
 #ifndef HANS_GRAPHICS_FRAMEBUFFERMANAGER_H_
 #define HANS_GRAPHICS_FRAMEBUFFERMANAGER_H_
 
-#include "hans/common/types.hpp"
 #include <vector>
+#include "hans/common/types.hpp"
 
 namespace hans {
 namespace graphics {

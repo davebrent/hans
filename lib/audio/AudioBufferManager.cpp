@@ -1,6 +1,6 @@
 #include "hans/audio/AudioBufferManager.hpp"
-#include <stdexcept>
 #include <cstdlib>
+#include <stdexcept>
 
 using namespace hans;
 

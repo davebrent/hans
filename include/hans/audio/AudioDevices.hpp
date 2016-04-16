@@ -1,9 +1,9 @@
 #ifndef HANS_AUDIO_AUDIODEVICES_H_
 #define HANS_AUDIO_AUDIODEVICES_H_
 
-#include "hans/common/types.hpp"
-#include <vector>
 #include <string>
+#include <vector>
+#include "hans/common/types.hpp"
 
 namespace hans {
 namespace audio {

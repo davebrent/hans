@@ -1,10 +1,10 @@
 #ifndef HANS_ENGINE_PARAMETERMANAGER_H_
 #define HANS_ENGINE_PARAMETERMANAGER_H_
 
-#include "hans/common/types.hpp"
 #include <cstdint>
 #include <string>
 #include <vector>
+#include "hans/common/types.hpp"
 
 namespace hans {
 namespace engine {

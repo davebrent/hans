@@ -1,15 +1,15 @@
-#include "hans/memory/StringManager.hpp"
 #include "hans/jsonrpc/Handler.hpp"
-#include "hans/jsonrpc/Method.hpp"
 #include <catch.hpp>
 #include <json.hpp>
+#include "hans/jsonrpc/Method.hpp"
+#include "hans/memory/StringManager.hpp"
 
 using namespace hans;
 
 class TestCommand : public virtual jsonrpc::Method {
  public:
   int id;
-  TestCommand(int id_) : id(id_) {
+  explicit TestCommand(int id_) : id(id_) {
   }
   void execute(const jsonrpc::Message& request, jsonrpc::Message& response) {
     response.m_data["id"] = id;

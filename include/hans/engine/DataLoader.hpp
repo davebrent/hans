@@ -1,9 +1,9 @@
 #ifndef HANS_DATALOADER_H_
 #define HANS_DATALOADER_H_
 
+#include <vector>
 #include "hans/common/types.hpp"
 #include "hans/memory/StringManager.hpp"
-#include <vector>
 
 class sqlite3;
 

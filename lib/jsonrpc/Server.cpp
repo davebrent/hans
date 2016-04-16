@@ -1,7 +1,7 @@
 #include "hans/jsonrpc/Server.hpp"
+#include <cassert>
 #include <sstream>
 #include <stdexcept>
-#include <cassert>
 #include <string>
 
 using namespace hans;

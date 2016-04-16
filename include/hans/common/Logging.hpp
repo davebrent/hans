@@ -1,10 +1,10 @@
 #ifndef HANS_COMMON_LOGGING_H_
 #define HANS_COMMON_LOGGING_H_
 
-#include "hans/common/types.hpp"
-#include "hans/common/Logger.hpp"
-#include <vector>
 #include <iostream>
+#include <vector>
+#include "hans/common/Logger.hpp"
+#include "hans/common/types.hpp"
 
 namespace hans {
 namespace common {

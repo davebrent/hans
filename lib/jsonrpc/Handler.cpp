@@ -1,7 +1,7 @@
 #include "hans/jsonrpc/Handler.hpp"
-#include "hans/jsonrpc/Message.hpp"
 #include <cassert>
 #include <chrono>
+#include "hans/jsonrpc/Message.hpp"
 
 using namespace hans;
 

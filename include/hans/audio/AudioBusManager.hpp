@@ -1,9 +1,9 @@
 #ifndef HANS_AUDIO_AUDIOBUSMANAGER_H_
 #define HANS_AUDIO_AUDIOBUSMANAGER_H_
 
-#include "hans/common/types.hpp"
-#include "hans/audio/AudioBufferManager.hpp"
 #include <vector>
+#include "hans/audio/AudioBufferManager.hpp"
+#include "hans/common/types.hpp"
 
 namespace hans {
 namespace audio {
