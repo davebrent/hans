@@ -21,3 +21,8 @@ build/:
 
 clean:
 	@rm -rf build
+
+check: build/
+	@guile -s test/scheme/patterns.scm
+	@guile -s test/scheme/sequencer.scm
+	@guile -s test/scheme/rhythms.scm
