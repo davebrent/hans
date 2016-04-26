@@ -2,6 +2,4 @@
 *.sqlite
 *.log
 .vagrant/
-TODO
 build/
-env/
