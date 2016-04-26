@@ -1,0 +1,139 @@
+# vim: set ft=scheme :
+
+Todo
+----
+* Compile all engine data into a single file (thats not a sqlite database, )
+* Use a single data format for configuration (maybe just move it all to scheme?)
+* Remove the c++ jsonrpc layer and replace with something else
+* Add support to build system for installing scheme modules
+* Improve scheme test suite (auto-discover tests, run from a single command)
+* Renoise sequencer backend
+* Find a way of auto formatting scheme code
+* Shared ring buffers between audio & graphics graphs
+* Add other types of ctrl_event interpolation to sequencer
+* Add back recording features
+* Add video export
+* Have a full workflow kind of working
+
+Development
+-----------
+For OSX:
+
+    cd /usr/local/Cellar/guile/2.0.11_2/lib/
+    ln -s \
+        ~/Projects/hans/build/lib/libhans-sequencer-bindings.dylib \
+        libhans-sequencer-bindings.dylib
+
+    cd /usr/local/share/guile/2.0
+    ln -s ~/Projects/hans/scheme/hans/ hans
+
+Links
+-----
+http://msp.ucsd.edu/Publications/dartmouth-reprint.dir/
+http://www-ui.is.s.u-tokyo.ac.jp/~takeo/course/2006/media/papers/max_cmj91.pdf
+http://msp.ucsd.edu/Publications/icmc88.pdf
+https://puredata.info/community/conventions/convention04/lectures/tk-zmoelnig/gemrender.pdf
+https://puredata.info/downloads/gem/documentation/manual/pub/zmoelnig2004gem.pdf
+http://msp.ucsd.edu/Publications/icmc96.ps
+http://musicweb.ucsd.edu/~mpuckette/Publications/cmj91-fts.ps
+http://supercolliderbook.net/rossbencinach26.pdf
+https://www.youtube.com/watch?v=boPEO2auJj4
+http://tim.klingt.org/publications/icmc2011_supernova.pdf
+http://quod.lib.umich.edu/cgi/p/pod/dod-idx/extensible-real-time-signal-processing-environment-for-max.pdf
+http://www.jamoma.org/publications/attachments/jamoma-audiograph-DAFx.pdf
+https://github.com/pure-data/pure-data
+https://github.com/supercollider/supercollider
+https://github.com/cinder/Cinder
+https://github.com/processing/processing
+https://github.com/zzkt/fluxus
+https://github.com/ideoforms/isobar
+https://github.com/deanm/plask
+https://github.com/cuthbertLab/music21
+https://github.com/wesen/mididuino
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Midi master clock
+;; Connect to a midi device, in recieve mode, and start its clock at a given BPM
+
+(use-modules (hans sequencer))
+
+;; (define device (make-midi-out-device "IAC Driver Bus 1"))
+;; (define device (make-midi-out-device "Elektron TM-1"))
+;; (define device (make-midi-out-device "Scarlett 18i8 USB"))
+;; (define device (make-console-device))
+
+(define (generator)
+  (lambda (device transport)
+    ;; Output a note on every beat
+    (if (= (get-pulse transport) 12)
+      (begin
+        (send-event device (make-note 60 127 500 1))))
+    (if (= (get-pulse transport) 0)
+      (begin
+        (send-event device (make-ctrl 10 0 127 500 1))))))
+
+(let ((scheduler (make-musical-scheduler 120 4 4)))
+  (schedule scheduler (list (generator)))
+  (run device scheduler))
+
+(flush device)
+(send-event device (make-time 'stop))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Metro sequencer
+;; A pulse only sequencer
+
+(use-modules (hans sequencer))
+
+(define device (make-midi-out-device "IAC Driver Bus 1"))
+
+(define (generator)
+  (lambda (device transport)
+    ;; Output a note on every 10th pulse
+    (if (= (modulo (get-pulse transport) 10) 0)
+      (send-event device (make-note 60 127 200 1)))))
+
+(let ((scheduler (make-metro-scheduler 100)))
+  (schedule scheduler (list (generator)))
+  (run device scheduler))
+
+(flush device)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(use-modules (hans sequencer)
+             (hans rhythms)
+             (hans patterns))
+
+(define device (make-midi-out-device "IAC Driver Bus 1"))
+
+(define (simple-sequencer)
+  "A very simple sequence generator"
+  (let ((rhythm-1 (make-pseq (make-euclidean-rhythm 5 24) 100))
+        (rhythm-2 (make-pseq (make-euclidean-rhythm 7 24) 100))
+        (rhythm-3 (make-pseq (make-euclidean-rhythm 3 48) 100))
+        (iterations 0))
+    (lambda (device transport)
+      (let ((value-1 (rhythm-1))
+            (value-2 (rhythm-2))
+            (value-3 (rhythm-3)))
+
+        ;; (if (= value-1 1) (send-event device (make-note 48 127 300 1)))
+        ;; (if (= value-2 1) (send-event device (make-note 52 127 250 2)))
+        ;; (if (= value-3 1) (send-event device (make-note 64 15 700 3)))
+        ;; (send-event device (make-ctrl 1 0 127 100 2))
+
+        (set! iterations (+ 1 iterations))
+        (not (eq? iterations 2048))))))
+
+;; (let ((scheduler (make-metro-scheduler 100)))
+;;   (schedule scheduler (list (simple-sequencer)))
+;;   (run device scheduler))
+
+(let ((scheduler (make-musical-scheduler 120 4 4)))
+  (schedule scheduler (list (simple-sequencer)))
+  (run device scheduler))
+
+(flush device)
