@@ -23,9 +23,15 @@ For OSX:
     ln -s \
         ~/Projects/hans/build/lib/libhans-sequencer-bindings.dylib \
         libhans-sequencer-bindings.dylib
+    ln -s \
+        ~/Projects/hans/build/lib/libhans-compiler-bindings.dylib \
+        libhans-compiler-bindings.dylib
 
     cd /usr/local/share/guile/2.0
     ln -s ~/Projects/hans/scheme/hans/ hans
+
+    ;; Path to modules root directory
+    export HANS_LIBRARY_PATH=$HOME/Projects/hans/build/lib
 
 Links
 -----
