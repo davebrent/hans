@@ -139,6 +139,6 @@ void quad_new(hans_constructor_api* api, void* buffer, size_t size) {
 extern "C" {
 void setup(hans_library_api* api) {
   auto size = sizeof(hans_graphics_object) + sizeof(QuadData);
-  api->register_object(api, "gfx.quad", size, quad_new, nullptr);
+  api->register_object(api, "gfx-quad", size, quad_new, nullptr);
 }
 }

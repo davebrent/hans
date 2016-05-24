@@ -160,9 +160,8 @@ void hans_loadsf_new(hans_constructor_api* api, void* buffer, size_t size) {
 
 extern "C" {
 void setup(hans_library_api* api) {
-  bool success = api->register_object(
-      api, "snd.loadfile", sizeof(hans_audio_object) + sizeof(hans_loadsf_data),
-      hans_loadsf_new, nullptr);
-  assert(success == true);
+  api->register_object(api, "snd-loadfile",
+                       sizeof(hans_audio_object) + sizeof(hans_loadsf_data),
+                       hans_loadsf_new, nullptr);
 }
 }

@@ -165,18 +165,12 @@ void hans_test_audio_new(hans_constructor_api* api, void* buff, size_t size) {
 
 extern "C" {
 void setup(hans_library_api* api) {
-  bool success = api->register_object(
-      api, "test.graphics",
-      sizeof(hans_test_gfx_data) + sizeof(hans_graphics_object),
-      hans_test_graphics_new, nullptr);
+  api->register_object(api, "test-graphics", sizeof(hans_test_gfx_data) +
+                                                 sizeof(hans_graphics_object),
+                       hans_test_graphics_new, nullptr);
 
-  assert(success == true);
-
-  success = api->register_object(
-      api, "test.audio",
-      sizeof(hans_test_audio_data) + sizeof(hans_audio_object),
-      hans_test_audio_new, nullptr);
-
-  assert(success == true);
+  api->register_object(api, "test-audio",
+                       sizeof(hans_test_audio_data) + sizeof(hans_audio_object),
+                       hans_test_audio_new, nullptr);
 }
 }

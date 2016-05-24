@@ -151,8 +151,6 @@ static void hans_osc_new(hans_constructor_api* api, void* buffer, size_t size) {
 extern "C" {
 void setup(hans_library_api* api) {
   size_t size = sizeof(hans_audio_object) + sizeof(hans_osc_data);
-  const char* name = "snd.oscillator";
-  bool success = api->register_object(api, name, size, hans_osc_new, nullptr);
-  assert(success == true);
+  api->register_object(api, "snd-oscillator", size, hans_osc_new, nullptr);
 }
 }

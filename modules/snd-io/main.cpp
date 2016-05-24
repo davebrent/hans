@@ -148,13 +148,7 @@ static void hans_io_new_out(hans_constructor_api* api, void* buffer,
 extern "C" {
 void setup(hans_library_api* api) {
   size_t size = sizeof(hans_audio_object) + sizeof(hans_io_data);
-  bool success;
-
-  success = api->register_object(api, "snd.in", size, hans_io_new_in, nullptr);
-  assert(success == true);
-
-  success =
-      api->register_object(api, "snd.out", size, hans_io_new_out, nullptr);
-  assert(success == true);
+  api->register_object(api, "snd-in", size, hans_io_new_in, nullptr);
+  api->register_object(api, "snd-out", size, hans_io_new_out, nullptr);
 }
 }

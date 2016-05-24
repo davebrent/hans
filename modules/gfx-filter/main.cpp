@@ -183,6 +183,6 @@ void filter_new(hans_constructor_api* api, void* buffer, size_t size) {
 extern "C" {
 void setup(hans_library_api* api) {
   auto size = sizeof(hans_graphics_object) + sizeof(FilterData);
-  api->register_object(api, "gfx.filter", size, filter_new, nullptr);
+  api->register_object(api, "gfx-filter", size, filter_new, nullptr);
 }
 }

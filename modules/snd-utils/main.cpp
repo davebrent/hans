@@ -57,12 +57,8 @@ void hans_pan_new(hans_constructor_api* api, void* buffer, size_t size) {
 
 extern "C" {
 void setup(hans_library_api* api) {
-  bool success;
-  size_t size;
-
-  size = sizeof(hans_audio_object) + sizeof(hans_gain_data);
-  success = api->register_object(api, "snd.gain", size, hans_gain_new, nullptr);
-  assert(success == true);
+  size_t size = sizeof(hans_audio_object) + sizeof(hans_gain_data);
+  api->register_object(api, "snd-gain", size, hans_gain_new, nullptr);
 
   /*
   size = sizeof(hans_audio_object) + sizeof(hans_pan_data);

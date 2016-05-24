@@ -367,7 +367,7 @@ void superformula_new(hans_constructor_api *api, void *buffer, size_t size) {
 
 extern "C" {
 void setup(hans_library_api *api) {
-  api->register_object(api, "gfx.superformula",
+  api->register_object(api, "gfx-superformula",
                        sizeof(hans_graphics_object) + sizeof(SuperFormula),
                        superformula_new, nullptr);
 }
