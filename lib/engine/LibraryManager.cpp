@@ -44,6 +44,7 @@ bool engine::LibraryManager::register_object(const char* name, size_t size,
                                              hans_new_object make,
                                              hans_del_object destroy) {
   auto hash = m_string_manager.intern(name);
+  auto found = false;
 
   for (int i = 0; i < m_objects.size(); ++i) {
     hans_object& object = m_objects.at(i);
@@ -51,11 +52,11 @@ bool engine::LibraryManager::register_object(const char* name, size_t size,
       object.size = size;
       object.make = make;
       object.destroy = destroy;
-      return true;
+      found = true;
     }
   }
 
-  return false;
+  return found;
 }
 
 std::vector<hans_object> engine::LibraryManager::filter_objects(
