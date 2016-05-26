@@ -46,7 +46,7 @@ typedef struct {
   hans_hash name;
   hans_arg_type type;
   union {
-    int32_t number;
+    float number;
     bool boolean;
     hans_hash string;
   };
