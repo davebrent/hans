@@ -15,7 +15,6 @@ Vagrant.configure(2) do |config|
     sudo apt-get install -y portaudio19-dev
     sudo apt-get install -y libsqlite3-dev
     sudo apt-get install -y libepoxy-dev
-    sudo apt-get install -y libzmq3-dev
     sudo apt-get install -y libglfw3-dev libxrandr-dev libxinerama-dev \
       libxi-dev libxcursor-dev
     sudo apt-get install -y libavcodec-dev libavdevice-dev libavfilter-dev \

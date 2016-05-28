@@ -9,10 +9,6 @@
 #include "hans/engine/ProgramManager.hpp"
 #include "hans/engine/ProgramResources.hpp"
 #include "hans/graphics/Window.hpp"
-#include "hans/jsonrpc/Handler.hpp"
-#include "hans/jsonrpc/Message.hpp"
-#include "hans/jsonrpc/Server.hpp"
-#include "hans/jsonrpc/methods.hpp"
 
 using namespace hans;
 
@@ -59,28 +55,9 @@ static int run(const std::string& resources, hans_config& config) {
     logger.log(common::Logger::ERROR, "Unable to open audio stream");
   }
 
-  jsonrpc::Server server(string_manager, config.rpc);
-  jsonrpc::Handler handler;
-
-  jsonrpc::AudioStart start_audio(audio_stream);
-  jsonrpc::AudioStop stop_audio(audio_stream);
-  jsonrpc::GetAudioDevices get_audio_devices(audio_devices);
-  jsonrpc::GetObjects get_objects(string_manager, objects);
-  jsonrpc::SetProgram set_program(string_manager, program_manager);
-  jsonrpc::UseProgram use_program(string_manager, program_manager);
-
-  handler.add_method(string_manager.intern("start_audio"), &start_audio);
-  handler.add_method(string_manager.intern("stop_audio"), &stop_audio);
-  handler.add_method(string_manager.intern("get_audio_devices"),
-                     &get_audio_devices);
-  handler.add_method(string_manager.intern("set_program"), &set_program);
-  handler.add_method(string_manager.intern("use_program"), &use_program);
-  jsonrpc::LoggingHandler logging_handler(handler, logger);
-
   graphics::Window window("hans", config.window.width, config.window.height);
 
   while (!window.should_close()) {
-    server.update(logging_handler);
     program_manager.process_graphics();
     window.update();
   }
@@ -105,27 +82,13 @@ int main(int argc, char* argv[]) {
   graphics_config.width = 1184;
   graphics_config.height = 640;
 
-  hans_rpc_server_parameters rpc_config;
-  rpc_config.port = 5555;
-  rpc_config.num_threads = 1;
-  rpc_config.requests_per_frame = 10;
-
   hans_config config;
   config.audio = audio_config;
   config.window = graphics_config;
-  config.rpc = rpc_config;
 
   // clang-format off
   options.add_options()
     ("h,help", "Show this screen");
-
-  options.add_options("RPC")
-    ("rpc-port", "RPC port [default: 5555]",
-     cxxopts::value<uint16_t>(config.rpc.port), "PORT")
-    ("rpc-threads", "Number of threads [default: 1]",
-     cxxopts::value<uint16_t>(config.rpc.num_threads), "THREADS")
-    ("rpc-rpf", "Requests handled per frame [default: 10]",
-     cxxopts::value<uint16_t>(config.rpc.requests_per_frame), "MESSAGES");
 
   options.add_options("Window")
     ("window-width", "Screen width [default: 1184]",

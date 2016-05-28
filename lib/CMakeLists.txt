@@ -12,18 +12,6 @@ set(HANS_MODULE_SOURCES
 
 set(HANS_SOURCES
     common/ObjectGraph.cpp
-    jsonrpc/methods/AudioStart.cpp
-    jsonrpc/methods/AudioStop.cpp
-    jsonrpc/methods/GetAudioDevices.cpp
-    jsonrpc/methods/GetShaders.cpp
-    jsonrpc/methods/GetObjects.cpp
-    jsonrpc/methods/GetParameters.cpp
-    jsonrpc/methods/SetProgram.cpp
-    jsonrpc/methods/UseProgram.cpp
-    jsonrpc/methods/utils.cpp
-    jsonrpc/Handler.cpp
-    jsonrpc/Message.cpp
-    jsonrpc/Server.cpp
     audio/AudioDevices.cpp
     audio/AudioStream.cpp
     engine/DataLoader.cpp

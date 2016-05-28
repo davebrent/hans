@@ -5,9 +5,6 @@ set(HANS_TEST_SOURCES
 	engine/Program.cpp
 	engine/ProgramManager.cpp
 	engine/RegisterManager.cpp
-	jsonrpc/Handler.cpp
-	jsonrpc/Server.cpp
-	jsonrpc/utils.cpp
 	memory/LinearAllocator.cpp
 	memory/StringManager.cpp
 	sequencer/Device.cpp
@@ -25,5 +22,4 @@ target_link_libraries(hans-unittest
     ${EPOXY_LIBRARIES}
     ${PORTAUDIO_LIBRARIES}
     ${SQLITE3_LIBRARIES}
-    ${LIBZMQ_LIBRARIES}
 )
