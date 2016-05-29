@@ -1,26 +1,26 @@
-#include "hans/memory/LinearAllocator.hpp"
+#include "hans/common/LinearAllocator.hpp"
 #include <cassert>
 #include <cstdlib>
 #include <memory>
 
 using namespace hans;
 
-memory::LinearAllocator::LinearAllocator() {
+common::LinearAllocator::LinearAllocator() {
   m_start = nullptr;
   m_current = nullptr;
   m_end = nullptr;
 }
 
-memory::LinearAllocator::LinearAllocator(size_t size) {
+common::LinearAllocator::LinearAllocator(size_t size) {
   m_start = nullptr;
   reset(size);
 }
 
-memory::LinearAllocator::~LinearAllocator() {
+common::LinearAllocator::~LinearAllocator() {
   std::free(m_start);
 }
 
-void* memory::LinearAllocator::allocate(size_t size, size_t alignment) {
+void* common::LinearAllocator::allocate(size_t size, size_t alignment) {
   void* current = static_cast<void*>(m_current);
   size_t space = m_end - m_current;
   void* aligned = std::align(alignment, size, current, space);
@@ -36,15 +36,15 @@ void* memory::LinearAllocator::allocate(size_t size, size_t alignment) {
   return user_ptr;
 }
 
-void* memory::LinearAllocator::allocate(size_t size) {
+void* common::LinearAllocator::allocate(size_t size) {
   return allocate(size, 1);
 }
 
-void memory::LinearAllocator::reset() {
+void common::LinearAllocator::reset() {
   m_current = m_start;
 }
 
-void memory::LinearAllocator::reset(size_t size) {
+void common::LinearAllocator::reset(size_t size) {
   std::free(m_start);
   m_start = static_cast<char*>(std::calloc(1, size));
   assert(m_start != nullptr && "Out of memory");
@@ -53,10 +53,10 @@ void memory::LinearAllocator::reset(size_t size) {
   m_current = m_start;
 }
 
-void* memory::LinearAllocator::start() const {
+void* common::LinearAllocator::start() const {
   return m_start;
 }
 
-void* memory::LinearAllocator::end() const {
+void* common::LinearAllocator::end() const {
   return m_current;
 }

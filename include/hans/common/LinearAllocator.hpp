@@ -1,10 +1,10 @@
-#ifndef HANS_MEMORY_LINEARALLOCATOR_H_
-#define HANS_MEMORY_LINEARALLOCATOR_H_
+#ifndef HANS_COMMON_LINEARALLOCATOR_H_
+#define HANS_COMMON_LINEARALLOCATOR_H_
 
 #include <stddef.h>
 
 namespace hans {
-namespace memory {
+namespace common {
 
 class LinearAllocator {
  public:
@@ -27,7 +27,7 @@ class LinearAllocator {
   char* m_end;
 };
 
-} // namespace memory
+} // namespace common
 } // namespace hans
 
-#endif // HANS_MEMORY_LINEARALLOCATOR_H_
+#endif // HANS_COMMON_LINEARALLOCATOR_H_

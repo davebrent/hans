@@ -5,8 +5,8 @@ set(HANS_MODULE_SOURCES
     engine/ParameterManager.cpp
     graphics/ShaderManager.cpp
     graphics/FrameBufferManager.cpp
-    memory/StringManager.cpp
-    memory/LinearAllocator.cpp
+    common/StringManager.cpp
+    common/LinearAllocator.cpp
     common/Logging.cpp
 )
 

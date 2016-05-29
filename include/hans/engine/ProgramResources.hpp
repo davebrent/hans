@@ -4,9 +4,9 @@
 #include <vector>
 #include "hans/audio/AudioBusManager.hpp"
 #include "hans/common/Logger.hpp"
+#include "hans/common/StringManager.hpp"
 #include "hans/common/types.hpp"
 #include "hans/engine/object.hpp"
-#include "hans/memory/StringManager.hpp"
 
 namespace hans {
 namespace engine {
@@ -14,7 +14,7 @@ namespace engine {
 class ProgramResources {
  public:
   hans::common::Logger* logger;
-  hans::memory::StringManager* strings;
+  hans::common::StringManager* strings;
   hans_config* config;
   hans::audio::AudioBusManager* audio_buses;
   hans::audio::AudioBufferManager* audio_buffers;

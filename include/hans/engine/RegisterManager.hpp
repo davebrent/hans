@@ -1,8 +1,8 @@
 #ifndef HANS_ENGINE_REGISTERMANAGER_H_
 #define HANS_ENGINE_REGISTERMANAGER_H_
 
+#include "hans/common/LinearAllocator.hpp"
 #include "hans/common/types.hpp"
-#include "hans/memory/LinearAllocator.hpp"
 
 namespace hans {
 namespace engine {
@@ -35,7 +35,7 @@ class RegisterManager {
   size_t m_register_size;
   char* m_register_base;
   unsigned m_num_connections;
-  hans::memory::LinearAllocator m_allocator;
+  hans::common::LinearAllocator m_allocator;
   hans_object_connection* m_connections;
 };
 

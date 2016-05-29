@@ -3,6 +3,7 @@
 #include "hans/audio/AudioDevices.hpp"
 #include "hans/audio/AudioStream.hpp"
 #include "hans/common/Logging.hpp"
+#include "hans/common/StringManager.hpp"
 #include "hans/engine/DataLoader.hpp"
 #include "hans/engine/LibraryManager.hpp"
 #include "hans/engine/Program.hpp"
@@ -13,7 +14,7 @@
 using namespace hans;
 
 static int run(const std::string& resources, hans_config& config) {
-  memory::StringManager string_manager(16384 /* 16kb */);
+  common::StringManager string_manager(16384 /* 16kb */);
   common::ConsoleLogger logger(common::Logger::DEBUG);
   engine::DataLoader data_loader(resources.c_str(), string_manager);
   audio::AudioBufferManager audio_buffer_manager(config.audio.block_size);

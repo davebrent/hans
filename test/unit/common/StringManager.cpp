@@ -1,11 +1,11 @@
-#include "hans/memory/StringManager.hpp"
+#include "hans/common/StringManager.hpp"
 #include <catch.hpp>
 
 using namespace hans;
 
 SCENARIO("Interning strings", "[strings]") {
   GIVEN("strings and a manager") {
-    memory::StringManager string_manager(64);
+    common::StringManager string_manager(64);
 
     WHEN("interning") {
       const char* str1 = "hello";

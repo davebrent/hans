@@ -8,7 +8,7 @@
 using namespace hans;
 
 engine::DataLoader::DataLoader(const char *path,
-                               hans::memory::StringManager &string_manager)
+                               hans::common::StringManager &string_manager)
     : m_string_manager(string_manager) {
   sqlite3_open(path, &m_connection);
   assert(m_connection != nullptr);

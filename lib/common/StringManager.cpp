@@ -1,4 +1,4 @@
-#include "hans/memory/StringManager.hpp"
+#include "hans/common/StringManager.hpp"
 #include <algorithm>
 #include <cassert>
 #include <cstring>
@@ -51,10 +51,10 @@ static uint64_t murmur_hash_64(const void* key, uint32_t len, uint64_t seed) {
   return h;
 }
 
-memory::StringManager::StringManager(size_t size) : m_allocator(size) {
+common::StringManager::StringManager(size_t size) : m_allocator(size) {
 }
 
-hans_hash memory::StringManager::intern(const char* string) {
+hans_hash common::StringManager::intern(const char* string) {
   // Check if we have seen the string before
   size_t len = strlen(string);
   hans_hash hash = murmur_hash_64(string, len * sizeof(char), 0);
@@ -83,15 +83,15 @@ hans_hash memory::StringManager::intern(const char* string) {
   return hash;
 }
 
-hans_hash memory::StringManager::intern(const unsigned char* string) {
+hans_hash common::StringManager::intern(const unsigned char* string) {
   return intern(reinterpret_cast<const char*>(string));
 }
 
-hans_hash memory::StringManager::intern(const std::string string) {
+hans_hash common::StringManager::intern(const std::string string) {
   return intern(string.c_str());
 }
 
-const char* memory::StringManager::lookup(const hans_hash& hash) const {
+const char* common::StringManager::lookup(const hans_hash& hash) const {
   auto begin = m_hashes.begin();
   auto end = m_hashes.end();
   auto it = std::find(begin, end, hash);
@@ -101,10 +101,10 @@ const char* memory::StringManager::lookup(const hans_hash& hash) const {
   return nullptr;
 }
 
-void* memory::StringManager::start() const {
+void* common::StringManager::start() const {
   return m_allocator.start();
 }
 
-void* memory::StringManager::end() const {
+void* common::StringManager::end() const {
   return m_allocator.end();
 }

@@ -2,15 +2,15 @@
 #define HANS_LIBRARYMANAGER_H_
 
 #include <vector>
+#include "hans/common/StringManager.hpp"
 #include "hans/common/types.hpp"
-#include "hans/memory/StringManager.hpp"
 
 namespace hans {
 namespace engine {
 
 class LibraryManager {
  public:
-  LibraryManager(hans::memory::StringManager& string_manager,
+  LibraryManager(hans::common::StringManager& string_manager,
                  std::vector<hans_object>& objects);
   ~LibraryManager();
 
@@ -21,7 +21,7 @@ class LibraryManager {
   std::vector<hans_object> filter_objects(hans_object_type type);
 
  private:
-  hans::memory::StringManager& m_string_manager;
+  hans::common::StringManager& m_string_manager;
   std::vector<void*> m_handles;
   std::vector<hans_object>& m_objects;
 };

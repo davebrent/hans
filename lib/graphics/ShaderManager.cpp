@@ -4,7 +4,7 @@
 using namespace hans;
 
 graphics::ShaderManager::ShaderManager(
-    common::Logger& logger, const memory::StringManager& string_manager,
+    common::Logger& logger, const common::StringManager& string_manager,
     const std::vector<hans_shader>& shaders)
     : m_logger(logger), m_string_manager(string_manager), m_shaders(shaders) {
 }

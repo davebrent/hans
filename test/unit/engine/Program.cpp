@@ -48,7 +48,7 @@ static void make_audio_2(hans_constructor_api* api, void* buffer, size_t size) {
   object->callback = nullptr;
 }
 
-static memory::StringManager s(256);
+static common::StringManager s(256);
 
 // id, type, name, size, make, destroy
 static std::vector<hans_object> GRAPHICS_OBJECTS = {

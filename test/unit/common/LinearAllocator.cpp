@@ -1,11 +1,11 @@
-#include "hans/memory/LinearAllocator.hpp"
+#include "hans/common/LinearAllocator.hpp"
 #include <catch.hpp>
 
 using namespace hans;
 
-SCENARIO("Linear memory allocation", "[memory]") {
+SCENARIO("Linear memory allocation", "[common]") {
   GIVEN("An allocator of a given size") {
-    memory::LinearAllocator allocator(32);
+    common::LinearAllocator allocator(32);
 
     WHEN("allocating memory") {
       void* a = allocator.allocate(16);

@@ -1,13 +1,13 @@
-#ifndef HANS_MEMORY_STRINGMANAGER_H_
-#define HANS_MEMORY_STRINGMANAGER_H_
+#ifndef HANS_COMMON_STRINGMANAGER_H_
+#define HANS_COMMON_STRINGMANAGER_H_
 
 #include <string>
 #include <vector>
+#include "hans/common/LinearAllocator.hpp"
 #include "hans/common/types.hpp"
-#include "hans/memory/LinearAllocator.hpp"
 
 namespace hans {
-namespace memory {
+namespace common {
 
 class StringManager {
  public:
@@ -24,12 +24,12 @@ class StringManager {
   void* end() const;
 
  private:
-  memory::LinearAllocator m_allocator;
+  common::LinearAllocator m_allocator;
   std::vector<hans_hash> m_hashes;
   std::vector<const char*> m_strings;
 };
 
-} // namespace memory
+} // namespace common
 } // namespace hans
 
-#endif // HANS_MEMORY_STRINGMANAGER_H_
+#endif // HANS_COMMON_STRINGMANAGER_H_

@@ -1,12 +1,12 @@
 #include "hans/engine/ParameterManager.hpp"
 #include <catch.hpp>
 #include <memory>
-#include "hans/memory/StringManager.hpp"
+#include "hans/common/StringManager.hpp"
 
 using namespace hans;
 
 TEST_CASE("parameter manager", "[parameters]") {
-  memory::StringManager s(16);
+  common::StringManager s(16);
   // object_id, id, name, size
   std::vector<hans_parameter> parameters = {{0, 0, s.intern("a"), 1},
                                             {1, 1, s.intern("b"), 2},

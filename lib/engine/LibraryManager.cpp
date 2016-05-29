@@ -10,7 +10,7 @@ static bool hans_register(hans_library_api* api, const char* name, size_t size,
   return library_manager->register_object(name, size, make, destroy);
 }
 
-engine::LibraryManager::LibraryManager(memory::StringManager& string_manager,
+engine::LibraryManager::LibraryManager(common::StringManager& string_manager,
                                        std::vector<hans_object>& objects)
     : m_string_manager(string_manager), m_objects(objects) {
 }

@@ -5,8 +5,8 @@
 #include <cassert>
 #include <cstring>
 #include <vector>
+#include "hans/common/LinearAllocator.hpp"
 #include "hans/common/types.hpp"
-#include "hans/memory/LinearAllocator.hpp"
 
 namespace hans {
 namespace engine {
@@ -157,7 +157,7 @@ class ObjectChain {
   }
 
  private:
-  hans::memory::LinearAllocator m_allocator;
+  hans::common::LinearAllocator m_allocator;
   const std::vector<hans_object>& m_object_classes;
   std::vector<hans_object_id> m_object_ids;
   unsigned m_largest_size;

@@ -1,6 +1,6 @@
 #include <cxxopts.hpp>
 #include <iostream>
-#include "hans/memory/StringManager.hpp"
+#include "hans/common/StringManager.hpp"
 
 using namespace hans;
 
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  memory::StringManager s(16384 /* 16kb */);
+  common::StringManager s(16384 /* 16kb */);
   for (auto& arg : args) {
     std::cout << "0x" << std::hex << s.intern(arg) << std::endl;
   }

@@ -1,12 +1,12 @@
 set(HANS_TEST_SOURCES 
 	audio/AudioBufferManager.cpp
 	common/ObjectGraph.cpp
+	common/LinearAllocator.cpp
+	common/StringManager.cpp
 	engine/ParameterManager.cpp
 	engine/Program.cpp
 	engine/ProgramManager.cpp
 	engine/RegisterManager.cpp
-	memory/LinearAllocator.cpp
-	memory/StringManager.cpp
 	sequencer/Device.cpp
 	main.cpp
 )

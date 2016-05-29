@@ -2,8 +2,8 @@
 #define HANS_DATALOADER_H_
 
 #include <vector>
+#include "hans/common/StringManager.hpp"
 #include "hans/common/types.hpp"
-#include "hans/memory/StringManager.hpp"
 
 class sqlite3;
 
@@ -13,7 +13,7 @@ namespace engine {
 class DataLoader {
  public:
   explicit DataLoader(const char* path,
-                      hans::memory::StringManager& string_manager);
+                      hans::common::StringManager& string_manager);
   ~DataLoader();
 
   /// Returns all libraries that should be loaded
@@ -35,7 +35,7 @@ class DataLoader {
 
  private:
   sqlite3* m_connection;
-  hans::memory::StringManager& m_string_manager;
+  hans::common::StringManager& m_string_manager;
 };
 
 } // namespace engine
