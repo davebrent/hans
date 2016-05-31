@@ -13,6 +13,7 @@ set(HANS_MODULE_SOURCES
 
 set(HANS_SOURCES
     common/ObjectGraph.cpp
+    common/DataLoader.cpp
     audio/AudioDevices.cpp
     audio/AudioStream.cpp
     engine/DataLoader.cpp

@@ -258,4 +258,43 @@ typedef struct {
   };
 } hans_object_resource;
 
+enum hans_blob_type {
+  HANS_BLOB_STRINGS,
+  HANS_BLOB_STRING_HASHES,
+  HANS_BLOB_STRING_OFFSETS,
+  HANS_BLOB_LIBRARIES,
+  HANS_BLOB_OBJECTS,
+  HANS_BLOB_OBJECTS_DATA,
+  HANS_BLOB_PARAMETERS,
+  HANS_BLOB_PARAMETER_VALUES,
+  HANS_BLOB_PROGRAMS,
+  HANS_BLOB_PROGRAM_GRAPHS,
+  HANS_BLOB_GRAPH_CONNECTIONS,
+  HANS_BLOB_RESOURCE_REQUESTS,
+  HANS_BLOB_SHADERS,
+  HANS_BLOB_FBOS,
+  HANS_BLOB_FBO_ATTACHMENTS
+};
+
+typedef struct {
+  // Type of data encoded in the blob
+  hans_blob_type type;
+  size_t offset;
+  // Size in bytes of the data
+  size_t size;
+  void *data;
+} hans_blob;
+
+typedef struct {
+  uint16_t version;
+  bool little_endian;
+  // Sum of data contained in blobs
+  size_t size;
+  // Number of blobs contained in the file
+  size_t length;
+  hans_blob *blobs;
+  // The data referenced by blob.offset
+  void *data;
+} hans_file;
+
 #endif // HANS_COMMON_TYPES_H_
