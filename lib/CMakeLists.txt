@@ -5,6 +5,7 @@ set(HANS_MODULE_SOURCES
     engine/ParameterManager.cpp
     graphics/ShaderManager.cpp
     graphics/FrameBufferManager.cpp
+    common/hasher.cpp
     common/StringManager.cpp
     common/LinearAllocator.cpp
     common/Logging.cpp
