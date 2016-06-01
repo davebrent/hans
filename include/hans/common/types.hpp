@@ -258,6 +258,23 @@ typedef struct {
   };
 } hans_object_resource;
 
+typedef struct {
+  hans_resource_type type;
+  size_t amount;
+} hans_resource_request;
+
+typedef struct {
+  size_t node_start;
+  size_t node_end;
+  size_t edge_start;
+  size_t edge_end;
+} hans_runtime_graph;
+
+typedef struct {
+  hans_runtime_graph graphics;
+  hans_runtime_graph audio;
+} hans_program;
+
 enum hans_blob_type {
   HANS_BLOB_STRINGS,
   HANS_BLOB_STRING_HASHES,
