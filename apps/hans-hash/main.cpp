@@ -1,6 +1,6 @@
 #include <cxxopts.hpp>
 #include <iostream>
-#include "hans/common/StringManager.hpp"
+#include "hans/common/hasher.hpp"
 
 using namespace hans;
 
@@ -9,7 +9,8 @@ int main(int argc, char* argv[]) {
 
   // clang-format off
   options.add_options()
-    ("h,help", "Show this screen");
+    ("h,help", "Show this screen")
+    ("hex", "Show hash in base 10");
 
   options.add_options("Hidden")
     ("positional", "Positional arguments (internal)",
@@ -32,9 +33,15 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  common::StringManager s(16384 /* 16kb */);
+  auto hex = options["hex"].as<bool>();
+
   for (auto& arg : args) {
-    std::cout << "0x" << std::hex << s.intern(arg) << std::endl;
+    auto hash = common::hasher(arg.c_str());
+    if (hex) {
+      std::cout << "0x" << std::hex << hash << std::endl;
+    } else {
+      std::cout << hash << std::endl;
+    }
   }
 
   return 0;
