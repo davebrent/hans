@@ -17,6 +17,7 @@ check: $(BUILD_DIR)
 	@guile -s test/scheme/patterns.scm
 	@guile -s test/scheme/sequencer.scm
 	@guile -s test/scheme/rhythms.scm
+	@guile -s test/scheme/compiler.scm
 
 lint:
 	@cppcheck --enable=all --quiet -I include/ $(SRC_DIRS)

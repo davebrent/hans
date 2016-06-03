@@ -25,6 +25,7 @@ set(HANS_SOURCES
 )
 
 add_subdirectory(sequencer)
+add_subdirectory(compiler)
 
 add_library(hansmodule ${HANS_MODULE_SOURCES})
 add_library(hans ${HANS_SOURCES})

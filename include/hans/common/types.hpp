@@ -240,6 +240,8 @@ typedef struct {
   bool stencil_buffer;
   hans_fbo_attachment *attachments;
   uint32_t num_attachments;
+  size_t start;
+  size_t end;
 } hans_fbo;
 
 typedef struct {
@@ -277,6 +279,7 @@ typedef struct {
 } hans_runtime_graph;
 
 typedef struct {
+  hans_hash name;
   hans_runtime_graph graphics;
   hans_runtime_graph audio;
 } hans_program;
