@@ -126,19 +126,18 @@ void quad_new(hans_constructor_api* api, void* buffer, size_t size) {
   api->request_resource(api, HANS_INLET, 1);
   api->request_resource(api, HANS_OUTLET, 1);
   api->request_resource(api, HANS_SHADER, 2);
+}
 
-  hans_graphics_object* object = static_cast<hans_graphics_object*>(buffer);
+void quad_init(void* instance) {
+  hans_graphics_object* object = static_cast<hans_graphics_object*>(instance);
   object->setup = quad_setup;
   object->update = nullptr;
   object->draw = quad_draw;
-
-  void* offset = static_cast<char*>(buffer) + sizeof(hans_graphics_object);
-  object->data = static_cast<QuadData*>(offset);
 }
 
 extern "C" {
 void setup(hans_library_api* api) {
-  auto size = sizeof(hans_graphics_object) + sizeof(QuadData);
-  api->register_object(api, "gfx-quad", size, quad_new, nullptr);
+  auto size = sizeof(QuadData);
+  api->register_object(api, "gfx-quad", size, quad_new, quad_init, nullptr);
 }
 }

@@ -16,14 +16,12 @@ void hans_gain_setup(hans_audio_object* self, hans_object_api* api) {
 void hans_gain_new(hans_constructor_api* api, void* buffer, size_t size) {
   api->request_resource(api, HANS_INLET, 1);
   api->request_resource(api, HANS_OUTLET, 1);
+}
 
-  hans_audio_object* object = static_cast<hans_audio_object*>(buffer);
+void hans_gain_init(void* instance) {
+  auto object = static_cast<hans_audio_object*>(instance);
   object->setup = hans_gain_setup;
   object->callback = hans_gain_callback;
-
-  void* offset = static_cast<char*>(buffer) + sizeof(hans_audio_object);
-  hans_gain_data* data = static_cast<hans_gain_data*>(offset);
-  object->data = data;
 }
 
 /*
@@ -57,8 +55,9 @@ void hans_pan_new(hans_constructor_api* api, void* buffer, size_t size) {
 
 extern "C" {
 void setup(hans_library_api* api) {
-  size_t size = sizeof(hans_audio_object) + sizeof(hans_gain_data);
-  api->register_object(api, "snd-gain", size, hans_gain_new, nullptr);
+  size_t size = sizeof(hans_gain_data);
+  api->register_object(api, "snd-gain", size, hans_gain_new, hans_gain_init,
+                       nullptr);
 
   /*
   size = sizeof(hans_audio_object) + sizeof(hans_pan_data);

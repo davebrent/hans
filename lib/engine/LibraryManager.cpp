@@ -5,9 +5,10 @@
 using namespace hans;
 
 static bool hans_register(hans_library_api* api, const char* name, size_t size,
-                          hans_new_object make, hans_del_object destroy) {
+                          hans_new_object make, hans_init_object init,
+                          hans_del_object destroy) {
   auto library_manager = static_cast<engine::LibraryManager*>(api->data);
-  return library_manager->register_object(name, size, make, destroy);
+  return library_manager->register_object(name, size, make, init, destroy);
 }
 
 engine::LibraryManager::LibraryManager(common::StringManager& string_manager,
@@ -42,6 +43,7 @@ void engine::LibraryManager::load_libraries(
 
 bool engine::LibraryManager::register_object(const char* name, size_t size,
                                              hans_new_object make,
+                                             hans_init_object init,
                                              hans_del_object destroy) {
   auto hash = m_string_manager.intern(name);
   auto found = false;
@@ -51,6 +53,7 @@ bool engine::LibraryManager::register_object(const char* name, size_t size,
     if (object.name == hash) {
       object.size = size;
       object.make = make;
+      object.init = init;
       object.destroy = destroy;
       found = true;
     }

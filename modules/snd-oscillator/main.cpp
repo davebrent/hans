@@ -132,15 +132,9 @@ static void hans_osc_setup(hans_audio_object* self, hans_object_api* api) {
 }
 
 static void hans_osc_new(hans_constructor_api* api, void* buffer, size_t size) {
-  hans_audio_object* object = static_cast<hans_audio_object*>(buffer);
-  object->setup = hans_osc_setup;
-  object->callback = hans_osc_callback;
-
-  void* offset = static_cast<char*>(buffer) + sizeof(hans_audio_object);
-  hans_osc_data* data = static_cast<hans_osc_data*>(offset);
+  hans_osc_data* data = static_cast<hans_osc_data*>(buffer);
   data->phase = 0;
   data->channels = 1;
-  object->data = data;
 
   hans_osc_parse_args(api, data);
 
@@ -148,9 +142,16 @@ static void hans_osc_new(hans_constructor_api* api, void* buffer, size_t size) {
   api->request_resource(api, HANS_AUDIO_BUFFER, 1);
 }
 
+void hans_osc_init(void* instance) {
+  auto object = static_cast<hans_audio_object*>(instance);
+  object->setup = hans_osc_setup;
+  object->callback = hans_osc_callback;
+}
+
 extern "C" {
 void setup(hans_library_api* api) {
-  size_t size = sizeof(hans_audio_object) + sizeof(hans_osc_data);
-  api->register_object(api, "snd-oscillator", size, hans_osc_new, nullptr);
+  size_t size = sizeof(hans_osc_data);
+  api->register_object(api, "snd-oscillator", size, hans_osc_new, hans_osc_init,
+                       nullptr);
 }
 }

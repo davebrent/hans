@@ -75,8 +75,6 @@ void hans_test_graphics_draw(hans_graphics_object* self, hans_object_api* api) {
 
 void hans_test_graphics_new(hans_constructor_api* api, void* buff,
                             size_t size) {
-  hans_graphics_object* object = static_cast<hans_graphics_object*>(buff);
-
   auto arguments = api->get_args(api);
   for (int i = 0; i < arguments.length; ++i) {
     if (arguments.data[i].type == HANS_NUMBER) {
@@ -84,14 +82,13 @@ void hans_test_graphics_new(hans_constructor_api* api, void* buff,
       break;
     }
   }
+}
 
+void hans_test_graphics_init(void* instance) {
+  hans_graphics_object* object = static_cast<hans_graphics_object*>(instance);
   object->setup = hans_test_graphics_setup;
   object->update = hans_test_graphics_update;
   object->draw = hans_test_graphics_draw;
-
-  void* offset = static_cast<char*>(buff) + sizeof(hans_graphics_object);
-  auto* data = static_cast<hans_test_gfx_data*>(offset);
-  object->data = data;
 }
 
 void hans_test_audio_setup(hans_audio_object* self, hans_object_api* api) {
@@ -145,8 +142,6 @@ void hans_test_audio_callback(hans_audio_object* self, hans_object_api* api) {
 }
 
 void hans_test_audio_new(hans_constructor_api* api, void* buff, size_t size) {
-  hans_audio_object* object = static_cast<hans_audio_object*>(buff);
-
   auto arguments = api->get_args(api);
   for (int i = 0; i < arguments.length; ++i) {
     if (arguments.data[i].type == HANS_NUMBER) {
@@ -154,23 +149,21 @@ void hans_test_audio_new(hans_constructor_api* api, void* buff, size_t size) {
       break;
     }
   }
+}
 
+void hans_test_audio_init(void* instance) {
+  hans_audio_object* object = static_cast<hans_audio_object*>(instance);
   object->setup = hans_test_audio_setup;
   object->callback = hans_test_audio_callback;
-
-  void* offset = static_cast<char*>(buff) + sizeof(hans_audio_object);
-  auto* data = static_cast<hans_test_audio_data*>(offset);
-  object->data = data;
 }
 
 extern "C" {
 void setup(hans_library_api* api) {
-  api->register_object(api, "test-graphics", sizeof(hans_test_gfx_data) +
-                                                 sizeof(hans_graphics_object),
-                       hans_test_graphics_new, nullptr);
+  api->register_object(api, "test-graphics", sizeof(hans_test_gfx_data),
+                       hans_test_graphics_new, hans_test_graphics_init,
+                       nullptr);
 
-  api->register_object(api, "test-audio",
-                       sizeof(hans_test_audio_data) + sizeof(hans_audio_object),
-                       hans_test_audio_new, nullptr);
+  api->register_object(api, "test-audio", sizeof(hans_test_audio_data),
+                       hans_test_audio_new, hans_test_audio_init, nullptr);
 }
 }

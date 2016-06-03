@@ -355,20 +355,19 @@ void superformula_new(hans_constructor_api *api, void *buffer, size_t size) {
   api->request_resource(api, HANS_INLET, 0);
   api->request_resource(api, HANS_OUTLET, 3);
   api->request_resource(api, HANS_SHADER, 4);
+}
 
-  hans_graphics_object *object = static_cast<hans_graphics_object *>(buffer);
+void superformula_init(void *instance) {
+  hans_graphics_object *object = static_cast<hans_graphics_object *>(instance);
   object->setup = superformula_setup;
   object->update = nullptr;
   object->draw = superformula_draw;
-
-  void *offset = static_cast<char *>(buffer) + sizeof(hans_graphics_object);
-  object->data = static_cast<SuperFormula *>(offset);
 }
 
 extern "C" {
 void setup(hans_library_api *api) {
-  api->register_object(api, "gfx-superformula",
-                       sizeof(hans_graphics_object) + sizeof(SuperFormula),
-                       superformula_new, nullptr);
+  auto s = sizeof(SuperFormula);
+  api->register_object(api, "gfx-superformula", s, superformula_new,
+                       superformula_init, nullptr);
 }
 }

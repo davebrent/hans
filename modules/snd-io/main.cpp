@@ -55,14 +55,6 @@ static void hans_io_parse_args(hans_constructor_api* api, hans_io_data* data) {
   }
 }
 
-static hans_io_data* hans_io_patch_object(hans_audio_object* object,
-                                          void* buff) {
-  void* offset = static_cast<char*>(buff) + sizeof(hans_audio_object);
-  hans_io_data* data = static_cast<hans_io_data*>(offset);
-  object->data = data;
-  return data;
-}
-
 static void hans_io_callback_in(hans_audio_object* self, hans_object_api* api) {
   hans_io_data* data = static_cast<hans_io_data*>(self->data);
 
@@ -119,11 +111,7 @@ static void hans_io_setup(hans_audio_object* self, hans_object_api* api) {
 
 static void hans_io_new_in(hans_constructor_api* api, void* buffer,
                            size_t size) {
-  hans_audio_object* object = static_cast<hans_audio_object*>(buffer);
-  object->setup = hans_io_setup;
-  object->callback = hans_io_callback_in;
-
-  hans_io_data* data = hans_io_patch_object(object, buffer);
+  hans_io_data* data = static_cast<hans_io_data*>(buffer);
   hans_io_parse_args(api, data);
 
   auto num_signals = data->channels.size();
@@ -133,11 +121,7 @@ static void hans_io_new_in(hans_constructor_api* api, void* buffer,
 
 static void hans_io_new_out(hans_constructor_api* api, void* buffer,
                             size_t size) {
-  hans_audio_object* object = static_cast<hans_audio_object*>(buffer);
-  object->setup = hans_io_setup;
-  object->callback = hans_io_callback_out;
-
-  hans_io_data* data = hans_io_patch_object(object, buffer);
+  hans_io_data* data = static_cast<hans_io_data*>(buffer);
   hans_io_parse_args(api, data);
 
   auto num_signals = data->channels.size();
@@ -145,10 +129,24 @@ static void hans_io_new_out(hans_constructor_api* api, void* buffer,
   api->request_resource(api, HANS_AUDIO_BUFFER, num_signals);
 }
 
+void hans_io_init_in(void* instance) {
+  auto object = static_cast<hans_audio_object*>(instance);
+  object->setup = hans_io_setup;
+  object->callback = hans_io_callback_in;
+}
+
+void hans_io_init_out(void* instance) {
+  auto object = static_cast<hans_audio_object*>(instance);
+  object->setup = hans_io_setup;
+  object->callback = hans_io_callback_out;
+}
+
 extern "C" {
 void setup(hans_library_api* api) {
-  size_t size = sizeof(hans_audio_object) + sizeof(hans_io_data);
-  api->register_object(api, "snd-in", size, hans_io_new_in, nullptr);
-  api->register_object(api, "snd-out", size, hans_io_new_out, nullptr);
+  size_t size = sizeof(hans_io_data);
+  api->register_object(api, "snd-in", size, hans_io_new_in, hans_io_init_in,
+                       nullptr);
+  api->register_object(api, "snd-out", size, hans_io_new_out, hans_io_init_out,
+                       nullptr);
 }
 }

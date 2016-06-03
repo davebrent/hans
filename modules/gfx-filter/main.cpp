@@ -155,15 +155,8 @@ void filter_new(hans_constructor_api* api, void* buffer, size_t size) {
   api->request_resource(api, HANS_OUTLET, 1);
   api->request_resource(api, HANS_SHADER, 2);
 
-  hans_graphics_object* object = static_cast<hans_graphics_object*>(buffer);
-  object->setup = filter_setup;
-  object->update = nullptr;
-  object->draw = filter_draw;
+  auto data = static_cast<FilterData*>(buffer);
 
-  void* offset = static_cast<char*>(buffer) + sizeof(hans_graphics_object);
-  object->data = static_cast<FilterData*>(offset);
-
-  auto data = static_cast<FilterData*>(object->data);
   // Parse arguments
   bool found = false;
   auto args = api->get_args(api);
@@ -180,9 +173,17 @@ void filter_new(hans_constructor_api* api, void* buffer, size_t size) {
   }
 }
 
+void filter_init(void* instance) {
+  hans_graphics_object* object = static_cast<hans_graphics_object*>(instance);
+  object->setup = filter_setup;
+  object->update = nullptr;
+  object->draw = filter_draw;
+}
+
 extern "C" {
 void setup(hans_library_api* api) {
-  auto size = sizeof(hans_graphics_object) + sizeof(FilterData);
-  api->register_object(api, "gfx-filter", size, filter_new, nullptr);
+  auto size = sizeof(FilterData);
+  api->register_object(api, "gfx-filter", size, filter_new, filter_init,
+                       nullptr);
 }
 }

@@ -136,16 +136,12 @@ void hans_loadsf_setup(hans_audio_object* self, hans_object_api* api) {
 }
 
 void hans_loadsf_new(hans_constructor_api* api, void* buffer, size_t size) {
-  hans_audio_object* object = static_cast<hans_audio_object*>(buffer);
-  object->setup = hans_loadsf_setup;
-  object->callback = nullptr;
-
-  void* offset = static_cast<char*>(buffer) + sizeof(hans_audio_object);
-  hans_loadsf_data* data = static_cast<hans_loadsf_data*>(offset);
+  hans_loadsf_data* data = static_cast<hans_loadsf_data*>(buffer);
 
   av_register_all();
 
   api->request_resource(api, HANS_OUTLET, 1);
+
   auto arguments = api->get_args(api);
   for (int i = 0; i < arguments.length; ++i) {
     if (arguments.data[i].type == HANS_STRING &&
@@ -154,14 +150,18 @@ void hans_loadsf_new(hans_constructor_api* api, void* buffer, size_t size) {
       break;
     }
   }
+}
 
-  object->data = data;
+void hans_loadsf_init(void* instance) {
+  auto object = static_cast<hans_audio_object*>(instance);
+  object->setup = hans_loadsf_setup;
+  object->callback = nullptr;
 }
 
 extern "C" {
 void setup(hans_library_api* api) {
-  api->register_object(api, "snd-loadfile",
-                       sizeof(hans_audio_object) + sizeof(hans_loadsf_data),
-                       hans_loadsf_new, nullptr);
+  auto size = sizeof(hans_loadsf_data);
+  api->register_object(api, "snd-loadfile", size, hans_loadsf_new,
+                       hans_loadsf_init, nullptr);
 }
 }

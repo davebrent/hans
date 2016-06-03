@@ -123,9 +123,12 @@ struct hans_constructor_api {
   void *data;
 };
 
-/// Create and delete an instance of a hans object
+/// Parse arguments and request resources
 typedef void (*hans_new_object)(hans_constructor_api *api, void *buffer,
                                 size_t size);
+/// Initialize an object instance
+typedef void (*hans_init_object)(void *object);
+/// Delete an object instance
 typedef void (*hans_del_object)(void *instance);
 
 enum hans_object_type { HANS_AUDIO, HANS_GRAPHICS };
@@ -142,6 +145,8 @@ typedef struct {
   size_t size;
   /// Create a new instance of the object
   hans_new_object make;
+  /// Initialize an object instance
+  hans_init_object init;
   /// Destroy an instance of the object
   hans_del_object destroy;
 } hans_object;
@@ -184,6 +189,7 @@ struct hans_library_api {
   /// Register a new object type
   bool (*register_object)(hans_library_api *api, const char *name, size_t size,
                           hans_new_object new_instance,
+                          hans_init_object init_instance,
                           hans_del_object del_instance);
   void *data;
 };

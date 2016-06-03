@@ -16,7 +16,7 @@ class LibraryManager {
 
   void load_libraries(std::vector<hans_library>& libraries);
   bool register_object(const char* name, size_t size, hans_new_object make,
-                       hans_del_object destroy);
+                       hans_init_object init, hans_del_object destroy);
 
   std::vector<hans_object> filter_objects(hans_object_type type);
 
