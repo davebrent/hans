@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "hans/common/LinearAllocator.hpp"
+#include "hans/common/ListView.hpp"
 #include "hans/common/types.hpp"
 
 namespace hans {
@@ -26,9 +27,28 @@ class DataWriter {
 
 class DataReader {
  public:
-  DataReader(const char* uri);
+  typedef struct {
+    ListView<const char> strings;
+    ListView<hans_hash> string_hashes;
+    ListView<size_t> string_offsets;
+    ListView<hans_library> libraries;
+    ListView<hans_object> objects;
+    hans_blob object_data;
+    ListView<hans_parameter> parameters;
+    ListView<hans_parameter_value> parameter_values;
+    ListView<hans_program> programs;
+    ListView<size_t> chains;
+    ListView<hans_register> registers;
+    ListView<hans_resource_request> resource_requests;
+    ListView<hans_shader> shaders;
+    ListView<hans_fbo> fbos;
+    ListView<hans_fbo_attachment> fbo_attachments;
+  } file_data;
+
+  explicit DataReader(const char* uri);
   ~DataReader();
   hans_file file;
+  file_data data;
 };
 
 } // namespace common

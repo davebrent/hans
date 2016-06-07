@@ -1,8 +1,8 @@
 #include "hans/common/DataLoader.hpp"
+#include <cassert>
 #include <cstring>
 #include <fstream>
 #include <iostream>
-#include <vector>
 
 using namespace hans;
 
@@ -25,6 +25,7 @@ bool common::DataWriter::stage(hans_blob_type type, void* data, size_t size) {
   blob.data = m_allocator.allocate(size);
   blob.size = size;
 
+  assert(blob.data != nullptr);
   std::memcpy(blob.data, data, size);
 
   if (len == 0) {
@@ -78,7 +79,56 @@ common::DataReader::DataReader(const char* uri) {
 
   auto base = static_cast<char*>(file.data);
   for (auto i = 0; i < file.length; ++i) {
-    file.blobs[i].data = base + file.blobs[i].offset;
+    auto blob = file.blobs[i];
+    blob.data = base + blob.offset;
+
+    switch (blob.type) {
+    case HANS_BLOB_STRINGS:
+      data.strings = ListView<const char>(blob);
+      break;
+    case HANS_BLOB_STRING_OFFSETS:
+      data.string_offsets = ListView<size_t>(blob);
+      break;
+    case HANS_BLOB_STRING_HASHES:
+      data.string_hashes = ListView<hans_hash>(blob);
+      break;
+    case HANS_BLOB_LIBRARIES:
+      data.libraries = ListView<hans_library>(blob);
+      break;
+    case HANS_BLOB_OBJECTS:
+      data.objects = ListView<hans_object>(blob);
+      break;
+    case HANS_BLOB_OBJECTS_DATA:
+      data.object_data = blob;
+      break;
+    case HANS_BLOB_PARAMETERS:
+      data.parameters = ListView<hans_parameter>(blob);
+      break;
+    case HANS_BLOB_PARAMETER_VALUES:
+      data.parameter_values = ListView<hans_parameter_value>(blob);
+      break;
+    case HANS_BLOB_PROGRAMS:
+      data.programs = ListView<hans_program>(blob);
+      break;
+    case HANS_BLOB_CHAINS:
+      data.chains = ListView<size_t>(blob);
+      break;
+    case HANS_BLOB_REGISTERS:
+      data.registers = ListView<hans_register>(blob);
+      break;
+    case HANS_BLOB_RESOURCE_REQUESTS:
+      data.resource_requests = ListView<hans_resource_request>(blob);
+      break;
+    case HANS_BLOB_SHADERS:
+      data.shaders = ListView<hans_shader>(blob);
+      break;
+    case HANS_BLOB_FBOS:
+      data.fbos = ListView<hans_fbo>(blob);
+      break;
+    case HANS_BLOB_FBO_ATTACHMENTS:
+      data.fbo_attachments = ListView<hans_fbo_attachment>(blob);
+      break;
+    }
   }
 }
 
