@@ -11,6 +11,8 @@
            hans-graph-objects
            set-hans-graph-objects!
            hans-graph-connections
+           hans-graph-id
+           set-hans-graph-id!
 
            hans-program
            hans-program?
@@ -34,6 +36,8 @@
            hans-object-args
            hans-object-resources
            set-hans-object-resources!
+           hans-object-registers
+           set-hans-object-registers!
            hans-object-data
            set-hans-object-data!))
 
@@ -45,6 +49,7 @@
   (args        hans-object-args)
   (position    hans-object-position)
   (resources   hans-object-resources set-hans-object-resources!)
+  (registers   hans-object-registers set-hans-object-registers!)
   (data        hans-object-data set-hans-object-data!))
 
 (define-record-type <hans-graph>
@@ -52,7 +57,8 @@
   hans-graph?
   (type        hans-graph-type)
   (objects     hans-graph-objects set-hans-graph-objects!)
-  (connections hans-graph-connections))
+  (connections hans-graph-connections)
+  (id          hans-graph-id set-hans-graph-id!))
 
 (define-record-type <hans-program>
   (hans-program name audio-graph graphics-graph)

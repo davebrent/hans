@@ -5,6 +5,7 @@
 #include <vector>
 #include "hans/common/DataLoader.hpp"
 #include "hans/common/LinearAllocator.hpp"
+#include "hans/common/ListView.hpp"
 #include "hans/common/StringManager.hpp"
 #include "hans/common/hasher.hpp"
 #include "hans/common/types.hpp"
@@ -47,9 +48,9 @@ static SCM write_list(SCM writer, hans_blob_type type, std::vector<T> lst) {
 
 static hans_object_type scm_to_hans_obj_type(SCM type) {
   if (str_eqaul_sym("graphics", type)) {
-    return HANS_GRAPHICS;
+    return HANS_OBJECT_GRAPHICS;
   } else if (str_eqaul_sym("audio", type)) {
-    return HANS_AUDIO;
+    return HANS_OBJECT_AUDIO;
   }
 
   throw std::runtime_error("Unknown object type");
@@ -92,8 +93,6 @@ static SCM write_libraries(SCM writer, SCM lst) {
     auto path = scm_list_ref(lst, scm_from_int(i));
 
     hans_library library;
-    library.name = 0;
-    library.handle = nullptr;
     library.filepath = scm_to_hans_hash(path);
     result.push_back(library);
   }
@@ -111,7 +110,6 @@ static SCM write_objects(SCM writer, SCM lst) {
     auto id = scm_assq_ref(alist, scm_from_locale_symbol("instance-id"));
     auto name = scm_assq_ref(alist, scm_from_locale_symbol("name"));
     auto type = scm_assq_ref(alist, scm_from_locale_symbol("type"));
-    // auto size = scm_assq_ref(alist, scm_from_locale_symbol("size"));
 
     hans_object item;
     item.id = scm_to_int(id);
@@ -119,7 +117,9 @@ static SCM write_objects(SCM writer, SCM lst) {
     item.name = scm_to_hans_hash(name);
     item.size = 0;
     item.make = nullptr;
+    item.init = nullptr;
     item.destroy = nullptr;
+    item.instance = nullptr;
     result.push_back(item);
   }
 
@@ -159,16 +159,16 @@ static SCM write_parameters(SCM writer, SCM lst) {
 
   for (auto i = 0; i < len; ++i) {
     auto alist = scm_list_ref(lst, scm_from_int(i));
-    auto id = scm_assq_ref(alist, scm_from_locale_symbol("instance-id"));
+    auto instance = scm_assq_ref(alist, scm_from_locale_symbol("instance-id"));
     auto name = scm_assq_ref(alist, scm_from_locale_symbol("name"));
     auto size = scm_assq_ref(alist, scm_from_locale_symbol("size"));
     auto offset = scm_assq_ref(alist, scm_from_locale_symbol("value"));
 
     hans_parameter item;
-    item.id = scm_to_int(id);
+    item.object = scm_to_int(instance);
     item.name = scm_to_hans_hash(name);
     item.size = scm_to_int(size);
-    // item.offset = scm_to_int(offset);
+    item.offset = scm_to_int(offset);
     result.push_back(item);
   }
 
@@ -189,13 +189,12 @@ static SCM write_parameter_values(SCM writer, SCM lst) {
                                           result);
 }
 
-static SCM write_programs(SCM writer, SCM lst, SCM nodata, SCM edge_nodata) {
+static SCM write_programs(SCM writer, SCM lst, SCM nodata) {
   auto len = lst_length(lst);
   std::vector<hans_program> result;
   result.reserve(len);
 
   auto nodata_value = scm_to_int(nodata);
-  auto edge_nodata_value = scm_to_int(edge_nodata);
 
   auto sym_name = scm_from_locale_symbol("name");
   auto sym_audio = scm_from_locale_symbol("audio");
@@ -204,7 +203,6 @@ static SCM write_programs(SCM writer, SCM lst, SCM nodata, SCM edge_nodata) {
   auto zero = scm_from_int(0);
   auto one = scm_from_int(1);
   auto two = scm_from_int(2);
-  auto three = scm_from_int(3);
 
   for (auto i = 0; i < len; ++i) {
     auto alist = scm_list_ref(lst, scm_from_int(i));
@@ -215,28 +213,24 @@ static SCM write_programs(SCM writer, SCM lst, SCM nodata, SCM edge_nodata) {
     hans_program item;
     item.name = scm_to_hans_hash(name);
 
-    item.audio.node_start = nodata_value;
-    item.audio.node_end = nodata_value;
-    item.audio.edge_start = edge_nodata_value;
-    item.audio.edge_end = edge_nodata_value;
+    item.audio.id = 0;
+    item.audio.start = nodata_value;
+    item.audio.end = nodata_value;
 
-    item.graphics.node_start = nodata_value;
-    item.graphics.node_end = nodata_value;
-    item.graphics.edge_start = edge_nodata_value;
-    item.graphics.edge_end = edge_nodata_value;
+    item.graphics.id = 0;
+    item.graphics.start = nodata_value;
+    item.graphics.end = nodata_value;
 
-    if (lst_length(audio) == 4) {
-      item.audio.node_start = scm_to_int(scm_list_ref(audio, zero));
-      item.audio.node_end = scm_to_int(scm_list_ref(audio, one));
-      item.audio.edge_start = scm_to_int(scm_list_ref(audio, two));
-      item.audio.edge_end = scm_to_int(scm_list_ref(audio, three));
+    if (lst_length(audio) == 3) {
+      item.audio.id = scm_to_int(scm_list_ref(audio, zero));
+      item.audio.start = scm_to_int(scm_list_ref(audio, one));
+      item.audio.end = scm_to_int(scm_list_ref(audio, two));
     }
 
-    if (lst_length(graphics) == 4) {
-      item.graphics.node_start = scm_to_int(scm_list_ref(graphics, zero));
-      item.graphics.node_end = scm_to_int(scm_list_ref(graphics, one));
-      item.graphics.edge_start = scm_to_int(scm_list_ref(graphics, two));
-      item.graphics.edge_end = scm_to_int(scm_list_ref(graphics, three));
+    if (lst_length(graphics) == 3) {
+      item.graphics.id = scm_to_int(scm_list_ref(graphics, zero));
+      item.graphics.start = scm_to_int(scm_list_ref(graphics, one));
+      item.graphics.end = scm_to_int(scm_list_ref(graphics, two));
     }
 
     result.push_back(item);
@@ -255,26 +249,34 @@ static SCM write_graphs(SCM writer, SCM lst) {
     result.push_back(scm_to_int(item));
   }
 
-  return write_list<size_t>(writer, HANS_BLOB_PROGRAM_GRAPHS, result);
+  return write_list<size_t>(writer, HANS_BLOB_CHAINS, result);
 }
 
-static SCM write_graph_connections(SCM writer, SCM lst) {
+static SCM write_registers(SCM writer, SCM lst) {
   auto len = lst_length(lst);
-  std::vector<hans_object_connection> result;
+  std::vector<hans_register> result;
   result.reserve(len);
 
+  auto zero = scm_from_int(0);
+  auto one = scm_from_int(1);
+  auto two = scm_from_int(2);
+  auto three = scm_from_int(3);
+  auto four = scm_from_int(4);
+  auto five = scm_from_int(5);
+
   for (auto i = 0; i < len; ++i) {
-    auto conn = scm_list_ref(lst, scm_from_int(i));
-    hans_object_connection item;
-    item.source = scm_to_int(scm_list_ref(conn, scm_from_int(0)));
-    item.outlet = scm_to_int(scm_list_ref(conn, scm_from_int(1)));
-    item.sink = scm_to_int(scm_list_ref(conn, scm_from_int(2)));
-    item.inlet = scm_to_int(scm_list_ref(conn, scm_from_int(3)));
-    result.push_back(item);
+    auto item = scm_list_ref(lst, scm_from_int(i));
+    hans_register reg;
+    reg.object = scm_to_int(scm_list_ref(item, zero));
+    reg.type = scm_to_hans_obj_type(scm_list_ref(item, one));
+    reg.graph = scm_to_int(scm_list_ref(item, two));
+    reg.index = scm_to_int(scm_list_ref(item, three));
+    reg.bin = scm_to_int(scm_list_ref(item, four));
+    reg.readonly = scm_to_bool(scm_list_ref(item, five));
+    result.push_back(reg);
   }
 
-  return write_list<hans_object_connection>(writer, HANS_BLOB_GRAPH_CONNECTIONS,
-                                            result);
+  return write_list<hans_register>(writer, HANS_BLOB_REGISTERS, result);
 }
 
 static SCM write_resources(SCM writer, SCM lst) {
@@ -359,7 +361,7 @@ static SCM write_shaders(SCM writer, SCM lst) {
 
     hans_shader item;
     item.type = scm_to_hans_shader_type(type);
-    item.uri = scm_to_hans_hash(name);
+    item.name = scm_to_hans_hash(name);
     item.code = scm_to_hans_hash(code);
     result.push_back(item);
   }
@@ -383,11 +385,8 @@ static SCM write_fbos(SCM writer, SCM lst) {
     auto attachments = scm_assq_ref(alist, sym_attachments);
 
     hans_fbo item;
-    item.id = 0;
-    item.object_id = scm_to_int(id);
+    item.object = scm_to_int(id);
     item.stencil_buffer = scm_to_bool(stencil);
-    item.attachments = nullptr;
-    item.num_attachments = 0;
     item.start = scm_to_int(scm_list_ref(attachments, scm_from_int(0)));
     item.end = scm_to_int(scm_list_ref(attachments, scm_from_int(1)));
     result.push_back(item);
@@ -421,9 +420,7 @@ static SCM write_fbo_attachments(SCM writer, SCM lst) {
     auto components = scm_assq_ref(alist, scm_from_locale_symbol("components"));
 
     hans_fbo_attachment item;
-    item.fbo_id = 0;
     item.type = scm_to_fbo_attachment_type(type);
-    item.index = 0;
     item.width = scm_to_int(width);
     item.height = scm_to_int(height);
     item.components = scm_to_int(components);
@@ -468,7 +465,7 @@ static SCM hans_resource_type_to_scm(hans_resource_type t) {
   throw std::runtime_error("Unknown resource type");
 }
 
-static hans_arg_type scm_to_hans_arg_type(SCM value) {
+static hans_argument_type scm_to_hans_argument_type(SCM value) {
   if (scm_to_bool(scm_boolean_p(value)) == 1) {
     return HANS_BOOL;
   } else if (scm_to_bool(scm_number_p(value)) == 1) {
@@ -488,7 +485,7 @@ typedef struct {
   // Resource requests
   std::vector<SCM> requests;
   // All object arguments
-  hans_user_arg* args;
+  hans_argument* args;
   // Object index into args array
   std::vector<int> arg_offsets;
   std::vector<int> arg_lengths;
@@ -515,7 +512,7 @@ static std::vector<hans_library> scm_to_hans_libs(
 
 /// Fill in result with num args
 static void scm_to_hans_obj_args(SCM args, common::StringManager& strings,
-                                 hans_user_arg* out, int len) {
+                                 hans_argument* out, int len) {
   for (int i = 0; i < len; ++i) {
     auto arg = scm_list_ref(args, scm_from_int(i));
     auto key = scm_car(arg);
@@ -523,9 +520,9 @@ static void scm_to_hans_obj_args(SCM args, common::StringManager& strings,
 
     char* str = scm_to_locale_string(scm_symbol_to_string(key));
 
-    hans_user_arg hans_arg;
+    hans_argument hans_arg;
     hans_arg.name = strings.intern(str);
-    hans_arg.type = scm_to_hans_arg_type(value);
+    hans_arg.type = scm_to_hans_argument_type(value);
 
     switch (hans_arg.type) {
     case HANS_BOOL:
@@ -569,21 +566,21 @@ static std::vector<hans_object> scm_to_hans_objs(
 }
 
 /// Return a pointer to the start of the objects arguments array
-static hans_object_arguments get_args(hans_constructor_api* api) {
+static hans_arguments get_arguments(hans_constructor_api* api) {
   auto info = static_cast<object_info_data*>(api->data);
 
   auto offset = info->arg_offsets.at(info->current_object);
   auto length = info->arg_lengths.at(info->current_object);
 
-  hans_object_arguments out;
+  hans_arguments out;
   out.data = &info->args[offset];
   out.length = length;
   return out;
 }
 
 /// Signal back to the callee that the object is missing a required argument
-static void missing_required_arg(hans_constructor_api* api, hans_hash name,
-                                 hans_arg_type type) {
+static void missing_argument(hans_constructor_api* api, hans_argument_type type,
+                             hans_hash name) {
   // TODO: Currently unused
 }
 
@@ -621,7 +618,7 @@ static SCM get_object_info(SCM libraries, SCM objects) {
     total_num_args += len;
   }
 
-  info.args = new hans_user_arg[total_num_args];
+  info.args = new hans_argument[total_num_args];
 
   for (int i = 0; i < lst_length(objects); ++i) {
     auto num_args = info.arg_lengths.at(i);
@@ -636,8 +633,10 @@ static SCM get_object_info(SCM libraries, SCM objects) {
     scm_to_hans_obj_args(args, strings, out, num_args);
   }
 
-  engine::LibraryManager library_manager(strings, objs);
-  library_manager.load_libraries(libs);
+  auto object_list = common::ListView<hans_object>(&objs[0], objs.size());
+  auto library_list = common::ListView<hans_library>(&libs[0], libs.size());
+  engine::LibraryManager library_manager(strings, object_list);
+  library_manager.load(library_list);
 
   auto total_objects_bytes = 0;
   for (auto& obj : objs) {
@@ -650,8 +649,8 @@ static SCM get_object_info(SCM libraries, SCM objects) {
   common::LinearAllocator allocator(total_objects_bytes);
 
   hans_constructor_api constructor_api;
-  constructor_api.get_args = get_args;
-  constructor_api.missing_required_arg = missing_required_arg;
+  constructor_api.get_arguments = get_arguments;
+  constructor_api.missing_argument = missing_argument;
   constructor_api.request_resource = request_resource;
   constructor_api.data = &info;
 
@@ -692,14 +691,13 @@ void scm_init_hans_compiler_module() {
   scm_c_define_gsubr("write-objects", 2, 0, 0, (scm_t_subr)write_objects);
   scm_c_define_gsubr("write-object-data", 2, 0, 0,
                      (scm_t_subr)write_object_data);
-  scm_c_define_gsubr("write-programs", 4, 0, 0, (scm_t_subr)write_programs);
+  scm_c_define_gsubr("write-programs", 3, 0, 0, (scm_t_subr)write_programs);
   scm_c_define_gsubr("write-resources", 2, 0, 0, (scm_t_subr)write_resources);
   scm_c_define_gsubr("write-graphs", 2, 0, 0, (scm_t_subr)write_graphs);
-  scm_c_define_gsubr("write-graph-connections", 2, 0, 0,
-                     (scm_t_subr)write_graph_connections);
   scm_c_define_gsubr("write-parameters", 2, 0, 0, (scm_t_subr)write_parameters);
   scm_c_define_gsubr("write-parameter-values", 2, 0, 0,
                      (scm_t_subr)write_parameter_values);
+  scm_c_define_gsubr("write-registers", 2, 0, 0, (scm_t_subr)write_registers);
   scm_c_define_gsubr("write-shaders", 2, 0, 0, (scm_t_subr)write_shaders);
   scm_c_define_gsubr("write-fbos", 2, 0, 0, (scm_t_subr)write_fbos);
   scm_c_define_gsubr("write-fbo-attachments", 2, 0, 0,

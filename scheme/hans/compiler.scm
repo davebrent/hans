@@ -14,7 +14,9 @@
            list-objects
            list-graphs
 
+           assign-graph-id-pass
            topological-sort-pass
+           register-allocation-pass
            resolve-library-path-pass
            object-resources-pass
            validate-shader-pass
@@ -105,6 +107,18 @@
       file)
     file))
 
+(define (normalize-args-pass file options)
+  "Ensure any object argument values are converted to strings"
+  (for-each-object
+    (lambda (obj)
+      (let ((args (hans-object-args obj)))
+        (for-each (lambda (pair)
+                    (if (symbol? (cdr pair))
+                      (assq-set! args (car pair) (symbol->string (cdr pair)))))
+                  args)))
+    file)
+  file)
+
 (define (topological-sort-pass file options)
   "Topologicaly sort graphs contained in a hans file"
 
@@ -179,6 +193,9 @@
     (let ((rec (hans-object-rec obj)))
       (if (graphics-object? rec)
         (for-each (lambda (shader)
+          (if (and (not (eq? (shader-type shader) 'vertex))
+                   (not (eq? (shader-type shader) 'fragment)))
+            (exit-with-error "Unknown shader type" shader))
           (if (not (valid-shader? (shader-type shader) (shader-code shader)))
             (exit-with-error "Invalid shader" (shader-name shader)
                                               (object-record-name rec))))
@@ -201,6 +218,52 @@
               (map (lambda (data)
                      (acons 'args (hans-object-args (last data)) (car data)))
                    (zip object-alists the-objects))))))
+  file)
+
+(define (assign-graph-id-pass file options)
+  (let ((ids 0))
+    (for-each-graph (lambda (graph)
+                      (set-hans-graph-id! graph ids)
+                      (set! ids (+ ids 1))) file)
+    file))
+
+(define (register-allocation-pass file options)
+  (define (mark-readonly val)
+    (lambda (reg)
+      (append reg `(,val))))
+
+  (define (mark-graph graph)
+    (lambda (reg)
+      (append `(,(hans-graph-id graph)) reg)))
+
+  ;; TODO: Graph coloring
+  (for-each-graph (lambda (graph)
+                    (let ((conns (hans-graph-connections graph)))
+                      (for-each (lambda (obj)
+                                  (let ((i 0)
+                                        (outs '())
+                                        (ins '())
+                                        (id (hans-object-instance-id obj)))
+                                    (for-each (lambda (conn)
+                                      (let ((source (list-ref conn 0))
+                                            (outlet (list-ref conn 1))
+                                            (sink   (list-ref conn 2))
+                                            (inlet (list-ref conn 3)))
+                                        (if (eq? source id)
+                                          (set! outs (append outs (list
+                                            `(,outlet ,i)))))
+                                        (if (eq? sink id)
+                                          (set! ins (append ins (list
+                                            `(,inlet ,i)))))
+                                        (set! i (+ i 1)))
+                                    ) conns)
+                                    (set-hans-object-registers! obj
+                                      (map (mark-graph graph)
+                                        (append
+                                          (map (mark-readonly #t) ins)
+                                          (map (mark-readonly #f) outs))))))
+                                (hans-graph-objects graph))))
+                  file)
   file)
 
 (define (validate-connections-pass file options)
@@ -276,7 +339,7 @@
         `((instance-id . ,(hans-object-instance-id obj))
           (name        . ,(symbol->string (parameter-name param)))
           (size        . ,(parameter-components param))
-          (value       . offset))))
+          (value       . ,offset))))
 
     (let ((items (fold (lambda (obj parameters)
                          (append parameters
@@ -290,20 +353,15 @@
   (define (do-programs writer file)
     (define the-programs '())
     (define the-graphs '())
-    (define the-connections '())
 
     (define (push-graph graph)
       (let* ((start (length the-graphs))
              (data (map hans-object-instance-id (hans-graph-objects graph)))
-             (start-edges (length the-connections))
-             (edges (hans-graph-connections graph))
-             (end-edges (+ start-edges (length edges)))
              (end (+ start (length data))))
-        (if (or (eq? (length data) 0) (eq? (length edges) 0)) '()
+        (if (eq? (length data) 0) '()
           (begin
             (set! the-graphs (append the-graphs data))
-            (set! the-connections (append the-connections edges))
-            (list start end start-edges end-edges)))))
+            (list (hans-graph-id graph) start end)))))
 
     (for-each (lambda (pgm)
         (set! the-programs (append the-programs (list
@@ -312,10 +370,8 @@
             (graphics . ,(push-graph (hans-program-graphics-graph pgm))))))))
       (hans-file-programs file))
 
-    (+ (write-programs writer the-programs (length the-graphs)
-                                           (length the-connections))
-       (write-graphs writer the-graphs)
-       (write-graph-connections writer the-connections)))
+    (+ (write-programs writer the-programs (length the-graphs))
+       (write-graphs writer the-graphs)))
 
   (define (do-fbos writer file)
     (define the-fbos '())
@@ -353,10 +409,29 @@
 
     (set! the-strings (append the-strings (map hans-program-name
                                                (hans-file-programs file))))
+
+    (set! the-strings (append the-strings
+      (map (compose symbol->string parameter-name)
+           (fold append '()
+             (map (compose object-record-parameters hans-object-rec)
+                  (list-objects file))))))
     (write-strings writer the-strings))
 
   (define (do-object-data writer file)
     (write-object-data writer (map hans-object-data (list-objects file))))
+
+  (define (do-registers writer file)
+    (write-registers writer
+      (fold append '()
+        (map-objects (lambda (obj)
+                       (map (lambda (reg)
+                              (append
+                                (list
+                                  (hans-object-instance-id obj)
+                                  (object-record-type (hans-object-rec obj)))
+                                reg))
+                            (hans-object-registers obj)))
+                     file))))
 
   (define (do-resources writer file)
     (define (combine-resources resource-lists)
@@ -377,12 +452,13 @@
     (write-resources writer
       (combine-resources (map hans-object-resources (list-objects file)))))
 
-  (let* ((writer (make-hans-file-writer 16384))
+  (let* ((writer (make-hans-file-writer 96768))
          (bytes  (fold (lambda (pass total)
                          (+ total (pass writer file))) 0 (list do-libraries
                                                                do-objects
                                                                do-parameters
                                                                do-programs
+                                                               do-registers
                                                                do-resources
                                                                do-object-data
                                                                do-shaders
@@ -393,10 +469,14 @@
 
 (define* (hans-compile file options #:optional passes)
   "Compile a hans-file"
-  (define default-passes (list resolve-library-path-pass
+  (define default-passes (list assign-graph-id-pass
+                               normalize-args-pass
+                               resolve-library-path-pass
                                object-resources-pass
+                               assign-graph-id-pass
                                validate-connections-pass
                                topological-sort-pass
+                               register-allocation-pass
                                validate-shader-pass
                                create-requested-resources-pass))
   (if (not (hans-file? file))
