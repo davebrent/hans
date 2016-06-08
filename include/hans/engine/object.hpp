@@ -5,7 +5,6 @@
 #include "hans/audio/AudioBusManager.hpp"
 #include "hans/common/Logger.hpp"
 #include "hans/common/StringManager.hpp"
-#include "hans/common/config.hpp"
 #include "hans/common/types.hpp"
 #include "hans/engine/ParameterManager.hpp"
 #include "hans/engine/RegisterManager.hpp"
@@ -22,16 +21,13 @@ typedef struct {
   hans::audio::AudioBufferManager* audio_buffers;
   hans::audio::AudioBusManager* audio_buses;
   hans::graphics::ShaderManager* shaders;
-  hans::graphics::FrameBufferManager* frame_buffers;
+  hans::graphics::FrameBufferManager* fbos;
 } hans_object_api;
 
 typedef struct hans_audio_object hans_audio_object;
 
 struct hans_audio_object {
-  hans_object_id object_id;
-  hans_instance_id instance_id;
-  hans_object_resource* resources;
-  unsigned num_resources;
+  hans_instance_id id;
   void* data;
   void (*setup)(hans_audio_object* self, hans_object_api* api);
   void (*callback)(hans_audio_object* self, hans_object_api* api);
@@ -40,10 +36,7 @@ struct hans_audio_object {
 typedef struct hans_graphics_object hans_graphics_object;
 
 struct hans_graphics_object {
-  hans_object_id object_id;
-  hans_instance_id instance_id;
-  hans_object_resource* resources;
-  unsigned num_resources;
+  hans_instance_id id;
   void* data;
   void (*setup)(hans_graphics_object* self, hans_object_api* api);
   void (*update)(hans_graphics_object* self, hans_object_api* api);

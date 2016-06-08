@@ -1,109 +1,100 @@
 #include <cxxopts.hpp>
 #include <iostream>
+#include "hans/audio/AudioBufferManager.hpp"
+#include "hans/audio/AudioBusManager.hpp"
 #include "hans/audio/AudioDevices.hpp"
 #include "hans/audio/AudioStream.hpp"
+#include "hans/common/DataLoader.hpp"
+#include "hans/common/ListView.hpp"
 #include "hans/common/Logging.hpp"
 #include "hans/common/StringManager.hpp"
-#include "hans/engine/DataLoader.hpp"
+#include "hans/common/hasher.hpp"
 #include "hans/engine/LibraryManager.hpp"
-#include "hans/engine/Program.hpp"
+#include "hans/engine/ParameterManager.hpp"
 #include "hans/engine/ProgramManager.hpp"
-#include "hans/engine/ProgramResources.hpp"
+#include "hans/engine/RegisterManager.hpp"
 #include "hans/graphics/Window.hpp"
 
 using namespace hans;
+using namespace hans::audio;
+using namespace hans::common;
+using namespace hans::engine;
+using namespace hans::graphics;
 
-static int run(const std::string& resources, hans_config& config) {
-  common::StringManager string_manager(16384 /* 16kb */);
-  common::ConsoleLogger logger(common::Logger::DEBUG);
-  engine::DataLoader data_loader(resources.c_str(), string_manager);
-  audio::AudioBufferManager audio_buffer_manager(config.audio.block_size);
-  audio::AudioBusManager audio_bus_manager(audio_buffer_manager);
+static int run(const char* filepath, hans_hash program, hans_config& config) {
+  DataReader reader(filepath);
+  auto d = reader.data;
 
-  auto libraries = data_loader.get_libraries();
-  auto objects = data_loader.get_objects();
-  auto parameters = data_loader.get_parameters();
-  auto shaders = data_loader.get_shaders();
-  auto frame_buffers = data_loader.get_frame_buffers();
+  auto logger = ConsoleLogger(Logger::DEBUG);
+  auto strings = StringManager(d.string_hashes, d.string_offsets, d.strings);
+  auto libraries = LibraryManager(strings, d.objects);
+  auto programs = ProgramManager();
+  auto registers = RegisterManager();
+  auto parameters = ParameterManager();
+  auto window = Window("Hans", config.width, config.height);
+  auto shaders = ShaderManager(strings, d.shaders);
+  auto fbos = FrameBufferManager(d.fbos, d.fbo_attachments);
+  auto audio_devices = AudioDevices();
+  auto audio_buffers = AudioBufferManager(config.blocksize);
+  auto audio_buses = AudioBusManager(audio_buffers);
+  auto audio_stream = AudioStream(config, audio_devices, audio_buses, programs);
 
-  engine::LibraryManager library_manager(string_manager, objects);
-  library_manager.load_libraries(libraries);
+  hans_object_api object_api;
+  object_api.config = &config;
+  object_api.strings = &strings;
+  object_api.logger = &logger;
+  object_api.parameters = &parameters;
+  object_api.audio_buses = &audio_buses;
+  object_api.audio_buffers = &audio_buffers;
+  object_api.shaders = &shaders;
+  object_api.registers = &registers;
+  object_api.fbos = &fbos;
 
-  logger.log(common::Logger::DEBUG, libraries);
-  logger.log(common::Logger::DEBUG, objects);
+  libraries.load(d.libraries);
+  parameters.use(d.parameters, d.parameter_values);
+  registers.use(d.registers);
+  programs.use(object_api, d.objects, d.programs, d.chains, d.object_data);
+  programs.setup_all(nullptr, 0);
+  programs.switch_to(program);
 
-  auto graphics_objects = library_manager.filter_objects(HANS_GRAPHICS);
-  auto audio_objects = library_manager.filter_objects(HANS_AUDIO);
-
-  engine::ProgramResources program_resources;
-  program_resources.config = &config;
-  program_resources.strings = &string_manager;
-  program_resources.logger = &logger;
-  program_resources.graphics_objects = &graphics_objects;
-  program_resources.audio_objects = &audio_objects;
-  program_resources.parameters = &parameters;
-  program_resources.shaders = &shaders;
-  program_resources.frame_buffers = &frame_buffers;
-  program_resources.audio_buses = &audio_bus_manager;
-  program_resources.audio_buffers = &audio_buffer_manager;
-
-  engine::ProgramManager program_manager(program_resources);
-
-  audio::AudioDevices audio_devices;
-  audio::AudioStream audio_stream(config.audio, audio_devices,
-                                  audio_bus_manager, program_manager, logger);
   if (!audio_stream.open()) {
-    logger.log(common::Logger::ERROR, "Unable to open audio stream");
+    logger.log(Logger::ERROR, "Unable to open audio stream");
   }
 
-  graphics::Window window("hans", config.window.width, config.window.height);
-
   while (!window.should_close()) {
-    program_manager.process_graphics();
+    programs.tick_graphics(0);
     window.update();
   }
 
-  // Calls object destructors explicitly before the libraries get released
-  program_manager.destroy();
+  programs.close_all();
   audio_stream.close();
-  data_loader.del_parameters(parameters);
-  data_loader.del_frame_buffers(frame_buffers);
   return 0;
 }
 
 int main(int argc, char* argv[]) {
-  cxxopts::Options options(argv[0], " <resources>");
-
-  hans_audio_device_parameters audio_config;
-  audio_config.num_channels = 2;
-  audio_config.sample_rate = 44100;
-  audio_config.block_size = 256;
-
-  hans_graphics_window_parameters graphics_config;
-  graphics_config.width = 1184;
-  graphics_config.height = 640;
+  cxxopts::Options options(argv[0], " <file>");
 
   hans_config config;
-  config.audio = audio_config;
-  config.window = graphics_config;
+  config.channels = 2;
+  config.samplerate = 44100;
+  config.blocksize = 256;
+  config.width = 1184;
+  config.height = 640;
 
   // clang-format off
   options.add_options()
-    ("h,help", "Show this screen");
-
-  options.add_options("Window")
-    ("window-width", "Screen width [default: 1184]",
-     cxxopts::value<uint16_t>(config.window.width), "PX")
-    ("window-height", "Screen height [default: 640]",
-     cxxopts::value<uint16_t>(config.window.height), "PX");
-
-  options.add_options("Audio")
-    ("audio-channels", "Audio channels [default: 2]",
-     cxxopts::value<uint8_t>(config.audio.num_channels), "N")
-    ("audio-samplerate", "Target sample rate [default: 44100]",
-     cxxopts::value<uint16_t>(config.audio.sample_rate), "HZ")
-    ("audio-buffersize", "Buffer size [default: 256]",
-     cxxopts::value<uint16_t>(config.audio.block_size), "SAMPS");
+    ("p,program", "Initial program to run", cxxopts::value<std::string>())
+    ("h,help", "Show this screen")
+    ("width", "Screen width [default: 1184]",
+     cxxopts::value<uint16_t>(config.width), "PX")
+    ("height", "Screen height [default: 640]",
+     cxxopts::value<uint16_t>(config.height), "PX")
+    ("channels", "Audio channels [default: 2]",
+     cxxopts::value<uint8_t>(config.channels), "N")
+    ("samplerate", "Target sample rate [default: 44100]",
+     cxxopts::value<uint16_t>(config.samplerate), "HZ")
+    ("buffersize", "Buffer size [default: 256]",
+     cxxopts::value<uint16_t>(config.blocksize), "SAMPS");
 
   options.add_options("Hidden")
     ("positional", "Positional arguments (internal)",
@@ -122,9 +113,14 @@ int main(int argc, char* argv[]) {
   auto args = options["positional"].as<std::vector<std::string>>();
 
   if (options.count("help") || args.size() == 0) {
-    std::cout << options.help({"", "RPC", "Window", "Audio"}) << std::endl;
+    std::cout << options.help({""}) << std::endl;
     return 0;
   }
 
-  return run(args.at(0), config);
+  hans_hash program = 0;
+  if (options.count("program") != 0) {
+    program = hasher(options["program"].as<std::string>().c_str());
+  }
+
+  return run(args.at(0).c_str(), program, config);
 };

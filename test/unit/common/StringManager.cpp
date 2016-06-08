@@ -9,13 +9,8 @@ SCENARIO("Interning strings", "[strings]") {
 
     WHEN("interning") {
       const char* str1 = "hello";
-      const unsigned char* str2 = reinterpret_cast<const unsigned char*>(str1);
-      std::string str3 = "foobar";
-
       THEN("the strings hash should be returned") {
         REQUIRE(string_manager.intern(str1) == 0x1E68D17C457BF117);
-        REQUIRE(string_manager.intern(str2) == 0x1E68D17C457BF117);
-        REQUIRE(string_manager.intern(str3.c_str()) == 0xD49F461720D7A196);
       }
     }
 

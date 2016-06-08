@@ -1,99 +1,161 @@
 #include "hans/engine/ProgramManager.hpp"
-#include <algorithm>
-#include <sstream>
+#include <cassert>
+#include <iostream>
 
 using namespace hans;
 
-engine::ProgramManager::ProgramManager(engine::ProgramResources& resources)
-    : m_resources(resources) {
-  m_active_program = -1;
+engine::ProgramManager::ProgramManager() : m_allocator(0) {
 }
 
-engine::ProgramManager::~ProgramManager() {
+void engine::ProgramManager::use(hans_object_api& api,
+                                 common::ListView<hans_object>& objects,
+                                 common::ListView<hans_program>& programs,
+                                 common::ListView<size_t>& chains,
+                                 hans_blob init_object_data) {
+  m_api = &api;
+  m_objects = &objects[0];
+  m_chains = &chains[0];
+  m_num_objects = objects.size();
+  m_programs = &programs[0];
+  m_init_object_data = init_object_data;
 }
 
-bool engine::ProgramManager::set(hans_hash name,
-                                 common::ObjectGraph& graphics_graph,
-                                 common::ObjectGraph& audio_graph) {
-  auto begin = m_names.begin();
-  auto end = m_names.end();
-  auto it = std::find(begin, end, name);
+void engine::ProgramManager::switch_to(hans_hash name) {
+  m_active = 0;
 
-  if (it != end) {
-    auto index = it - begin;
-    std::ostringstream ss;
-    ss << "PROGRAM removing=" << name << " index=" << index;
-    m_resources.logger->log(common::Logger::DEBUG, ss.str().c_str());
-    m_names.erase(m_names.begin() + index);
-    m_programs.erase(m_programs.begin() + index);
+  if (name == 0) {
+    return;
   }
 
-  auto program = std::make_unique<engine::Program>(m_resources);
-  if (!program->set(audio_graph, graphics_graph)) {
-    return false;
-  }
-
-  std::ostringstream ss;
-  ss << "PROGRAM created=" << name;
-  m_resources.logger->log(common::Logger::DEBUG, ss.str().c_str());
-  m_programs.push_back(std::move(program));
-  m_names.push_back(name);
-  return true;
-}
-
-bool engine::ProgramManager::use(hans_hash name) {
-  auto start = m_names.begin();
-  auto end = m_names.end();
-  auto it = std::find(start, end, name);
-
-  if (it == end) {
-    std::ostringstream ss;
-    ss << "PROGRAM using=" << name << " - not found";
-    m_resources.logger->log(common::Logger::ERROR, ss.str().c_str());
-    return false;
-  }
-
-  m_active_program = it - start;
-  std::ostringstream ss;
-  ss << "PROGRAM using=" << name << " id=" << m_active_program;
-  m_resources.logger->log(common::Logger::DEBUG, ss.str().c_str());
-  return true;
-}
-
-bool engine::ProgramManager::is_active(hans_hash name) const {
-  if (m_active_program < 0) {
-    return false;
-  }
-
-  return name == m_names.at(m_active_program);
-}
-
-int engine::ProgramManager::release_active() {
-  // XXX: Should these checks and setting of the active program be atomic? Thus
-  //      side stepping threading issues between the audio and main thread?
-  int temp = m_active_program;
-  m_active_program = -1;
-  return temp;
-}
-
-void engine::ProgramManager::process_graphics() {
-  if (m_active_program >= 0 && m_active_program < m_programs.size()) {
-    m_programs.at(m_active_program)->process_graphics();
+  while (m_programs[m_active].name != name) {
+    m_active++;
   }
 }
 
-void engine::ProgramManager::process_audio() {
-  if (m_active_program >= 0 && m_active_program < m_programs.size()) {
-    m_programs.at(m_active_program)->process_audio();
+template <typename T>
+static void call_setup(const hans_object& object, hans_object_api* api) {
+  T* instance = static_cast<T*>(object.instance);
+  instance->id = object.id;
+  if (instance->setup != nullptr) {
+    instance->setup(instance, api);
   }
 }
 
-void engine::ProgramManager::destroy() {
-  release_active();
+void engine::ProgramManager::setup_all(hans_resource* resources,
+                                       size_t num_resources) {
+  auto objects = m_objects;
+  size_t internal_data_size = 0;
+  size_t external_data_size = 0;
 
-  for (auto& program : m_programs) {
-    program->destroy();
+  for (auto i = 0; i < m_num_objects; ++i) {
+    auto& object = objects[i];
+    internal_data_size += object.size;
+    switch (object.type) {
+    case HANS_OBJECT_AUDIO:
+      external_data_size += sizeof(hans_audio_object);
+      break;
+    case HANS_OBJECT_GRAPHICS:
+      external_data_size += sizeof(hans_graphics_object);
+      break;
+    }
   }
 
-  m_programs.clear();
+  m_allocator.reset(internal_data_size + external_data_size);
+
+  // Copy over inital state
+  assert(m_init_object_data.size == internal_data_size);
+  auto internal_data = m_allocator.allocate(internal_data_size);
+  std::memcpy(internal_data, m_init_object_data.data, internal_data_size);
+
+  // Create data for each object instance
+  auto internal_base = static_cast<char*>(m_allocator.start());
+  for (auto i = 0; i < m_num_objects; ++i) {
+    auto& object = objects[i];
+
+    switch (object.type) {
+    case HANS_OBJECT_AUDIO: {
+      object.instance = m_allocator.allocate(sizeof(hans_audio_object));
+      auto instance = static_cast<hans_audio_object*>(object.instance);
+      instance->data = internal_base;
+      break;
+    }
+    case HANS_OBJECT_GRAPHICS: {
+      object.instance = m_allocator.allocate(sizeof(hans_graphics_object));
+      auto instance = static_cast<hans_graphics_object*>(object.instance);
+      instance->data = internal_base;
+      break;
+    }
+    }
+
+    internal_base += object.size;
+
+    // Patches the instance's function pointers
+    if (object.init != nullptr) {
+      object.init(object.instance);
+    }
+
+    switch (object.type) {
+    case HANS_OBJECT_AUDIO:
+      call_setup<hans_audio_object>(object, m_api);
+      break;
+    case HANS_OBJECT_GRAPHICS:
+      call_setup<hans_graphics_object>(object, m_api);
+      break;
+    }
+  }
+}
+
+void engine::ProgramManager::close_all() {
+  auto objects = m_objects;
+  for (auto i = 0; i < m_num_objects; ++i) {
+    auto& object = objects[i];
+
+    if (object.destroy == nullptr) {
+      continue;
+    }
+
+    switch (object.type) {
+    case HANS_OBJECT_AUDIO:
+      object.destroy(static_cast<hans_audio_object*>(object.instance));
+      break;
+    case HANS_OBJECT_GRAPHICS:
+      object.destroy(static_cast<hans_graphics_object*>(object.instance));
+      break;
+    }
+  }
+}
+
+void engine::ProgramManager::tick_graphics(float delta) {
+  auto program = m_programs[m_active];
+  auto chain = program.graphics;
+  auto objects = m_objects;
+  auto chains = m_chains;
+
+  for (auto i = chain.start; i < chain.end; ++i) {
+    auto& object = objects[chains[i]];
+    auto instance = static_cast<hans_graphics_object*>(object.instance);
+    if (instance->update != nullptr) {
+      instance->update(instance, m_api);
+    }
+  }
+
+  for (auto i = chain.start; i < chain.end; ++i) {
+    auto& object = objects[chains[i]];
+    auto instance = static_cast<hans_graphics_object*>(object.instance);
+    if (instance->draw != nullptr) {
+      instance->draw(instance, m_api);
+    }
+  }
+}
+
+void engine::ProgramManager::tick_audio() {
+  auto program = m_programs[m_active];
+  auto chain = program.audio;
+  auto objects = m_objects;
+
+  for (auto i = chain.start; i < chain.end; ++i) {
+    auto& object = objects[i];
+    auto instance = static_cast<hans_audio_object*>(object.instance);
+    instance->callback(instance, m_api);
+  }
 }

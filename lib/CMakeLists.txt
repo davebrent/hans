@@ -8,18 +8,15 @@ set(HANS_MODULE_SOURCES
     common/hasher.cpp
     common/StringManager.cpp
     common/LinearAllocator.cpp
-    common/Logging.cpp
 )
 
 set(HANS_SOURCES
-    common/ObjectGraph.cpp
     common/DataLoader.cpp
+    common/Logging.cpp
     audio/AudioDevices.cpp
     audio/AudioStream.cpp
-    engine/DataLoader.cpp
-    engine/ProgramManager.cpp
     engine/LibraryManager.cpp
-    engine/Program.cpp    
+    engine/ProgramManager.cpp
     graphics/FrameBufferManager.cpp
     graphics/Window.cpp
 )

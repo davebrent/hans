@@ -2,6 +2,7 @@
 #define HANS_ENGINE_REGISTERMANAGER_H_
 
 #include "hans/common/LinearAllocator.hpp"
+#include "hans/common/ListView.hpp"
 #include "hans/common/types.hpp"
 
 namespace hans {
@@ -9,34 +10,26 @@ namespace engine {
 
 class RegisterManager {
  public:
-  explicit RegisterManager(size_t register_size);
-
-  bool is_empty(const hans_register_handle& handle) const;
-
-  /// Set the interference graph and return the number of allocated registers
-  int set_interference_graph(hans_object_connection* connections,
-                             unsigned num_connections);
-
-  /// Used by objects to read and write data to registers
-  void* get_read_reg(const hans_register_handle& handle) const;
-  bool set_write_reg(const hans_register_handle& handle,
-                     const void* data) const;
-
-  /// Return a handle to the register allocated to object with the instance id
-  bool assign_write_reg(hans_register_handle& handle,
-                        const uint32_t graph_index, unsigned outlet);
-  bool assign_read_reg(hans_register_handle& handle, const uint32_t graph_index,
-                       unsigned inlet);
-
-  int make(hans_object_resource* resources, const uint32_t graph_index,
-           int num_inlets, int num_outlets);
+  /// Return a handle to a register
+  hans_register make(hans_instance_id object, hans_resource_type type,
+                     uint16_t index);
+  /// Set the manager to read from a given array of values
+  void use(hans::common::ListView<hans_register>& registers);
+  /// Read data from a register
+  void* read(const hans_register& reg) const;
+  /// Write data to a register
+  bool write(const hans_register& reg, const void* data);
 
  private:
-  size_t m_register_size;
-  char* m_register_base;
-  unsigned m_num_connections;
+  size_t m_length = 0;
+  hans_register* m_registers = nullptr;
+
   hans::common::LinearAllocator m_allocator;
-  hans_object_connection* m_connections;
+  char* m_audio_bin_base = 0;
+  char* m_graphics_bin_base = 0;
+  char* m_empty_bin_base = 0;
+  int m_num_audio_bins = 0;
+  int m_num_graphics_bins = 0;
 };
 
 } // namespace engine

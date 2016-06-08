@@ -1,14 +1,11 @@
 set(HANS_TEST_SOURCES 
-	audio/AudioBufferManager.cpp
-	common/ObjectGraph.cpp
-	common/LinearAllocator.cpp
-	common/StringManager.cpp
-	engine/ParameterManager.cpp
-	engine/Program.cpp
-	engine/ProgramManager.cpp
-	engine/RegisterManager.cpp
-	sequencer/Device.cpp
-	main.cpp
+    audio/AudioBufferManager.cpp
+    common/LinearAllocator.cpp
+    common/StringManager.cpp
+    engine/ParameterManager.cpp
+    engine/RegisterManager.cpp
+    sequencer/Device.cpp
+    main.cpp
 )
 
 add_executable(hans-unittest ${HANS_TEST_SOURCES})

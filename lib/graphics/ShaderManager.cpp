@@ -1,12 +1,14 @@
 #include "hans/graphics/ShaderManager.hpp"
-#include <algorithm>
+#include <stdexcept>
 
 using namespace hans;
 
 graphics::ShaderManager::ShaderManager(
-    common::Logger& logger, const common::StringManager& string_manager,
-    const std::vector<hans_shader>& shaders)
-    : m_logger(logger), m_string_manager(string_manager), m_shaders(shaders) {
+    const common::StringManager& string_manager,
+    const hans::common::ListView<hans_shader>& shaders)
+    : m_string_manager(string_manager) {
+  m_shaders = &shaders[0];
+  m_length = shaders.size();
 }
 
 graphics::ShaderManager::~ShaderManager() {
@@ -18,57 +20,43 @@ graphics::ShaderManager::~ShaderManager() {
   }
 }
 
-int graphics::ShaderManager::make(hans_object_resource* resources, int len) {
-  for (int a = 0; a < len; ++a) {
-    resources->type = HANS_SHADER;
-    resources++;
-  }
-  return len;
-}
+hans_shader_instance graphics::ShaderManager::create_shader(
+    const hans_hash name) {
+  hans_shader_instance instance;
+  instance.name = name;
 
-bool graphics::ShaderManager::create_shader(hans_shader_instance& instance,
-                                            hans_hash uri) {
-  auto end = m_shaders.end();
-  auto it = std::find_if(m_shaders.begin(), end,
-                         [&](const auto& shader) { return shader.uri == uri; });
-  if (it == end) {
-    m_logger.log(common::Logger::ERROR, "Shader not found");
-    return false;
-  }
+  auto shaders = m_shaders;
+  auto found = false;
 
-  auto shader = *it;
-  const char* code = m_string_manager.lookup(shader.code);
+  for (auto i = 0; i < m_length; ++i) {
+    auto& shader = shaders[i];
+    if (shader.name != name) {
+      continue;
+    }
 
-  instance.uri = uri;
+    found = true;
+    auto code = m_string_manager.lookup(shader.code);
 
-  switch (shader.type) {
-  case HANS_SHADER_VERTEX:
-    instance.handle = glCreateShader(GL_VERTEX_SHADER);
+    switch (shader.type) {
+    case HANS_SHADER_VERTEX:
+      instance.handle = glCreateShader(GL_VERTEX_SHADER);
+      break;
+    case HANS_SHADER_FRAGMENT:
+      instance.handle = glCreateShader(GL_FRAGMENT_SHADER);
+      break;
+    }
+
+    glShaderSource(instance.handle, 1, &code, nullptr);
     break;
-  case HANS_SHADER_FRAGMENT:
-    instance.handle = glCreateShader(GL_FRAGMENT_SHADER);
-    break;
+  }
+
+  if (!found) {
+    throw std::runtime_error("Shader not found");
   }
 
   m_shader_handles.push_back(instance.handle);
-
-  glShaderSource(instance.handle, 1, &code, nullptr);
   glCompileShader(instance.handle);
-
-  GLint length = 0;
-  GLint status = GL_FALSE;
-  glGetShaderiv(instance.handle, GL_COMPILE_STATUS, &status);
-
-  if (status != GL_TRUE) {
-    glGetShaderiv(instance.handle, GL_INFO_LOG_LENGTH, &length);
-    char* reason = new char[length + 1];
-    glGetShaderInfoLog(instance.handle, length, nullptr,
-                       static_cast<GLchar*>(reason));
-    m_logger.log(common::Logger::ERROR, reason);
-    return false;
-  }
-
-  return true;
+  return instance;
 }
 
 hans_shader_program_instance graphics::ShaderManager::create_program(

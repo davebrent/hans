@@ -16,7 +16,7 @@ audio::AudioBufferManager::~AudioBufferManager() {
   m_buffers.clear();
 }
 
-int audio::AudioBufferManager::make(hans_object_resource* resources, int len) {
+int audio::AudioBufferManager::make(hans_resource* resources, int len) {
   for (int a = 0; a < len; ++a) {
     resources->type = HANS_AUDIO_BUFFER;
     resources->audio_buffer = create(1, m_blocksize, 1);

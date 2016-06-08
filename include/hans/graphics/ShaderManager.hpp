@@ -2,6 +2,7 @@
 #define HANS_GRAPHICS_SHADERMANAGER_H_
 
 #include <vector>
+#include "hans/common/ListView.hpp"
 #include "hans/common/Logger.hpp"
 #include "hans/common/StringManager.hpp"
 #include "hans/common/types.hpp"
@@ -12,23 +13,20 @@ namespace graphics {
 
 class ShaderManager {
  public:
-  ShaderManager(hans::common::Logger& logger,
-                const hans::common::StringManager& string_manager,
-                const std::vector<hans_shader>& shaders);
+  ShaderManager(const hans::common::StringManager& string_manager,
+                const hans::common::ListView<hans_shader>& shaders);
   ~ShaderManager();
 
-  bool create_shader(hans_shader_instance& instance, hans_hash uri);
-
-  int make(hans_object_resource* resources, int len);
-
+  hans_shader_instance create_shader(const hans_hash uri);
   hans_shader_program_instance create_program(
       const hans_shader_instance& vertex_shader,
       const hans_shader_instance& fragment_shader);
 
  private:
-  hans::common::Logger& m_logger;
   const hans::common::StringManager& m_string_manager;
-  const std::vector<hans_shader>& m_shaders;
+  const hans_shader* m_shaders;
+  size_t m_length;
+
   std::vector<GLuint> m_shader_handles;
   std::vector<GLuint> m_program_handles;
 };

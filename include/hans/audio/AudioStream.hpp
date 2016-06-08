@@ -22,20 +22,14 @@ class AudioStream {
   };
 
   // FIXME: audioDevices should be marked as const
-  explicit AudioStream(const hans_audio_device_parameters& parameters,
+  explicit AudioStream(const hans_config& config,
                        hans::audio::AudioDevices& audio_devices,
                        hans::audio::AudioBusManager& audio_bus_manager,
-                       hans::engine::ProgramManager& program_manager,
-                       hans::common::Logger& logger);
+                       hans::engine::ProgramManager& program_manager);
   ~AudioStream();
 
   void set_input_device(const hans_audio_device& device);
   void set_output_device(const hans_audio_device& device);
-
-  void set_parameters(const hans_audio_device_parameters& parameters);
-  hans_audio_device_parameters get_parameters() const;
-
-  bool is_running() const;
 
   bool open();
   bool start();
@@ -51,8 +45,8 @@ class AudioStream {
   hans::audio::AudioDevices& m_audio_devices;
   hans::audio::AudioBusManager& m_audio_bus_manager;
   hans::engine::ProgramManager& m_program_manager;
-  hans_audio_device_parameters m_parameters;
-  hans::common::Logger& m_logger;
+  const hans_config& m_config;
+  // hans::common::Logger& m_logger;
 
   hans_audio_bus_handle m_bus;
   hans_audio_device_id m_input_device;

@@ -17,7 +17,7 @@ class AudioBufferManager {
   hans_audio_buffer* create(uint8_t num_channels, unsigned num_samples,
                             unsigned num_buffers);
 
-  int make(hans_object_resource* resources, int len);
+  int make(hans_resource* resources, int len);
 
  private:
   uint16_t m_blocksize;
