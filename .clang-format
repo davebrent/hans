@@ -6,3 +6,5 @@ AllowShortFunctionsOnASingleLine: false
 MaxEmptyLinesToKeep: 1
 IndentCaseLabels: false
 SpacesBeforeTrailingComments: 1
+PointerAlignment: Left
+DerivePointerAlignment: false
