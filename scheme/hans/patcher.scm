@@ -1,4 +1,5 @@
 (define-module (hans patcher)
+  :use-module (srfi srfi-1)
   :use-module (srfi srfi-9)
   :use-module (srfi srfi-9 gnu)
   :use-module (hans utils)
@@ -73,11 +74,28 @@
   (programs hans-file-programs)
   (data     hans-file-data set-hans-file-data!))
 
-(define (make-audio-graph objects connections)
-  (hans-graph 'audio objects connections))
+(define (unique-objects connections)
+  (delete-duplicates (fold (lambda (conn objects)
+                             (append objects (list (list-ref conn 0)
+                                                   (list-ref conn 2))))
+                           '() connections)
+                     (lambda (a b)
+                       (eq? (hans-object-instance-id a)
+                            (hans-object-instance-id b)))))
 
-(define (make-graphics-graph objects connections)
-  (hans-graph 'graphics objects connections))
+(define (make-conns connections)
+  (map (lambda (conn)
+         (list (hans-object-instance-id (list-ref conn 0))
+               (list-ref conn 1)
+               (hans-object-instance-id (list-ref conn 2))
+               (list-ref conn 3)))
+       connections))
+
+(define (make-audio-graph . connections)
+  (hans-graph 'audio (unique-objects connections) (make-conns connections)))
+
+(define (make-graphics-graph . connections)
+  (hans-graph 'graphics (unique-objects connections) (make-conns connections)))
 
 (define (make-environment objects)
   "Patching environment for instancing and connecting objects"
@@ -98,8 +116,7 @@
 
   (define (connect source outlet sink inlet)
     (if (and (hans-object? source) (hans-object? sink))
-      (list (hans-object-instance-id source) outlet
-            (hans-object-instance-id sink) inlet)
+      (list source outlet sink inlet)
       (exit-with-error "Not a hans-object" source sink)))
 
   (let ((instance-id 0))
