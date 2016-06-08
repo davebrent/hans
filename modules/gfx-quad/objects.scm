@@ -1,5 +1,6 @@
 (define-module (hans modules gfx-quad objects))
-(use-modules (hans objects))
+(use-modules (hans objects)
+             (hans utils))
 
 (define library "libhans.gfx.quad")
 (define width  1184)
@@ -14,7 +15,7 @@
     (list
       (shader 'vertex "quad/shader/vertex"
         (slurp-file (string-append base "/quad.vert")))
-      (shader 'fragmnet "quad/shader/fragment"
+      (shader 'fragment "quad/shader/fragment"
         (slurp-file (string-append base "/quad.frag"))))
     (fbo #t
       (list

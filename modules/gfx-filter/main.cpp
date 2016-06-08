@@ -9,7 +9,7 @@ static const float VERTICES[] = {-1, 1, -1, -1, 1, -1, 1, 1};
 static const int INDEX[] = {0, 1, 2, 2, 3, 0};
 
 typedef struct {
-  hans_fbo_handle fbo;
+  hans_fbo fbo;
   GLuint vao;
   GLuint texture;
 
@@ -18,9 +18,9 @@ typedef struct {
   hans_shader_instance f_shader;
   hans_shader_program_instance program;
 
-  hans_register_handle inlet_texture;
-  hans_register_handle outlet_texture;
-  hans_parameter_handle amount;
+  hans_register inlet_texture;
+  hans_register outlet_texture;
+  hans_parameter amount;
 
   GLuint u_center_loc;
   GLuint u_resolution_loc;
@@ -30,50 +30,13 @@ typedef struct {
   bool is_empty;
 } FilterData;
 
-void get_resources(FilterData* data, hans_object_resource* resources, int len) {
-  int seen_shaders = 0;
-
-  for (int i = 0; i < len; ++i) {
-    auto resource = &resources[i];
-    switch (resource->type) {
-    case HANS_INLET:
-      data->inlet_texture = resource->inlet;
-      break;
-
-    case HANS_OUTLET:
-      data->outlet_texture = resource->outlet;
-      break;
-
-    case HANS_FRAME_BUFFER:
-      data->fbo = resource->frame_buffer;
-      break;
-
-    case HANS_PARAMETER:
-      data->amount = resource->parameter;
-      break;
-
-    case HANS_SHADER:
-      switch (seen_shaders) {
-      case 0:
-        data->v_shader = resource->shader;
-        break;
-      case 1:
-        data->f_shader = resource->shader;
-        break;
-      }
-      seen_shaders++;
-      break;
-
-    default:
-      assert(false && "Unhandled resource");
-      break;
-    }
-  }
-}
-
 void filter_setup(hans_graphics_object* self, hans_object_api* api) {
   auto data = static_cast<FilterData*>(self->data);
-  get_resources(data, self->resources, self->num_resources);
+
+  data->amount = api->parameters->make(self->id, LIBHANS_FILTER_AMOUNT);
+  data->inlet_texture = api->registers->make(self->id, HANS_INLET, 0);
+  data->outlet_texture = api->registers->make(self->id, HANS_OUTLET, 0);
+  data->fbo = api->fbos->make(self->id);
 
   GLuint vbo;
   GLuint ebo;
@@ -93,15 +56,14 @@ void filter_setup(hans_graphics_object* self, hans_object_api* api) {
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
-  api->shaders->create_shader(data->v_shader, LIBHANS_FILTER_VERT_SHADER);
-  api->shaders->create_shader(data->f_shader, data->shader);
-
+  data->v_shader = api->shaders->create_shader(LIBHANS_FILTER_VERT_SHADER);
+  data->f_shader = api->shaders->create_shader(data->shader);
   data->program = api->shaders->create_program(data->v_shader, data->f_shader);
   glUseProgram(data->program.handle);
+
   data->u_resolution_loc =
       glGetUniformLocation(data->program.handle, "u_resolution");
   data->u_center_loc = glGetUniformLocation(data->program.handle, "u_center");
-
   data->texture = glGetUniformLocation(data->program.handle, "u_texture");
   data->u_amount_loc = glGetUniformLocation(data->program.handle, "u_amount");
 
@@ -109,29 +71,21 @@ void filter_setup(hans_graphics_object* self, hans_object_api* api) {
   glVertexAttribPointer(pos_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(pos_attrib);
 
-  // Read in an input texture
-  data->is_empty = api->registers->is_empty(data->inlet_texture);
-  if (!data->is_empty) {
-    auto register_value = api->registers->get_read_reg(data->inlet_texture);
-    assert(register_value != nullptr);
-    data->texture_value = *static_cast<uint32_t*>(register_value);
-  }
+  auto register_value = api->registers->read(data->inlet_texture);
+  data->texture_value = *static_cast<uint32_t*>(register_value);
 
   // Send the textures we will be writing to to the outlet
-  auto out_tex = api->frame_buffers->get_color_attachment(data->fbo, 0);
-  api->registers->set_write_reg(data->outlet_texture, &out_tex);
+  auto out_tex = api->fbos->get_color_attachment(data->fbo, 0);
+  api->registers->write(data->outlet_texture, &out_tex);
 }
 
 void filter_draw(hans_graphics_object* self, hans_object_api* api) {
   auto data = static_cast<FilterData*>(self->data);
   glUseProgram(data->program.handle);
 
-  // Bind input texture
-  if (data->is_empty == false) {
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, data->texture_value);
-    glUniform1i(data->texture, 0);
-  }
+  glActiveTexture(GL_TEXTURE0);
+  glBindTexture(GL_TEXTURE_2D, data->texture_value);
+  glUniform1i(data->texture, 0);
 
   int input_width;
   int input_height;
@@ -143,7 +97,7 @@ void filter_draw(hans_graphics_object* self, hans_object_api* api) {
   glUniform2f(data->u_center_loc, input_width / 2.f, input_height / 2.f);
   glUniform1f(data->u_amount_loc, api->parameters->get(data->amount, 0));
 
-  api->frame_buffers->bind_frame_buffer(data->fbo);
+  api->fbos->bind_fbo(data->fbo);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glBindVertexArray(data->vao);
@@ -156,20 +110,14 @@ void filter_new(hans_constructor_api* api, void* buffer, size_t size) {
   api->request_resource(api, HANS_SHADER, 2);
 
   auto data = static_cast<FilterData*>(buffer);
+  data->shader = LIBHANS_FILTER_PASSTHROUGH_SHADER;
 
-  // Parse arguments
-  bool found = false;
-  auto args = api->get_args(api);
+  auto args = api->get_arguments(api);
   for (int i = 0; i < args.length; ++i) {
     if (args.data[i].type == HANS_STRING &&
         args.data[i].name == LIBHANS_FILTER_ARG_NAME) {
       data->shader = args.data[i].string;
-      found = true;
     }
-  }
-
-  if (!found) {
-    data->shader = LIBHANS_FILTER_PASSTHROUGH_SHADER;
   }
 }
 
@@ -182,8 +130,8 @@ void filter_init(void* instance) {
 
 extern "C" {
 void setup(hans_library_api* api) {
+  auto name = "gfx-filter";
   auto size = sizeof(FilterData);
-  api->register_object(api, "gfx-filter", size, filter_new, filter_init,
-                       nullptr);
+  api->register_object(api, name, size, filter_new, filter_init, nullptr);
 }
 }

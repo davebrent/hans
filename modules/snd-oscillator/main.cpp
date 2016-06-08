@@ -10,51 +10,51 @@ typedef struct {
   unsigned samplerate;
   uint8_t channels;
   unsigned phase;
-  hans_parameter_handle frequency;
-  hans_parameter_handle waveform;
+  hans_parameter frequency;
+  hans_parameter waveform;
   hans_audio_buffer* buffer;
-  std::vector<hans_register_handle> outlets;
+  std::vector<hans_register> outlets;
 } hans_osc_data;
 
-static void hans_osc_get_resources(hans_osc_data* data,
-                                   hans_object_resource* resources, int len) {
-  for (int i = 0; i < len; ++i) {
-    auto resource = &resources[i];
-    switch (resource->type) {
-    case HANS_OUTLET:
-      data->outlets.push_back(resource->outlet);
-      break;
+// static void hans_osc_get_resources(hans_osc_data* data,
+//                                    hans_resource* resources, int len) {
+//   for (int i = 0; i < len; ++i) {
+//     auto resource = &resources[i];
+//     switch (resource->type) {
+//     case HANS_OUTLET:
+//       data->outlets.push_back(resource->outlet);
+//       break;
 
-    case HANS_AUDIO_BUFFER:
-      data->buffer = resource->audio_buffer;
-      break;
+//     case HANS_AUDIO_BUFFER:
+//       data->buffer = resource->audio_buffer;
+//       break;
 
-    case HANS_PARAMETER:
-      switch (resource->name) {
-      case LIBOSC_PARAM_WAVEFORM:
-        data->waveform = resource->parameter;
-        break;
+//     case HANS_PARAMETER:
+//       switch (resource->name) {
+//       case LIBOSC_PARAM_WAVEFORM:
+//         data->waveform = resource->parameter;
+//         break;
 
-      case LIBOSC_PARAM_FREQUENCY:
-        data->frequency = resource->parameter;
-        break;
+//       case LIBOSC_PARAM_FREQUENCY:
+//         data->frequency = resource->parameter;
+//         break;
 
-      default:
-        assert(false && "Unknown parameter");
-        break;
-      }
-      break;
+//       default:
+//         assert(false && "Unknown parameter");
+//         break;
+//       }
+//       break;
 
-    default:
-      assert(false && "Unhandled resource");
-      break;
-    }
-  }
-}
+//     default:
+//       assert(false && "Unhandled resource");
+//       break;
+//     }
+//   }
+// }
 
 static void hans_osc_parse_args(hans_constructor_api* api,
                                 hans_osc_data* data) {
-  auto args = api->get_args(api);
+  auto args = api->get_arguments(api);
   for (int i = 0; i < args.length; ++i) {
     switch (args.data[i].name) {
     case LIBOSC_ARG_CHANNELS:
@@ -118,17 +118,18 @@ static void hans_osc_callback(hans_audio_object* self, hans_object_api* api) {
 
   // Send the single buffer to all outlets
   for (auto outlet : data->outlets) {
-    if (!api->registers->is_empty(outlet)) {
-      api->registers->set_write_reg(outlet, data->buffer);
-    }
+    // if (!api->registers->is_empty(outlet)) {
+    api->registers->write(outlet, data->buffer);
+    // }
   }
 }
 
 static void hans_osc_setup(hans_audio_object* self, hans_object_api* api) {
   hans_osc_data* data = static_cast<hans_osc_data*>(self->data);
-  data->samplerate = api->config->audio.sample_rate;
-
-  hans_osc_get_resources(data, self->resources, self->num_resources);
+  data->samplerate = api->config->samplerate;
+  data->waveform = api->parameters->make(self->id, LIBOSC_PARAM_WAVEFORM);
+  data->frequency = api->parameters->make(self->id, LIBOSC_PARAM_FREQUENCY);
+  // hans_osc_get_resources(data, self->resources, self->num_resources);
 }
 
 static void hans_osc_new(hans_constructor_api* api, void* buffer, size_t size) {

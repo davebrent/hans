@@ -10,18 +10,18 @@ out vec3 v_normal;
 uniform mat4 model_view_matrix;
 uniform mat4 projection_matrix;
 
-uniform float superformula_scale;
-uniform float superformula_segments;
-uniform float superformula_seed;
-uniform float superformula_deform;
-uniform vec2 superformula_m;
-uniform vec2 superformula_n1;
-uniform vec2 superformula_n2;
-uniform vec2 superformula_n3;
-uniform vec2 superformula_a;
-uniform vec2 superformula_b;
-uniform vec2 superformula_u;
-uniform vec2 superformula_v;
+uniform float scale;
+uniform float segments;
+uniform float seed;
+uniform float deform;
+uniform vec2 m;
+uniform vec2 n1;
+uniform vec2 n2;
+uniform vec2 n3;
+uniform vec2 a;
+uniform vec2 b;
+uniform vec2 u;
+uniform vec2 v;
 
 
 float rand(vec2 co) {
@@ -52,18 +52,18 @@ float superformula(float phi, float m, float n1, float n2, float n3, float a,
 }
 
 vec3 calculate_position(vec2 position) {
-  float phi = position.x / superformula_segments;
-  float theta = position.y / superformula_segments;
+  float phi = position.x / segments;
+  float theta = position.y / segments;
 
-  theta = mix(superformula_u.y, superformula_u.x, theta);
-  phi = mix(superformula_v.y, superformula_v.x, phi);
+  theta = mix(u.y, u.x, theta);
+  phi = mix(v.y, v.x, phi);
 
-  float r1 = superformula(theta, superformula_m.x, superformula_n1.x,
-                          superformula_n2.x, superformula_n3.x,
-                          superformula_a.x, superformula_b.x);
-  float r2 = superformula(phi, superformula_m.y, superformula_n1.y,
-                          superformula_n2.y, superformula_n3.y,
-                          superformula_a.y, superformula_b.y);
+  float r1 = superformula(theta, m.x, n1.x,
+                          n2.x, n3.x,
+                          a.x, b.x);
+  float r2 = superformula(phi, m.y, n1.y,
+                          n2.y, n3.y,
+                          a.y, b.y);
 
   return vec3(
     r1 * cos(theta) * r2 * cos(phi),
@@ -79,7 +79,7 @@ vec3 calculate_face_normal(vec3 p1, vec3 p2, vec3 p3, vec3 p4) {
 }
 
 vec2 wrap_around(vec2 grid) {
-  float segments = superformula_segments;
+  float segments = segments;
 
   // Make sure the grid position does not go out of bounds to the expected
   // number of segments
@@ -124,15 +124,15 @@ vec3 calculate_vertex_normal(vec3 p0, vec2 grid) {
 }
 
 void main() {
-  v_position = calculate_position(position.xy) * superformula_scale;
+  v_position = calculate_position(position.xy) * scale;
   v_normal = calculate_vertex_normal(v_position, position.xy);
 
-  v_position.x += ((rand(v_position.xy * superformula_seed) * 2.0) - 1.0) * (
-    superformula_seed * superformula_deform);
-  v_position.y += ((rand(v_position.xz * superformula_seed) * 2.0) - 1.0) * (
-    superformula_seed * superformula_deform);
-  v_position.z += ((rand(v_position.yz * superformula_seed) * 2.0) - 1.0) * (
-    superformula_seed * superformula_deform);
+  v_position.x += ((rand(v_position.xy * seed) * 2.0) - 1.0) * (
+    seed * deform);
+  v_position.y += ((rand(v_position.xz * seed) * 2.0) - 1.0) * (
+    seed * deform);
+  v_position.z += ((rand(v_position.yz * seed) * 2.0) - 1.0) * (
+    seed * deform);
 
   gl_Position = projection_matrix * model_view_matrix * vec4(v_position, 1.0);
 }

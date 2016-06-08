@@ -23,7 +23,7 @@
       (parameter 'b "The 'b' value in the formula" 2 '(1 1))
       (parameter 'u "The 'u' value in the formula" 2 `(,(- pi) ,pi))
       (parameter 'v "The 'v' value in the formula" 2 `(,(- half-pi) ,half-pi))
-      (parameter 'color "The 'color' of the body" 3 '(0.85 0.9 0.95))
+      (parameter 'u_color "The 'color' of the body" 3 '(0.85 0.9 0.95))
       (parameter 'scale "The scale of the shape" 1 '(0.5))
       (parameter 'segments "The number of segments in the shape" 1 '(90))
       (parameter 'seed "The random value to deform the shape" 1 '(0))

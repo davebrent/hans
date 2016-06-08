@@ -142,7 +142,7 @@ void hans_loadsf_new(hans_constructor_api* api, void* buffer, size_t size) {
 
   api->request_resource(api, HANS_OUTLET, 1);
 
-  auto arguments = api->get_args(api);
+  auto arguments = api->get_arguments(api);
   for (int i = 0; i < arguments.length; ++i) {
     if (arguments.data[i].type == HANS_STRING &&
         arguments.data[i].name == LOADSF_ARG_FILEPATH) {

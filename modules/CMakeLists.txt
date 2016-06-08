@@ -1,4 +1,3 @@
-add_subdirectory(test-all)
 add_subdirectory(snd-io)
 add_subdirectory(snd-loadfile)
 add_subdirectory(snd-oscillator)
