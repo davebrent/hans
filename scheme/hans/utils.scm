@@ -3,6 +3,7 @@
   :use-module (srfi srfi-9)
   :use-module (ice-9 rdelim)
   :export (print
+           rstrip
            slurp-file
            exit-with-error
            record->alist))
@@ -16,6 +17,11 @@
     (if (not (equal? i len))
       (display " "))) args)
   (newline))
+
+(define (rstrip str)
+  (if (string=? (string-take-right str 1) "\n")
+    (string-drop-right str 1)
+    str))
 
 (define (exit-with-error . args)
   (apply print args)

@@ -189,19 +189,24 @@
 
 (define (validate-shader-pass file options)
   "Validate all shaders in a hans file"
-  (for-each-object (lambda (obj)
-    (let ((rec (hans-object-rec obj)))
-      (if (graphics-object? rec)
-        (for-each (lambda (shader)
-          (if (and (not (eq? (shader-type shader) 'vertex))
-                   (not (eq? (shader-type shader) 'fragment)))
-            (exit-with-error "Unknown shader type" shader))
-          (if (not (valid-shader? (shader-type shader) (shader-code shader)))
-            (exit-with-error "Invalid shader" (shader-name shader)
-                                              (object-record-name rec))))
-          (object-record-shaders rec)))))
-    file)
-  file)
+  (let* ((shaders (list-shaders file))
+         (result (valid-shaders? (map (lambda (shader)
+                                        (let ((type (shader-type shader)))
+                                          (if (and (not (eq? type 'vertex))
+                                                   (not (eq? type 'fragment)))
+                                            (exit-with-error
+                                              "Shader has unknown type" shader))
+                                          (record->alist shader)))
+                                      shaders))))
+
+    (for-each (lambda (shader-result)
+                (let* ((result (last shader-result))
+                       (valid? (car result)))
+                  (if (not valid?)
+                    (print (shader-name (car shader-result))
+                           (rstrip (cdr result))))))
+                (zip shaders result))
+    file))
 
 (define (object-resources-pass file options)
   "Fill in object runtime resource requests"

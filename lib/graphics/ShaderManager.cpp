@@ -1,5 +1,6 @@
 #include "hans/graphics/ShaderManager.hpp"
 #include <stdexcept>
+#include <iostream>
 
 using namespace hans;
 
@@ -18,6 +19,26 @@ graphics::ShaderManager::~ShaderManager() {
   for (auto& program : m_program_handles) {
     glDeleteProgram(program);
   }
+}
+
+const char* graphics::ShaderManager::validate_shader(const hans_hash name) {
+  auto instance = create_shader(name);
+  auto handle = instance.handle;
+
+  GLint status = GL_TRUE;
+  glGetShaderiv(handle, GL_COMPILE_STATUS, &status);
+
+  if (status != GL_TRUE) {
+    GLint length = 0;
+    glGetShaderiv(handle, GL_INFO_LOG_LENGTH, &length);
+
+    char* message = new char[length + 1];
+    glGetShaderInfoLog(handle, length, nullptr, static_cast<GLchar*>(message));
+    message[length] = '\0';
+    return message;
+  }
+
+  return nullptr;
 }
 
 hans_shader_instance graphics::ShaderManager::create_shader(
@@ -44,6 +65,8 @@ hans_shader_instance graphics::ShaderManager::create_shader(
     case HANS_SHADER_FRAGMENT:
       instance.handle = glCreateShader(GL_FRAGMENT_SHADER);
       break;
+    default:
+      throw std::runtime_error("Shader not recognised");
     }
 
     glShaderSource(instance.handle, 1, &code, nullptr);

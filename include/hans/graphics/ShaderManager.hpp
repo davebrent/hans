@@ -17,6 +17,10 @@ class ShaderManager {
                 const hans::common::ListView<hans_shader>& shaders);
   ~ShaderManager();
 
+  /// Returns nullptr if the shader is valid, other wise an error string that
+  /// must be freed by the caller
+  const char* validate_shader(const hans_hash uri);
+
   hans_shader_instance create_shader(const hans_hash uri);
   hans_shader_program_instance create_program(
       const hans_shader_instance& vertex_shader,

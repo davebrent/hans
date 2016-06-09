@@ -3,6 +3,8 @@
 #include <iostream>
 #include <stdexcept>
 #include <vector>
+#include "hans/graphics/gl.h"
+#include <GLFW/glfw3.h>
 #include "hans/common/DataLoader.hpp"
 #include "hans/common/LinearAllocator.hpp"
 #include "hans/common/ListView.hpp"
@@ -10,6 +12,7 @@
 #include "hans/common/hasher.hpp"
 #include "hans/common/types.hpp"
 #include "hans/engine/LibraryManager.hpp"
+#include "hans/graphics/ShaderManager.hpp"
 
 using namespace hans;
 
@@ -30,6 +33,13 @@ static hans_hash scm_to_hans_hash(SCM value) {
   auto string = scm_to_locale_string(value);
   auto hash = common::hasher(string);
   std::free(string);
+  return hash;
+}
+
+static hans_hash scm_to_hans_hash(common::StringManager& strings, SCM value) {
+  auto str = scm_to_locale_string(value);
+  auto hash = strings.intern(str);
+  std::free(str);
   return hash;
 }
 
@@ -477,8 +487,65 @@ static hans_argument_type scm_to_hans_argument_type(SCM value) {
   throw std::runtime_error("Unknown argument type");
 }
 
-static SCM valid_shader(SCM type, SCM code) {
-  return SCM_BOOL_T;
+static SCM valid_shaders(SCM lst) {
+  auto strings = common::StringManager(96768);
+  auto len = lst_length(lst);
+  auto shader_vec = std::vector<hans_shader>();
+  shader_vec.reserve(len);
+
+  auto sym_type = scm_from_locale_symbol("type");
+  auto sym_name = scm_from_locale_symbol("name");
+  auto sym_code = scm_from_locale_symbol("code");
+
+  for (auto i = 0; i < len; ++i) {
+    auto alist = scm_list_ref(lst, scm_from_int(i));
+    auto type = scm_assq_ref(alist, sym_type);
+    auto name = scm_assq_ref(alist, sym_name);
+    auto code = scm_assq_ref(alist, sym_code);
+
+    hans_shader item;
+    item.type = scm_to_hans_shader_type(type);
+    item.name = scm_to_hans_hash(strings, name);
+    item.code = scm_to_hans_hash(strings, code);
+    shader_vec.push_back(item);
+  }
+
+  auto shader_list = common::ListView<hans_shader>(&shader_vec[0], len);
+
+  bool res = glfwInit();
+  assert(res == GL_TRUE);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+  glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+  glfwWindowHint(GLFW_FOCUSED, GL_FALSE);
+  glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+  glfwWindowHint(GLFW_DECORATED, GL_FALSE);
+  auto window = glfwCreateWindow(480, 320, "Shaders", nullptr, nullptr);
+  glfwMakeContextCurrent(window);
+
+  auto shader_manager = graphics::ShaderManager(strings, shader_list);
+  auto out = SCM_EOL;
+
+  for (const auto& shader : shader_list) {
+    auto message = shader_manager.validate_shader(shader.name);
+
+    auto out_valid = SCM_BOOL_T;
+    auto out_message = SCM_BOOL_F;
+
+    if (message != nullptr) {
+      out_valid = SCM_BOOL_F;
+      out_message = scm_from_locale_string(message);
+      delete[] message;
+    }
+
+    out = scm_cons(scm_cons(out_valid, out_message), out);
+  }
+
+  glfwDestroyWindow(window);
+  glfwTerminate();
+  return scm_reverse(out);
 }
 
 typedef struct {
@@ -704,7 +771,7 @@ void scm_init_hans_compiler_module() {
                      (scm_t_subr)write_fbo_attachments);
   scm_c_define_gsubr("write-strings", 2, 0, 0, (scm_t_subr)write_strings);
 
-  scm_c_define_gsubr("valid-shader?", 2, 0, 0, (scm_t_subr)valid_shader);
+  scm_c_define_gsubr("valid-shaders?", 1, 0, 0, (scm_t_subr)valid_shaders);
   scm_c_define_gsubr("get-object-info", 2, 0, 0, (scm_t_subr)get_object_info);
 }
 }
