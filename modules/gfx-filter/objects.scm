@@ -3,8 +3,6 @@
              (hans utils))
 
 (define library "libhans.gfx.filter")
-(define width 1184)
-(define height 640)
 (define base (dirname (current-filename)))
 
 (define (effect name)
@@ -12,7 +10,9 @@
     (string-append "filter/shader/" name)
     (slurp-file (string-append base "/shaders/" name ".frag"))))
 
-(define-public (gfx-filter)
+(define-public (gfx-filter settings args)
+  (define width (assq-ref settings 'width))
+  (define height (assq-ref settings 'height))
   (graphics-object "gfx-filter"
     library
     "Effects filter"

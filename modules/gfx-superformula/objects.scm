@@ -5,11 +5,11 @@
 (define library "libhans.gfx.superformula")
 (define pi      3.14159265)
 (define half-pi 1.57079632)
-(define width   1184)
-(define height  640)
 (define base (dirname (current-filename)))
 
-(define-public (gfx-superformula)
+(define-public (gfx-superformula settings args)
+  (define width (assq-ref settings 'width))
+  (define height (assq-ref settings 'height))
   (graphics-object "gfx-superformula"
     library
     "A study into formulated bodies"

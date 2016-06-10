@@ -3,11 +3,11 @@
              (hans utils))
 
 (define library "libhans.gfx.quad")
-(define width  1184)
-(define height 640)
 (define base (dirname (current-filename)))
 
-(define-public (gfx-quad)
+(define-public (gfx-quad settings args)
+  (define width (assq-ref settings 'width))
+  (define height (assq-ref settings 'height))
   (graphics-object "gfx-quad"
     library
     "Simple quad"
