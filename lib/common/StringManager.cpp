@@ -43,7 +43,9 @@ hans_hash common::StringManager::intern(const char* string) {
   size_t size = sizeof(char) * (len + 1);
 
   void* ptr = m_allocator.allocate(size);
-  assert(ptr != nullptr && "Out of memory");
+  if (ptr == nullptr) {
+    return hash;
+  }
 
   // Perform the copy
   void* src = static_cast<void*>(const_cast<char*>(string));
