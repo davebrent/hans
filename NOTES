@@ -2,18 +2,22 @@
 
 Todo
 ----
-* Compile all engine data into a single file (thats not a sqlite database, )
-* Use a single data format for configuration (maybe just move it all to scheme?)
-* Remove the c++ jsonrpc layer and replace with something else
-* Add support to build system for installing scheme modules
-* Improve scheme test suite (auto-discover tests, run from a single command)
-* Renoise sequencer backend
-* Find a way of auto formatting scheme code
-* Shared ring buffers between audio & graphics graphs
-* Add other types of ctrl_event interpolation to sequencer
+* Move settings into hans-file & remove from command line
+* Add ring buffer & double buffer functionality for sharing data between graphs
+* Add file watching functionality
+* Add engine bindings to scheme (make-engine)
+* Add an example that implements a shadertoy clone
 * Add back recording features
+* Separate compiler passes into "frontend" & "backend" passes
 * Add video export
 * Have a full workflow kind of working
+* Add wavetable player module
+* Add an example of loading an audio file and playing it
+* Add support to build system for installing scheme modules
+* Improve scheme test suite (auto-discover tests, run from a single command)
+* Add a renoise sequencer backend to sequencer lib
+* Find a way of auto-formatting scheme code
+* Add other types of ctrl_event interpolation to sequencer
 
 Development
 -----------
