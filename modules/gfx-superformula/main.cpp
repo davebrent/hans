@@ -296,8 +296,8 @@ void superformula_draw(hans_graphics_object* self, hans_object_api* api) {
 }
 
 void superformula_new(hans_constructor_api* api, void* buffer, size_t size) {
-  api->request_resource(api, HANS_INLET, 0);
-  api->request_resource(api, HANS_OUTLET, 3);
+  uint8_t num_outlets = 3;
+  api->request_resource(api, HANS_OUTLET, &num_outlets);
 }
 
 void superformula_init(void* instance) {

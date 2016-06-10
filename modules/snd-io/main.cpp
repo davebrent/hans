@@ -81,14 +81,14 @@ static void hans_io_new_in(hans_constructor_api* api, void* buffer,
                            size_t size) {
   auto data = static_cast<hans_io_data*>(buffer);
   hans_io_parse_args(api, data);
-  api->request_resource(api, HANS_OUTLET, data->channels_len);
+  api->request_resource(api, HANS_OUTLET, &data->channels_len);
 }
 
 static void hans_io_new_out(hans_constructor_api* api, void* buffer,
                             size_t size) {
   auto data = static_cast<hans_io_data*>(buffer);
   hans_io_parse_args(api, data);
-  api->request_resource(api, HANS_INLET, data->channels_len);
+  api->request_resource(api, HANS_INLET, &data->channels_len);
 }
 
 void hans_io_init_in(void* instance) {

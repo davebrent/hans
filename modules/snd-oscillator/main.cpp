@@ -103,7 +103,7 @@ static void hans_osc_new(hans_constructor_api* api, void* buffer, size_t size) {
   data->phase = 0;
   data->channels = 1;
   hans_osc_parse_args(api, data);
-  api->request_resource(api, HANS_OUTLET, data->channels);
+  api->request_resource(api, HANS_OUTLET, &data->channels);
 }
 
 void hans_osc_init(void* instance) {

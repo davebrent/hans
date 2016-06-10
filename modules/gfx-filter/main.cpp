@@ -105,9 +105,11 @@ void filter_draw(hans_graphics_object* self, hans_object_api* api) {
 }
 
 void filter_new(hans_constructor_api* api, void* buffer, size_t size) {
-  api->request_resource(api, HANS_INLET, 1);
-  api->request_resource(api, HANS_OUTLET, 1);
-  api->request_resource(api, HANS_SHADER, 2);
+  uint8_t num_inlets = 1;
+  uint8_t num_outlets = 1;
+
+  api->request_resource(api, HANS_INLET, &num_inlets);
+  api->request_resource(api, HANS_OUTLET, &num_outlets);
 
   auto data = static_cast<FilterData*>(buffer);
   data->shader = LIBHANS_FILTER_PASSTHROUGH_SHADER;

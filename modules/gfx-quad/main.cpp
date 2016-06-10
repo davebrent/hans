@@ -73,8 +73,8 @@ void quad_draw(hans_graphics_object* self, hans_object_api* api) {
 }
 
 void quad_new(hans_constructor_api* api, void* buffer, size_t size) {
-  api->request_resource(api, HANS_INLET, 1);
-  api->request_resource(api, HANS_SHADER, 2);
+  uint8_t num_inlets = 1;
+  api->request_resource(api, HANS_INLET, &num_inlets);
 }
 
 void quad_init(void* instance) {

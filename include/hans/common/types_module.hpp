@@ -11,7 +11,7 @@ struct hans_constructor_api {
   void (*missing_argument)(hans_constructor_api* api, hans_argument_type type,
                            hans_hash name);
   void (*request_resource)(hans_constructor_api* api, hans_resource_type type,
-                           int32_t amount);
+                           void* data);
   void* data;
 };
 

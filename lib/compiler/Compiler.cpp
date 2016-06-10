@@ -647,10 +647,22 @@ static void missing_argument(hans_constructor_api* api, hans_argument_type type,
 }
 
 static void request_resource(hans_constructor_api* api, hans_resource_type type,
-                             int32_t amount) {
+                             void* data) {
   auto info = static_cast<object_info_data*>(api->data);
-  info->requests.push_back(
-      scm_cons(hans_resource_type_to_scm(type), scm_from_int(amount)));
+  SCM req;
+
+  switch (type) {
+  case HANS_INLET:
+  case HANS_OUTLET: {
+    auto amount = *static_cast<uint8_t*>(data);
+    req = scm_cons(hans_resource_type_to_scm(type), scm_from_int(amount));
+    break;
+  }
+  default:
+    throw std::runtime_error("Unkown resource request");
+  }
+
+  info->requests.push_back(req);
 }
 
 /// Returns an alist for each object instance describing its runtime resources
