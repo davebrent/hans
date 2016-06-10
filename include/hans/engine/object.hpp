@@ -3,6 +3,7 @@
 
 #include "hans/audio/AudioBufferManager.hpp"
 #include "hans/audio/AudioBusManager.hpp"
+#include "hans/audio/RingBufferManager.hpp"
 #include "hans/common/Logger.hpp"
 #include "hans/common/StringManager.hpp"
 #include "hans/common/types.hpp"
@@ -20,6 +21,7 @@ typedef struct {
   hans::common::StringManager* strings;
   hans::audio::AudioBufferManager* audio_buffers;
   hans::audio::AudioBusManager* audio_buses;
+  hans::audio::RingBufferManager* ring_buffers;
   hans::graphics::ShaderManager* shaders;
   hans::graphics::FrameBufferManager* fbos;
 } hans_object_api;

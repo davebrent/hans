@@ -4,6 +4,7 @@
 #include "hans/audio/AudioBusManager.hpp"
 #include "hans/audio/AudioDevices.hpp"
 #include "hans/audio/AudioStream.hpp"
+#include "hans/audio/RingBufferManager.hpp"
 #include "hans/common/DataLoader.hpp"
 #include "hans/common/ListView.hpp"
 #include "hans/common/Logging.hpp"
@@ -38,6 +39,7 @@ static int run(const char* filepath, hans_hash program, hans_config& config) {
   auto audio_buffers = AudioBufferManager(d.audio_buffers);
   auto audio_buses = AudioBusManager(config, 1);
   auto audio_stream = AudioStream(config, audio_devices, audio_buses, programs);
+  auto ring_buffers = RingBufferManager(config, d.ring_buffers);
 
   hans_object_api object_api;
   object_api.config = &config;
@@ -46,6 +48,7 @@ static int run(const char* filepath, hans_hash program, hans_config& config) {
   object_api.parameters = &parameters;
   object_api.audio_buses = &audio_buses;
   object_api.audio_buffers = &audio_buffers;
+  object_api.ring_buffers = &ring_buffers;
   object_api.shaders = &shaders;
   object_api.registers = &registers;
   object_api.fbos = &fbos;
@@ -65,6 +68,7 @@ static int run(const char* filepath, hans_hash program, hans_config& config) {
 
   while (!window.should_close()) {
     programs.tick_graphics(0);
+    ring_buffers.advance_all();
     window.update();
   }
 

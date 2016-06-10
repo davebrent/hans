@@ -436,6 +436,30 @@ static SCM write_audio_buffers(SCM writer, SCM lst) {
   return write_list<hans_audio_buffer>(writer, HANS_BLOB_AUDIO_BUFFERS, result);
 }
 
+static SCM write_ring_buffers(SCM writer, SCM lst) {
+  auto len = lst_length(lst);
+  std::vector<hans_ring_buffer> result;
+  result.reserve(len);
+
+  auto sym_instance_id = scm_from_locale_symbol("instance-id");
+  auto sym_name = scm_from_locale_symbol("name");
+
+  for (auto i = 0; i < len; ++i) {
+    auto alist = scm_list_ref(lst, scm_from_int(i));
+    auto id = scm_assq_ref(alist, sym_instance_id);
+    auto name = scm_assq_ref(alist, sym_name);
+
+    hans_ring_buffer item;
+    item.producer = scm_to_int(id);
+    item.name = scm_to_hans_hash(name);
+    item.offset = 0;
+    item.index = 0;
+    result.push_back(item);
+  }
+
+  return write_list<hans_ring_buffer>(writer, HANS_BLOB_RING_BUFFERS, result);
+}
+
 static SCM make_hans_file_writer(SCM size) {
   void* place = scm_gc_malloc(sizeof(common::DataWriter), "hans-file-writer");
   auto writer = new (place) common::DataWriter(scm_to_int(size));
@@ -465,6 +489,8 @@ static SCM hans_resource_type_to_scm(hans_resource_type t) {
     return scm_from_locale_symbol("inlet");
   case HANS_OUTLET:
     return scm_from_locale_symbol("outlet");
+  case HANS_RING_BUFFER:
+    return scm_from_locale_symbol("ring-buffer");
   }
 
   throw std::runtime_error("Unknown resource type");
@@ -553,6 +579,7 @@ typedef struct {
   std::vector<int> arg_lengths;
   // Current object being created
   int current_object;
+  common::StringManager* strings;
 } object_info_data;
 
 static std::vector<hans_library> scm_to_hans_libs(
@@ -658,6 +685,12 @@ static void request_resource(hans_constructor_api* api, hans_resource_type type,
     req = scm_cons(hans_resource_type_to_scm(type), scm_from_int(amount));
     break;
   }
+  case HANS_RING_BUFFER: {
+    auto name = info->strings->lookup(*static_cast<hans_hash*>(data));
+    auto str = scm_from_locale_string(name);
+    req = scm_cons(hans_resource_type_to_scm(type), str);
+    break;
+  }
   default:
     throw std::runtime_error("Unkown resource request");
   }
@@ -673,6 +706,7 @@ static SCM get_object_info(SCM libraries, SCM objects) {
   std::vector<hans_object> objs = scm_to_hans_objs(objects, strings);
 
   object_info_data info;
+  info.strings = &strings;
   info.current_object = 0;
   info.requests.reserve(6); // No. of resource types
   info.arg_offsets.reserve(objs.size());
@@ -777,6 +811,8 @@ void scm_init_hans_compiler_module() {
                      (scm_t_subr)write_fbo_attachments);
   scm_c_define_gsubr("write-audio-buffers", 2, 0, 0,
                      (scm_t_subr)write_audio_buffers);
+  scm_c_define_gsubr("write-ring-buffers", 2, 0, 0,
+                     (scm_t_subr)write_ring_buffers);
   scm_c_define_gsubr("write-strings", 2, 0, 0, (scm_t_subr)write_strings);
 
   scm_c_define_gsubr("valid-shaders?", 1, 0, 0, (scm_t_subr)valid_shaders);

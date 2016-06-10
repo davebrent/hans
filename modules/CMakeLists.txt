@@ -1,6 +1,7 @@
 add_subdirectory(snd-io)
 # add_subdirectory(snd-loadfile)
 add_subdirectory(snd-oscillator)
+add_subdirectory(snd-ringbuffer)
 add_subdirectory(snd-utils)
 add_subdirectory(gfx-filter)
 add_subdirectory(gfx-quad)

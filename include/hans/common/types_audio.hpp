@@ -28,4 +28,11 @@ typedef struct {
 
 typedef size_t hans_audio_bus_handle;
 
+typedef struct {
+  hans_instance_id producer;
+  hans_hash name;
+  size_t offset;
+  size_t index;
+} hans_ring_buffer;
+
 #endif // HANS_COMMON_TYPES_AUDIO_H_

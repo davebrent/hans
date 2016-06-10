@@ -158,6 +158,16 @@ class Dumper {
     }
   }
 
+  void print(const char* label, const ListView<hans_ring_buffer>& buffers) {
+    const auto& s = m_strings;
+    std::cout << "- Type: " << label << std::endl;
+    std::cout << "  Values: " << std::endl;
+    for (const auto& buffer : buffers) {
+      std::cout << "  - Producer: " << buffer.producer << std::endl;
+      std::cout << "    Name: " << s.lookup(buffer.name) << std::endl;
+    }
+  }
+
   void print(const char* label, const ListView<hans_register>& registers) {
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Values: " << std::endl;
@@ -248,6 +258,7 @@ int main(int argc, char* argv[]) {
   printer.print("FBO Attachments", reader.data.fbo_attachments);
   printer.print("Shaders", reader.data.shaders);
   printer.print("Audio buffers", reader.data.audio_buffers);
+  printer.print("Ring buffers", reader.data.ring_buffers);
 
   if (verbose) {
     printer.print("String hashes", reader.data.string_hashes);

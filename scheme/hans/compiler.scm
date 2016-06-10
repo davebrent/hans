@@ -407,6 +407,20 @@
   (define (do-shaders writer file)
     (write-shaders writer (map record->alist (list-shaders file))))
 
+  (define (do-ring-buffers writer file)
+    (write-ring-buffers
+      writer
+      (fold (lambda (obj buffers)
+              (let* ((res (hans-object-resources obj))
+                     (name (assoc-ref res 'ring-buffer)))
+                (if (not (eq? name #f))
+                  (append buffers (list `(
+                    (instance-id . ,(hans-object-instance-id obj))
+                    (name        . ,name))))
+                  buffers)))
+            '()
+            (list-objects file))))
+
   (define (do-audio-buffers writer file)
     (write-audio-buffers
       writer
@@ -443,6 +457,14 @@
            (fold append '()
              (map (compose object-record-parameters hans-object-rec)
                   (list-objects file))))))
+
+    (set! the-strings (append the-strings
+      (remove (lambda (val)
+                (eq? val #f))
+              (map (compose (lambda (res)
+                              (assoc-ref res 'ring-buffer))
+                            hans-object-resources) (list-objects file)))))
+
     (write-strings writer the-strings))
 
   (define (do-object-data writer file)
@@ -472,6 +494,7 @@
                                                                do-shaders
                                                                do-fbos
                                                                do-audio-buffers
+                                                               do-ring-buffers
                                                                do-strings))))
     (hans-file-write writer (assq-ref options 'output))
     file))

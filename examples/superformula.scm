@@ -2,6 +2,7 @@
              (hans patcher)
              (hans modules snd-io objects)
              (hans modules snd-oscillator objects)
+             (hans modules snd-ringbuffer objects)
              (hans modules gfx-superformula objects)
              (hans modules gfx-quad objects)
              (hans modules gfx-filter objects))
@@ -17,6 +18,7 @@
     (gfx-superformula . ,gfx-superformula)
     (gfx-filter       . ,gfx-filter)
     (snd-oscillator   . ,snd-oscillator)
+    (snd-ringbuffer   . ,snd-ringbuffer)
     (snd-in           . ,snd-in)
     (snd-out          . ,snd-out))))
 
@@ -49,11 +51,20 @@
         (hans 'connect adc 1 dac 1))
       (make-graphics-graph))))
 
+(define (make-ringbuffer-audio name)
+  (let ((adc (hans 'create 'snd-in `((channel . 0)) '(0 0)))
+        (ring (hans 'create 'snd-ringbuffer `((name . "foo")) '(0 0))))
+    (hans-program name
+      (make-audio-graph
+        (hans 'connect adc 0 ring 0))
+      (make-graphics-graph))))
+
 (let ((programs (list (make-program "cgadisplay" "filter/shader/cgadisplay")
                       (make-program "dotscreen" "filter/shader/dotscreen")
                       (make-program "greyscale" "filter/shader/greyscale")
                       (make-sine-audio "audio-01")
-                      (make-passthrough-audio "audio-02"))))
+                      (make-passthrough-audio "audio-02")
+                      (make-ringbuffer-audio "audio-03"))))
   (hans-compile (hans-file programs) '(
     (output        . "superformula.hans")
     (library-paths . ("/Users/dave/Projects/hans/build/lib"

@@ -127,6 +127,10 @@ common::DataReader::DataReader(const char* uri) {
       break;
     case HANS_BLOB_AUDIO_BUFFERS:
       data.audio_buffers = ListView<hans_audio_buffer>(blob);
+      break;
+    case HANS_BLOB_RING_BUFFERS:
+      data.ring_buffers = ListView<hans_ring_buffer>(blob);
+      break;
     }
   }
 }

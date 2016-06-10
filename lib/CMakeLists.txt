@@ -1,6 +1,7 @@
 set(HANS_MODULE_SOURCES
     audio/AudioBufferManager.cpp
     audio/AudioBusManager.cpp
+    audio/RingBufferManager.cpp
     engine/RegisterManager.cpp
     engine/ParameterManager.cpp
     graphics/ShaderManager.cpp

@@ -23,7 +23,8 @@ enum hans_resource_type {
   HANS_AUDIO_BUFFER,
   HANS_FRAME_BUFFER,
   HANS_INLET,
-  HANS_OUTLET
+  HANS_OUTLET,
+  HANS_RING_BUFFER
 };
 
 // FIXME: The include ordering in this and the other types_* files
@@ -59,7 +60,8 @@ enum hans_blob_type {
   HANS_BLOB_SHADERS,
   HANS_BLOB_FBOS,
   HANS_BLOB_FBO_ATTACHMENTS,
-  HANS_BLOB_AUDIO_BUFFERS
+  HANS_BLOB_AUDIO_BUFFERS,
+  HANS_BLOB_RING_BUFFERS
 };
 
 typedef struct {
