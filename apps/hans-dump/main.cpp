@@ -146,6 +146,18 @@ class Dumper {
     }
   }
 
+  void print(const char* label, const ListView<hans_audio_buffer>& buffers) {
+    const auto& s = m_strings;
+    std::cout << "- Type: " << label << std::endl;
+    std::cout << "  Values: " << std::endl;
+    for (const auto& buffer : buffers) {
+      std::cout << "  - Object: " << buffer.object << std::endl;
+      std::cout << "    Name: " << s.lookup(buffer.name) << std::endl;
+      std::cout << "    Channels: " << size_t(buffer.channels) << std::endl;
+      std::cout << "    Size: " << buffer.size << std::endl;
+    }
+  }
+
   void print(const char* label, const ListView<hans_register>& registers) {
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Values: " << std::endl;
@@ -265,7 +277,7 @@ int main(int argc, char* argv[]) {
   printer.print("FBOs", reader.data.fbos);
   printer.print("FBO Attachments", reader.data.fbo_attachments);
   printer.print("Shaders", reader.data.shaders);
-  printer.print("Resources", reader.data.resource_requests);
+  printer.print("Audio buffers", reader.data.audio_buffers);
 
   if (verbose) {
     printer.print("String hashes", reader.data.string_hashes);

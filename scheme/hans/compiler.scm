@@ -72,6 +72,11 @@
   (fold append '() (map (compose object-record-shaders hans-object-rec)
                         (list-objects file))))
 
+(define (list-audio-buffers file)
+  "Returns all audio buffers used in a hans file"
+  (fold append '() (map (compose object-record-audio-buffers hans-object-rec)
+                        (list-objects file))))
+
 (define (resolve-library-path-pass file options)
   "Compiler pass that sets the full objects library extension path"
 
@@ -402,6 +407,22 @@
   (define (do-shaders writer file)
     (write-shaders writer (map record->alist (list-shaders file))))
 
+  (define (do-audio-buffers writer file)
+    (write-audio-buffers
+      writer
+      (fold (lambda (obj buffers)
+              (let ((rec (hans-object-rec obj))
+                    (instance-id (hans-object-instance-id obj))
+                    (item '()))
+                (for-each (lambda (buff)
+                            (let ((data (record->alist buff)))
+                              (set! buffers (append buffers
+                                (list (acons 'instance-id instance-id data))))))
+                          (object-record-audio-buffers rec))
+                buffers))
+            '()
+            (list-objects file))))
+
   (define (do-strings writer file)
     (define the-strings '())
     (set! the-strings (append the-strings (list-libraries file)))
@@ -415,6 +436,8 @@
     (set! the-strings (append the-strings (map hans-program-name
                                                (hans-file-programs file))))
 
+    (set! the-strings (append the-strings (map audio-buffer-name
+                                               (list-audio-buffers file))))
     (set! the-strings (append the-strings
       (map (compose symbol->string parameter-name)
            (fold append '()
@@ -468,6 +491,7 @@
                                                                do-object-data
                                                                do-shaders
                                                                do-fbos
+                                                               do-audio-buffers
                                                                do-strings))))
     (hans-file-write writer (assq-ref options 'output))
     file))

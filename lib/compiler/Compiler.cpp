@@ -441,6 +441,35 @@ static SCM write_fbo_attachments(SCM writer, SCM lst) {
                                          result);
 }
 
+static SCM write_audio_buffers(SCM writer, SCM lst) {
+  auto len = lst_length(lst);
+  std::vector<hans_audio_buffer> result;
+  result.reserve(len);
+
+  auto sym_instance_id = scm_from_locale_symbol("instance-id");
+  auto sym_name = scm_from_locale_symbol("name");
+  auto sym_channels = scm_from_locale_symbol("channels");
+  auto sym_size = scm_from_locale_symbol("size");
+
+  for (auto i = 0; i < len; ++i) {
+    auto alist = scm_list_ref(lst, scm_from_int(i));
+    auto id = scm_assq_ref(alist, sym_instance_id);
+    auto name = scm_assq_ref(alist, sym_name);
+    auto channels = scm_assq_ref(alist, sym_channels);
+    auto size = scm_assq_ref(alist, sym_size);
+
+    hans_audio_buffer item;
+    item.object = scm_to_int(id);
+    item.name = scm_to_hans_hash(name);
+    item.channels = scm_to_int(channels);
+    item.size = scm_to_int(size);
+    item.offset = 0;
+    result.push_back(item);
+  }
+
+  return write_list<hans_audio_buffer>(writer, HANS_BLOB_AUDIO_BUFFERS, result);
+}
+
 static SCM make_hans_file_writer(SCM size) {
   void* place = scm_gc_malloc(sizeof(common::DataWriter), "hans-file-writer");
   auto writer = new (place) common::DataWriter(scm_to_int(size));
@@ -769,6 +798,8 @@ void scm_init_hans_compiler_module() {
   scm_c_define_gsubr("write-fbos", 2, 0, 0, (scm_t_subr)write_fbos);
   scm_c_define_gsubr("write-fbo-attachments", 2, 0, 0,
                      (scm_t_subr)write_fbo_attachments);
+  scm_c_define_gsubr("write-audio-buffers", 2, 0, 0,
+                     (scm_t_subr)write_audio_buffers);
   scm_c_define_gsubr("write-strings", 2, 0, 0, (scm_t_subr)write_strings);
 
   scm_c_define_gsubr("valid-shaders?", 1, 0, 0, (scm_t_subr)valid_shaders);

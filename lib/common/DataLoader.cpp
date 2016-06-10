@@ -128,6 +128,8 @@ common::DataReader::DataReader(const char* uri) {
     case HANS_BLOB_FBO_ATTACHMENTS:
       data.fbo_attachments = ListView<hans_fbo_attachment>(blob);
       break;
+    case HANS_BLOB_AUDIO_BUFFERS:
+      data.audio_buffers = ListView<hans_audio_buffer>(blob);
     }
   }
 }

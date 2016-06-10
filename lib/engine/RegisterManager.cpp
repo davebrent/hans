@@ -5,11 +5,13 @@
 
 using namespace hans;
 
-// Bin type sizes
-static size_t AUDIO_SIZE = sizeof(hans_audio_buffer);
-static size_t GRAPHICS_SIZE = sizeof(uint32_t);
 // If an object has empty connection, point all reads & writes to an empty bin
 static uint16_t EMPTY_BIN = 65535;
+
+engine::RegisterManager::RegisterManager(const hans_config& config) {
+  m_audio_reg_size = sizeof(hans_audio_sample) * config.blocksize;
+  m_graphics_reg_size = sizeof(uint32_t);
+}
 
 void engine::RegisterManager::use(common::ListView<hans_register>& registers) {
   m_registers = &registers[0];
@@ -42,13 +44,13 @@ void engine::RegisterManager::use(common::ListView<hans_register>& registers) {
   m_num_audio_bins += 1;
 
   // Add one for the "empty" register for both types
-  auto a_bins_size = AUDIO_SIZE * (m_num_audio_bins + 1);
-  auto g_bins_size = GRAPHICS_SIZE * (m_num_graphics_bins + 1);
+  auto a_bins_size = m_audio_reg_size * (m_num_audio_bins + 1);
+  auto g_bins_size = m_graphics_reg_size * (m_num_graphics_bins + 1);
 
   // Single empty bin for both types
-  auto e_bin_size = AUDIO_SIZE;
-  if (GRAPHICS_SIZE > AUDIO_SIZE) {
-    e_bin_size = GRAPHICS_SIZE;
+  auto e_bin_size = m_audio_reg_size;
+  if (m_graphics_reg_size > m_audio_reg_size) {
+    e_bin_size = m_graphics_reg_size;
   }
 
   m_allocator.reset(a_bins_size + g_bins_size + e_bin_size);
@@ -92,11 +94,11 @@ void* engine::RegisterManager::read(const hans_register& reg) const {
   switch (reg.type) {
   case HANS_OBJECT_AUDIO:
     base = m_audio_bin_base;
-    bin_size = AUDIO_SIZE;
+    bin_size = m_audio_reg_size;
     break;
   case HANS_OBJECT_GRAPHICS:
     base = m_graphics_bin_base;
-    bin_size = GRAPHICS_SIZE;
+    bin_size = m_graphics_reg_size;
     break;
   }
 
@@ -116,12 +118,12 @@ bool engine::RegisterManager::write(const hans_register& reg,
   switch (reg.type) {
   case HANS_OBJECT_AUDIO:
     base = m_audio_bin_base;
-    bin_size = AUDIO_SIZE;
+    bin_size = m_audio_reg_size;
     assert(reg.bin < m_num_audio_bins);
     break;
   case HANS_OBJECT_GRAPHICS:
     base = m_graphics_bin_base;
-    bin_size = GRAPHICS_SIZE;
+    bin_size = m_graphics_reg_size;
     assert(reg.bin < m_num_graphics_bins);
     break;
   }
@@ -129,4 +131,9 @@ bool engine::RegisterManager::write(const hans_register& reg,
   auto dest = static_cast<void*>(base + (bin_size * reg.bin));
   std::memcpy(dest, data, bin_size);
   return true;
+}
+
+bool engine::RegisterManager::write(const hans_register& reg,
+                                    const hans_audio_sample* samples) {
+  return write(reg, static_cast<const void*>(samples));
 }

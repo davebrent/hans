@@ -19,11 +19,13 @@ typedef struct {
 } hans_audio_device;
 
 typedef struct {
+  hans_instance_id object;
+  hans_hash name;
   uint8_t channels;
-  uint64_t samples_len;
-  hans_audio_sample** samples;
+  uint64_t size;
+  size_t offset;
 } hans_audio_buffer;
 
-typedef uint16_t hans_audio_bus_handle;
+typedef size_t hans_audio_bus_handle;
 
 #endif // HANS_COMMON_TYPES_AUDIO_H_

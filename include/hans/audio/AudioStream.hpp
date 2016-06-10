@@ -46,7 +46,6 @@ class AudioStream {
   hans::audio::AudioBusManager& m_audio_bus_manager;
   hans::engine::ProgramManager& m_program_manager;
   const hans_config& m_config;
-  // hans::common::Logger& m_logger;
 
   hans_audio_bus_handle m_bus;
   hans_audio_device_id m_input_device;

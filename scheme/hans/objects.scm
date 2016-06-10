@@ -30,6 +30,12 @@
            vertex-shader?
            fragment-shader?
 
+           audio-buffer
+           audio-buffer-name
+           audio-buffer?
+           audio-buffer-channels
+           audio-buffer-size
+
            object-record
            object-record?
            object-record-type
@@ -40,6 +46,7 @@
            object-record-help
            object-record-shaders
            object-record-fbo
+           object-record-audio-buffers
 
            audio-object
            audio-object?
@@ -47,6 +54,13 @@
            graphics-object?))
 
 (load-extension "libhans-compiler-bindings" "scm_init_hans_compiler_module")
+
+(define-record-type <audio-buffer>
+  (audio-buffer name channels size)
+  audio-buffer?
+  (name     audio-buffer-name)
+  (channels audio-buffer-channels)
+  (size     audio-buffer-size))
 
 (define-record-type <parameter>
   (parameter name help components value)
@@ -93,15 +107,16 @@
   (and (shader? shdr) (eq? (shader-type shdr) 'fragment)))
 
 (define-record-type <object-record>
-  (object-record type name library help parameters shaders fbo)
+  (object-record type name library help parameters shaders fbo audio-buffers)
   object-record?
-  (type       object-record-type)
-  (name       object-record-name)
-  (library    object-record-library set-object-record-library!)
-  (help       object-record-help)
-  (parameters object-record-parameters)
-  (shaders    object-record-shaders)
-  (fbo        object-record-fbo))
+  (type          object-record-type)
+  (name          object-record-name)
+  (library       object-record-library set-object-record-library!)
+  (help          object-record-help)
+  (parameters    object-record-parameters)
+  (shaders       object-record-shaders)
+  (fbo           object-record-fbo)
+  (audio-buffers object-record-audio-buffers))
 
 (set-record-type-printer! <object-record>
   (lambda (record port)
@@ -111,14 +126,14 @@
     (display (object-record-name record) port)
     (write-char #\] port)))
 
-(define (audio-object name library help parameters)
-  (object-record 'audio name library help parameters '() '()))
+(define (audio-object name library help parameters buffers)
+  (object-record 'audio name library help parameters '() '() buffers))
 
 (define (audio-object? rec)
   (and (object-record? rec) (equal? (object-record-type rec) 'audio)))
 
 (define (graphics-object name library help parameters shaders fbo)
-  (object-record 'graphics name library help parameters shaders fbo))
+  (object-record 'graphics name library help parameters shaders fbo '()))
 
 (define (graphics-object? rec)
   (and (object-record? rec) (equal? (object-record-type rec) 'graphics)))

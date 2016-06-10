@@ -4,70 +4,40 @@
 
 using namespace hans;
 
-audio::AudioBufferManager::AudioBufferManager(uint16_t blocksize)
-    : m_blocksize(blocksize) {
-}
+audio::AudioBufferManager::AudioBufferManager(
+    common::ListView<hans_audio_buffer>& buffers) {
+  m_buffers = &buffers[0];
+  m_buffers_len = buffers.size();
 
-audio::AudioBufferManager::~AudioBufferManager() {
-  for (void* buff : m_buffers) {
-    std::free(buff);
+  size_t total = 0;
+
+  for (auto& buffer : buffers) {
+    auto samples = buffer.size * buffer.channels;
+    auto bytes = sizeof(hans_audio_sample) * samples;
+    buffer.offset = total;
+    total += bytes;
   }
 
-  m_buffers.clear();
+  m_allocator.reset(total);
+  auto data = m_allocator.allocate(total, alignof(hans_audio_sample));
+  m_base = static_cast<char*>(data);
 }
 
-int audio::AudioBufferManager::make(hans_resource* resources, int len) {
-  for (int a = 0; a < len; ++a) {
-    resources->type = HANS_AUDIO_BUFFER;
-    resources->audio_buffer = create(1, m_blocksize, 1);
-    resources++;
-  }
-  return len;
-}
-
-hans_audio_buffer* audio::AudioBufferManager::create(uint8_t num_channels,
-                                                     unsigned num_samples,
-                                                     unsigned num_buffers) {
-  auto ptr_chan_arr = sizeof(hans_audio_sample*) * num_channels;
-  auto all_ptr_chan_arr = ptr_chan_arr * num_buffers;
-
-  auto obj = sizeof(hans_audio_buffer);
-  auto all_obj = obj * num_buffers;
-
-  auto samps = sizeof(hans_audio_sample) * num_samples;
-  auto all_samps = samps * num_buffers * num_channels;
-
-  void* raw = std::calloc(1, all_obj + all_ptr_chan_arr + all_samps);
-
-  if (raw == nullptr) {
-    throw std::runtime_error("Out of memory");
-  }
-
-  m_buffers.push_back(raw);
-
-  char* base = static_cast<char*>(raw);
-  char* obj_ptr = base;
-  char* samps_ptr = base + all_obj;
-  char* buff_ptr = base + all_obj + all_ptr_chan_arr;
-
-  // | c | f | c** | c | f | c** | c* | c* | c* | .. | c | c | c | ..
-  //               |             |                   |
-
-  for (int i = 0; i < num_buffers; ++i) {
-    hans_audio_buffer* au_buffer =
-        reinterpret_cast<hans_audio_buffer*>(obj_ptr);
-    au_buffer->channels = num_channels;
-    au_buffer->samples_len = num_samples;
-    obj_ptr += obj;
-
-    au_buffer->samples = reinterpret_cast<hans_audio_sample**>(samps_ptr);
-    samps_ptr += ptr_chan_arr;
-
-    for (int c = 0; c < num_channels; ++c) {
-      au_buffer->samples[c] = reinterpret_cast<hans_audio_sample*>(buff_ptr);
-      buff_ptr += samps;
+hans_audio_buffer audio::AudioBufferManager::make(hans_instance_id id,
+                                                  hans_hash name) {
+  auto& buffers = m_buffers;
+  for (auto i = 0; i < m_buffers_len; ++i) {
+    auto& buffer = buffers[i];
+    if (buffer.object == id && buffer.name == name) {
+      return buffer;
     }
   }
+  throw std::runtime_error("Unknown audio buffer");
+}
 
-  return reinterpret_cast<hans_audio_buffer*>(raw);
+hans_audio_sample* audio::AudioBufferManager::get(const hans_audio_buffer& buff,
+                                                  uint8_t channel) const {
+  char* base = m_base + buff.offset;
+  return reinterpret_cast<hans_audio_sample*>(
+      base + (sizeof(hans_audio_sample) * buff.size * channel));
 }

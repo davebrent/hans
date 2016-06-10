@@ -17,7 +17,7 @@ class ProgramManager {
            common::ListView<hans_program>& programs,
            common::ListView<size_t>& chains, hans_blob init_object_data);
   /// Initialize objects for all programs
-  void setup_all(hans_resource* resources, size_t num_resources);
+  void setup_all();
   /// Destroys all objects for all programs
   void close_all();
   /// Switch to a different program

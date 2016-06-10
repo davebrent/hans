@@ -43,6 +43,7 @@ class DataReader {
     ListView<hans_shader> shaders;
     ListView<hans_fbo> fbos;
     ListView<hans_fbo_attachment> fbo_attachments;
+    ListView<hans_audio_buffer> audio_buffers;
   } file_data;
 
   explicit DataReader(const char* uri);

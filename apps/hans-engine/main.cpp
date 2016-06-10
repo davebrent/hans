@@ -29,14 +29,14 @@ static int run(const char* filepath, hans_hash program, hans_config& config) {
   auto strings = StringManager(d.string_hashes, d.string_offsets, d.strings);
   auto libraries = LibraryManager(strings, d.objects);
   auto programs = ProgramManager();
-  auto registers = RegisterManager();
+  auto registers = RegisterManager(config);
   auto parameters = ParameterManager();
   auto window = Window("Hans", config.width, config.height);
   auto shaders = ShaderManager(strings, d.shaders);
   auto fbos = FrameBufferManager(d.fbos, d.fbo_attachments);
   auto audio_devices = AudioDevices();
-  auto audio_buffers = AudioBufferManager(config.blocksize);
-  auto audio_buses = AudioBusManager(audio_buffers);
+  auto audio_buffers = AudioBufferManager(d.audio_buffers);
+  auto audio_buses = AudioBusManager(config, 1);
   auto audio_stream = AudioStream(config, audio_devices, audio_buses, programs);
 
   hans_object_api object_api;
@@ -54,12 +54,14 @@ static int run(const char* filepath, hans_hash program, hans_config& config) {
   parameters.use(d.parameters, d.parameter_values);
   registers.use(d.registers);
   programs.use(object_api, d.objects, d.programs, d.chains, d.object_data);
-  programs.setup_all(nullptr, 0);
+  programs.setup_all();
   programs.switch_to(program);
 
   if (!audio_stream.open()) {
     logger.log(Logger::ERROR, "Unable to open audio stream");
   }
+
+  audio_stream.start();
 
   while (!window.should_close()) {
     programs.tick_graphics(0);

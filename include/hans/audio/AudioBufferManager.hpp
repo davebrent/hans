@@ -2,6 +2,8 @@
 #define HANS_AUDIO_AUDIOBUFFERMANAGER_H_
 
 #include <vector>
+#include "hans/common/LinearAllocator.hpp"
+#include "hans/common/ListView.hpp"
 #include "hans/common/types.hpp"
 
 namespace hans {
@@ -9,19 +11,15 @@ namespace audio {
 
 class AudioBufferManager {
  public:
-  explicit AudioBufferManager(uint16_t blocksize);
-  ~AudioBufferManager();
-
-  /// Create a number of audio buffers all with uniform number of channels and
-  /// samples in each buffer
-  hans_audio_buffer* create(uint8_t num_channels, unsigned num_samples,
-                            unsigned num_buffers);
-
-  int make(hans_resource* resources, int len);
+  explicit AudioBufferManager(common::ListView<hans_audio_buffer>& buffers);
+  hans_audio_buffer make(hans_instance_id id, hans_hash name);
+  hans_audio_sample* get(const hans_audio_buffer& buff, uint8_t channel) const;
 
  private:
-  uint16_t m_blocksize;
-  std::vector<void*> m_buffers;
+  hans_audio_buffer* m_buffers = nullptr;
+  size_t m_buffers_len = 0;
+  char* m_base = nullptr;
+  hans::common::LinearAllocator m_allocator;
 };
 
 } // namespace audio

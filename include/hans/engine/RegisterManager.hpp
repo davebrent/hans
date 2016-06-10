@@ -10,6 +10,7 @@ namespace engine {
 
 class RegisterManager {
  public:
+  RegisterManager(const hans_config& config);
   /// Return a handle to a register
   hans_register make(hans_instance_id object, hans_resource_type type,
                      uint16_t index);
@@ -19,8 +20,12 @@ class RegisterManager {
   void* read(const hans_register& reg) const;
   /// Write data to a register
   bool write(const hans_register& reg, const void* data);
+  bool write(const hans_register& reg, const hans_audio_sample* samples);
 
  private:
+  size_t m_audio_reg_size;
+  size_t m_graphics_reg_size;
+
   size_t m_length = 0;
   hans_register* m_registers = nullptr;
 

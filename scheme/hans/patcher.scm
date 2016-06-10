@@ -97,7 +97,7 @@
 (define (make-graphics-graph . connections)
   (hans-graph 'graphics (unique-objects connections) (make-conns connections)))
 
-(define (make-environment objects)
+(define (make-environment settings objects)
   "Patching environment for instancing and connecting objects"
   (define ids 0)
 
@@ -110,7 +110,7 @@
       (exit-with-error "Unknown object" name)))
 
   (define (create name opts position)
-    (let ((object (hans-object ids ((get name)) opts position)))
+    (let ((object (hans-object ids ((get name) settings opts) opts position)))
       (set! ids (+ ids 1))
       object))
 

@@ -41,8 +41,7 @@ static void call_setup(const hans_object& object, hans_object_api* api) {
   }
 }
 
-void engine::ProgramManager::setup_all(hans_resource* resources,
-                                       size_t num_resources) {
+void engine::ProgramManager::setup_all() {
   auto objects = m_objects;
   size_t internal_data_size = 0;
   size_t external_data_size = 0;
@@ -152,9 +151,10 @@ void engine::ProgramManager::tick_audio() {
   auto program = m_programs[m_active];
   auto chain = program.audio;
   auto objects = m_objects;
+  auto chains = m_chains;
 
   for (auto i = chain.start; i < chain.end; ++i) {
-    auto& object = objects[i];
+    auto& object = objects[chains[i]];
     auto instance = static_cast<hans_audio_object*>(object.instance);
     instance->callback(instance, m_api);
   }
