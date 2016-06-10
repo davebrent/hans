@@ -1,141 +1,105 @@
-#include <cassert>
-#include <iostream>
+#include <stdexcept>
 #include "./snd.io_generated.h"
 #include "hans/engine/object.hpp"
 
-typedef struct {
-  // Audio bus to read/write data from
-  uint16_t bus;
-  // Channels to copy to outlets/inlets
-  std::vector<uint8_t> channels;
-  // Handles to outlets/inlets
-  std::vector<hans_register> pads;
-  // Signal buffers
-  std::vector<hans_audio_buffer*> buffers;
-} hans_io_data;
+#define SND_IO_MAX_CHANNELS 8
 
-// static void hans_io_get_resources(hans_io_data* data, hans_resource*
-// resources,
-//                                   int len) {
-//   for (int i = 0; i < len; ++i) {
-//     auto resource = &resources[i];
-//     switch (resource->type) {
-//     case HANS_INLET:
-//       data->pads.push_back(resource->inlet);
-//       break;
-//     case HANS_OUTLET:
-//       data->pads.push_back(resource->outlet);
-//       break;
-//     case HANS_AUDIO_BUFFER:
-//       data->buffers.push_back(resource->audio_buffer);
-//       break;
-//     default:
-//       assert(false && "Unhandled resource");
-//       break;
-//     }
-//   }
-// }
+typedef struct {
+  // Audio bus ID
+  uint16_t bus;
+  uint8_t channels_len;
+  // Channel ID's from which to data from/to
+  uint8_t channels[SND_IO_MAX_CHANNELS];
+  hans_register registers[SND_IO_MAX_CHANNELS];
+} hans_io_data;
 
 static void hans_io_parse_args(hans_constructor_api* api, hans_io_data* data) {
   auto args = api->get_arguments(api);
+
+  data->channels_len = 0;
+
   for (int i = 0; i < args.length; ++i) {
     switch (args.data[i].name) {
     case LIBHANS_SND_IO_ARG_BUS:
-      assert(args.data[i].type == HANS_NUMBER);
+      if (args.data[i].type != HANS_NUMBER) {
+        throw std::runtime_error("snd.io bus ID must be a number");
+      }
       data->bus = args.data[i].number;
       break;
 
     case LIBHANS_SND_IO_ARG_CHANNEL:
-      assert(args.data[i].type == HANS_NUMBER);
-      data->channels.push_back(args.data[i].number);
+      if (data->channels_len == SND_IO_MAX_CHANNELS) {
+        throw std::runtime_error("snd.io has to channels");
+      }
+      if (args.data[i].type != HANS_NUMBER) {
+        throw std::runtime_error("snd.io channel must be a number");
+      }
+      data->channels[data->channels_len] = args.data[i].number;
+      data->channels_len++;
       break;
     }
   }
 }
 
+static void hans_io_setup_in(hans_audio_object* self, hans_object_api* api) {
+  auto data = static_cast<hans_io_data*>(self->data);
+  for (auto i = 0; i < data->channels_len; ++i) {
+    data->registers[i] = api->registers->make(self->id, HANS_OUTLET, i);
+  }
+}
+
+static void hans_io_setup_out(hans_audio_object* self, hans_object_api* api) {
+  auto data = static_cast<hans_io_data*>(self->data);
+  for (auto i = 0; i < data->channels_len; ++i) {
+    data->registers[i] = api->registers->make(self->id, HANS_INLET, i);
+  }
+}
+
 static void hans_io_callback_in(hans_audio_object* self, hans_object_api* api) {
-  hans_io_data* data = static_cast<hans_io_data*>(self->data);
+  auto data = static_cast<hans_io_data*>(self->data);
 
-  for (int i = 0, size = data->channels.size(); i < size; ++i) {
+  for (auto i = 0; i < data->channels_len; ++i) {
     // Read data from the audio bus and write to the outlets
-    // bus -> outlets
-    auto channel = data->channels.at(i);
-    hans_audio_sample* samples = api->audio_buses->read(data->bus, channel);
-
-    auto outlet = data->pads.at(i);
-    // bool empty = api->registers->is_empty(outlet);
-    // if (empty) {
-    //   continue;
-    // }
-
-    // Copy data into object owned buffer
-    auto signal = data->buffers.at(i);
-    for (int s = 0; s < signal->samples_len; ++s) {
-      signal->samples[0][s] = samples[s];
-    }
-
-    api->registers->write(outlet, signal);
+    auto samples = api->audio_buses->read(data->bus, data->channels[i]);
+    api->registers->write(data->registers[i], samples);
   }
 }
 
 static void hans_io_callback_out(hans_audio_object* self,
                                  hans_object_api* api) {
-  hans_io_data* data = static_cast<hans_io_data*>(self->data);
+  auto data = static_cast<hans_io_data*>(self->data);
 
-  for (int i = 0, size = data->channels.size(); i < size; ++i) {
+  for (auto i = 0; i < data->channels_len; ++i) {
     // Read data from the inlets and write to the audio bus
-    // inlets -> bus
-    auto channel = data->channels.at(i);
-
-    auto inlet = data->pads.at(i);
-    // bool empty = api->registers->is_empty(inlet);
-    // if (empty) {
-    //   continue;
-    // }
-
-    void* indata = api->registers->read(inlet);
-    assert(indata != nullptr);
-
-    auto signal = static_cast<hans_audio_buffer*>(indata);
-    bool res = api->audio_buses->write(data->bus, channel, signal->samples[0]);
-    assert(res == true);
+    auto inlet = data->registers[i];
+    auto samples = static_cast<hans_audio_sample*>(api->registers->read(inlet));
+    api->audio_buses->write(data->bus, data->channels[i], samples);
   }
-}
-
-static void hans_io_setup(hans_audio_object* self, hans_object_api* api) {
-  hans_io_data* data = static_cast<hans_io_data*>(self->data);
-  // hans_io_get_resources(data, self->resources, self->num_resources);
 }
 
 static void hans_io_new_in(hans_constructor_api* api, void* buffer,
                            size_t size) {
-  hans_io_data* data = static_cast<hans_io_data*>(buffer);
+  auto data = static_cast<hans_io_data*>(buffer);
   hans_io_parse_args(api, data);
-
-  auto num_signals = data->channels.size();
-  api->request_resource(api, HANS_OUTLET, num_signals);
-  api->request_resource(api, HANS_AUDIO_BUFFER, num_signals);
+  api->request_resource(api, HANS_OUTLET, data->channels_len);
 }
 
 static void hans_io_new_out(hans_constructor_api* api, void* buffer,
                             size_t size) {
-  hans_io_data* data = static_cast<hans_io_data*>(buffer);
+  auto data = static_cast<hans_io_data*>(buffer);
   hans_io_parse_args(api, data);
-
-  auto num_signals = data->channels.size();
-  api->request_resource(api, HANS_INLET, num_signals);
-  api->request_resource(api, HANS_AUDIO_BUFFER, num_signals);
+  api->request_resource(api, HANS_INLET, data->channels_len);
 }
 
 void hans_io_init_in(void* instance) {
   auto object = static_cast<hans_audio_object*>(instance);
-  object->setup = hans_io_setup;
+  object->setup = hans_io_setup_in;
   object->callback = hans_io_callback_in;
 }
 
 void hans_io_init_out(void* instance) {
   auto object = static_cast<hans_audio_object*>(instance);
-  object->setup = hans_io_setup;
+  object->setup = hans_io_setup_out;
   object->callback = hans_io_callback_out;
 }
 
