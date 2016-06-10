@@ -17,13 +17,21 @@ enum hans_object_type {
   HANS_OBJECT_GRAPHICS
 };
 
+enum hans_resource_type {
+  HANS_PARAMETER,
+  HANS_SHADER,
+  HANS_AUDIO_BUFFER,
+  HANS_FRAME_BUFFER,
+  HANS_INLET,
+  HANS_OUTLET
+};
+
 // FIXME: The include ordering in this and the other types_* files
 #include "./types_arguments.hpp"
 #include "./types_registers.hpp"
 #include "./types_parameters.hpp"
 #include "./types_audio.hpp"
 #include "./types_graphics.hpp"
-#include "./types_resources.hpp"
 #include "./types_module.hpp"
 #include "./types_patcher.hpp"
 // clang-format on
@@ -48,7 +56,6 @@ enum hans_blob_type {
   HANS_BLOB_PROGRAMS,
   HANS_BLOB_CHAINS,
   HANS_BLOB_REGISTERS,
-  HANS_BLOB_RESOURCE_REQUESTS,
   HANS_BLOB_SHADERS,
   HANS_BLOB_FBOS,
   HANS_BLOB_FBO_ATTACHMENTS,

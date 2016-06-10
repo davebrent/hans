@@ -39,7 +39,6 @@ class DataReader {
     ListView<hans_program> programs;
     ListView<size_t> chains;
     ListView<hans_register> registers;
-    ListView<hans_resource_request> resource_requests;
     ListView<hans_shader> shaders;
     ListView<hans_fbo> fbos;
     ListView<hans_fbo_attachment> fbo_attachments;

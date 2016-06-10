@@ -116,9 +116,6 @@ common::DataReader::DataReader(const char* uri) {
     case HANS_BLOB_REGISTERS:
       data.registers = ListView<hans_register>(blob);
       break;
-    case HANS_BLOB_RESOURCE_REQUESTS:
-      data.resource_requests = ListView<hans_resource_request>(blob);
-      break;
     case HANS_BLOB_SHADERS:
       data.shaders = ListView<hans_shader>(blob);
       break;

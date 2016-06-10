@@ -76,24 +76,6 @@ static hans_shader_type scm_to_hans_shader_type(SCM type) {
   throw std::runtime_error("Unknown shader type");
 }
 
-static hans_resource_type scm_to_hans_resource_type(SCM type) {
-  if (str_eqaul_sym("parameter", type)) {
-    return HANS_PARAMETER;
-  } else if (str_eqaul_sym("shader", type)) {
-    return HANS_SHADER;
-  } else if (str_eqaul_sym("audio-buffer", type)) {
-    return HANS_AUDIO_BUFFER;
-  } else if (str_eqaul_sym("fbo", type)) {
-    return HANS_FRAME_BUFFER;
-  } else if (str_eqaul_sym("inlet", type)) {
-    return HANS_INLET;
-  } else if (str_eqaul_sym("outlet", type)) {
-    return HANS_OUTLET;
-  }
-
-  throw std::runtime_error("Unknown resource type");
-}
-
 static SCM write_libraries(SCM writer, SCM lst) {
   auto len = lst_length(lst);
   std::vector<hans_library> result;
@@ -287,24 +269,6 @@ static SCM write_registers(SCM writer, SCM lst) {
   }
 
   return write_list<hans_register>(writer, HANS_BLOB_REGISTERS, result);
-}
-
-static SCM write_resources(SCM writer, SCM lst) {
-  auto len = lst_length(lst);
-  std::vector<hans_resource_request> result;
-  result.reserve(len);
-
-  for (auto i = 0; i < len; ++i) {
-    auto pair = scm_list_ref(lst, scm_from_int(i));
-
-    hans_resource_request item;
-    item.type = scm_to_hans_resource_type(scm_car(pair));
-    item.amount = scm_to_int(scm_cdr(pair));
-    result.push_back(item);
-  }
-
-  return write_list<hans_resource_request>(writer, HANS_BLOB_RESOURCE_REQUESTS,
-                                           result);
 }
 
 static SCM write_strings(SCM writer, SCM lst) {
@@ -788,7 +752,6 @@ void scm_init_hans_compiler_module() {
   scm_c_define_gsubr("write-object-data", 2, 0, 0,
                      (scm_t_subr)write_object_data);
   scm_c_define_gsubr("write-programs", 3, 0, 0, (scm_t_subr)write_programs);
-  scm_c_define_gsubr("write-resources", 2, 0, 0, (scm_t_subr)write_resources);
   scm_c_define_gsubr("write-graphs", 2, 0, 0, (scm_t_subr)write_graphs);
   scm_c_define_gsubr("write-parameters", 2, 0, 0, (scm_t_subr)write_parameters);
   scm_c_define_gsubr("write-parameter-values", 2, 0, 0,

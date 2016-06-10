@@ -198,36 +198,6 @@ class Dumper {
     std::cout << std::string(&data[0], data.size()) << std::endl;
   }
 
-  void print(const char* label,
-             const ListView<hans_resource_request>& requests) {
-    std::cout << "- Type: " << label << std::endl;
-    std::cout << "  Values: " << std::endl;
-    for (const auto& req : requests) {
-      switch (req.type) {
-      case HANS_PARAMETER:
-        std::cout << "  - Type: HANS_PARAMETER" << std::endl;
-        break;
-      case HANS_SHADER:
-        std::cout << "  - Type: HANS_SHADER" << std::endl;
-        break;
-      case HANS_AUDIO_BUFFER:
-        std::cout << "  - Type: HANS_AUDIO_BUFFER" << std::endl;
-        break;
-      case HANS_FRAME_BUFFER:
-        std::cout << "  - Type: HANS_FRAME_BUFFER" << std::endl;
-        break;
-      case HANS_INLET:
-        std::cout << "  - Type: HANS_INLET" << std::endl;
-        break;
-      case HANS_OUTLET:
-        std::cout << "  - Type: HANS_OUTLET" << std::endl;
-        break;
-      }
-
-      std::cout << "    Amount: " << req.amount << std::endl;
-    }
-  }
-
   void print(const char* label, const hans_blob& blob) {
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Size: " << blob.size << std::endl;

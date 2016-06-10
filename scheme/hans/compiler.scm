@@ -461,25 +461,6 @@
                             (hans-object-registers obj)))
                      file))))
 
-  (define (do-resources writer file)
-    (define (combine-resources resource-lists)
-      (fold (lambda (resource-list result)
-              (fold (lambda (key out)
-                      (assq-set! out key (+ (assoc-ref out key)
-                                            (assoc-ref resource-list key))))
-                    result
-                    (map car resource-list)))
-            (fold (lambda (key summed)
-                    (acons key 0 summed))
-                  '() (delete-duplicates
-                        (fold (lambda (alist keys)
-                                (append keys (map car alist)))
-                              '() resource-lists)))
-            resource-lists))
-
-    (write-resources writer
-      (combine-resources (map hans-object-resources (list-objects file)))))
-
   (let* ((writer (make-hans-file-writer 96768))
          (bytes  (fold (lambda (pass total)
                          (+ total (pass writer file))) 0 (list do-libraries
@@ -487,7 +468,6 @@
                                                                do-parameters
                                                                do-programs
                                                                do-registers
-                                                               do-resources
                                                                do-object-data
                                                                do-shaders
                                                                do-fbos
