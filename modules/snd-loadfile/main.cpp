@@ -84,8 +84,9 @@ void hans_loadsf_setup(hans_audio_object* self, hans_object_api* api) {
   // Create the hans audio buffer
   unsigned channels_len = codec_ctx->channels;
   unsigned samples_len = format_ctx->streams[audio_stream]->duration;
-  hans_audio_buffer* audio_buffer =
-      api->audio_buffers->create(channels_len, samples_len, 1);
+  // hans_audio_buffer* audio_buffer = api->audio_buffers->create(channels_len,
+  // samples_len, 1);
+  hans_audio_buffer* audio_buffer = nullptr;
 
   // Iterate through the stream
   AVPacket packet;

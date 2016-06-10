@@ -3,8 +3,8 @@
 
 (define library "libhans.snd.loadfile")
 
-(define-public (snd-loadfile)
+(define-public (snd-loadfile settings args)
   (audio-object "snd-loadfile"
-  	library
+    library
     "Loads a sound file into a named audio buffer"
     '()))
