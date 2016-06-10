@@ -20,7 +20,7 @@ void main() {
   float dx = mod(p.x, pixelSizeX) - pixelSizeX *0.5;
   float pixelSizeY = 1.0 / pixelsPerCol;
   float dy = mod(p.y, pixelSizeY) - pixelSizeY * 0.5;
-  float pixelSize = pixelSizeX;
+  pixelSize = pixelSizeX;
 
   p.x -= dx;
   p.y -= dy;
