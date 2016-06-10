@@ -21,7 +21,7 @@ hans_parameter engine::ParameterManager::make(const hans_instance_id object,
       return parameters[i];
     }
   }
-  throw std::runtime_error("Unknown parameter");
+  throw std::runtime_error("ParameterManager: Unknown parameter");
 }
 
 void engine::ParameterManager::set(const hans_parameter& parameter,

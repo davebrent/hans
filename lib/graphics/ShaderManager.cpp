@@ -1,6 +1,6 @@
 #include "hans/graphics/ShaderManager.hpp"
-#include <stdexcept>
 #include <iostream>
+#include <stdexcept>
 
 using namespace hans;
 

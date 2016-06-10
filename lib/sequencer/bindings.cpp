@@ -29,8 +29,8 @@ static SCM EVENT_CLOCK_SYMBOL;
 static SCM EVENT_TICK_SYMBOL;
 
 static SCM make_midi_out_device(SCM name) {
-  void *place = scm_gc_malloc(sizeof(sequencer::Device), "midi-out-device");
-  const char *midi_device_name = scm_to_locale_string(name);
+  void* place = scm_gc_malloc(sizeof(sequencer::Device), "midi-out-device");
+  const char* midi_device_name = scm_to_locale_string(name);
   auto backend = new sequencer::MidiOutBackend(midi_device_name);
   auto device = new (place) sequencer::Device(backend);
   SCM smob = scm_new_smob(midi_out_device_tag, (scm_t_bits)device);
@@ -39,19 +39,19 @@ static SCM make_midi_out_device(SCM name) {
 
 static size_t free_midi_out_device(SCM device) {
   scm_assert_smob_type(midi_out_device_tag, device);
-  auto instance = (sequencer::Device *)SCM_SMOB_DATA(device);
+  auto instance = (sequencer::Device*)SCM_SMOB_DATA(device);
   instance->~Device();
   return 0;
 }
 
-static int print_midi_out_device(SCM smob, SCM port, scm_print_state *pstate) {
+static int print_midi_out_device(SCM smob, SCM port, scm_print_state* pstate) {
   scm_assert_smob_type(midi_out_device_tag, smob);
   scm_puts("#<midi-out-device>", port);
   return 1;
 }
 
 static SCM make_console_device() {
-  void *place = scm_gc_malloc(sizeof(sequencer::Device), "console-device");
+  void* place = scm_gc_malloc(sizeof(sequencer::Device), "console-device");
   auto device = new (place) sequencer::Device(new sequencer::ConsoleBackend());
   SCM smob = scm_new_smob(console_device_tag, (scm_t_bits)device);
   return smob;
@@ -59,12 +59,12 @@ static SCM make_console_device() {
 
 static size_t free_console_device(SCM device) {
   scm_assert_smob_type(console_device_tag, device);
-  auto instance = (sequencer::Device *)SCM_SMOB_DATA(device);
+  auto instance = (sequencer::Device*)SCM_SMOB_DATA(device);
   instance->~Device();
   return 0;
 }
 
-static int print_console(SCM smob, SCM port, scm_print_state *pstate) {
+static int print_console(SCM smob, SCM port, scm_print_state* pstate) {
   scm_assert_smob_type(console_device_tag, smob);
   scm_puts("#<console-device>", port);
   return 1;
@@ -72,7 +72,7 @@ static int print_console(SCM smob, SCM port, scm_print_state *pstate) {
 
 static SCM make_scheduler(SCM interval, SCM handler) {
   auto size = sizeof(scheduler_data);
-  auto scheduler = (scheduler_data *)scm_gc_malloc(size, "scheduler");
+  auto scheduler = (scheduler_data*)scm_gc_malloc(size, "scheduler");
   scheduler->interval = SCM_BOOL_F;
   scheduler->handler = SCM_BOOL_F;
   SCM smob = scm_new_smob(scheduler_tag, (scm_t_bits)scheduler);
@@ -82,9 +82,9 @@ static SCM make_scheduler(SCM interval, SCM handler) {
   return smob;
 }
 
-static int print_scheduler(SCM smob, SCM port, scm_print_state *pstate) {
+static int print_scheduler(SCM smob, SCM port, scm_print_state* pstate) {
   scm_assert_smob_type(scheduler_tag, smob);
-  auto scheduler = (scheduler_data *)SCM_SMOB_DATA(smob);
+  auto scheduler = (scheduler_data*)SCM_SMOB_DATA(smob);
   scm_puts("#<scheduler ", port);
   scm_display(scm_length(scheduler->generators), port);
   scm_puts(" ", port);
@@ -95,14 +95,14 @@ static int print_scheduler(SCM smob, SCM port, scm_print_state *pstate) {
 
 static SCM schedule(SCM scheduler, SCM generators) {
   scm_assert_smob_type(scheduler_tag, scheduler);
-  auto instance = (scheduler_data *)SCM_SMOB_DATA(scheduler);
+  auto instance = (scheduler_data*)SCM_SMOB_DATA(scheduler);
   instance->generators =
       scm_append(scm_list_2(instance->generators, generators));
   return scheduler;
 }
 
 static SCM flush_device(SCM device) {
-  auto instance = (sequencer::Device *)SCM_SMOB_DATA(device);
+  auto instance = (sequencer::Device*)SCM_SMOB_DATA(device);
   instance->flush();
   return device;
 }
@@ -115,7 +115,7 @@ static SCM send_event(SCM device, SCM data) {
 
   // Handle device not being a device instance
   // scm_assert_smob_type(midi_out_device_tag, device);
-  auto device_instance = (sequencer::Device *)SCM_SMOB_DATA(device);
+  auto device_instance = (sequencer::Device*)SCM_SMOB_DATA(device);
 
   // Handle data not being the correct length
   int len = scm_to_int(scm_length(data));
@@ -183,8 +183,8 @@ static SCM run_scheduler(SCM device, SCM scheduler) {
 
   scm_assert_smob_type(scheduler_tag, scheduler);
 
-  auto device_instance = (sequencer::Device *)SCM_SMOB_DATA(device);
-  auto scheduler_instance = (scheduler_data *)SCM_SMOB_DATA(scheduler);
+  auto device_instance = (sequencer::Device*)SCM_SMOB_DATA(device);
+  auto scheduler_instance = (scheduler_data*)SCM_SMOB_DATA(scheduler);
 
   auto interval = scm_to_double(scheduler_instance->interval);
   auto resolution = microseconds(320 * 2);

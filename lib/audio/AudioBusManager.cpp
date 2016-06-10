@@ -3,8 +3,7 @@
 
 using namespace hans;
 
-audio::AudioBusManager::AudioBusManager(const hans_config& config,
-                                        size_t num) {
+audio::AudioBusManager::AudioBusManager(const hans_config& config, size_t num) {
   auto blocksize = config.blocksize;
   auto channels = config.channels;
   auto bytes = num * channels * blocksize * sizeof(hans_audio_sample);

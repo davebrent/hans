@@ -1,8 +1,8 @@
 #include "hans/audio/AudioStream.hpp"
 #include <portaudio.h>
 #include <chrono>
-#include <thread>
 #include <iostream>
+#include <thread>
 
 using namespace hans;
 

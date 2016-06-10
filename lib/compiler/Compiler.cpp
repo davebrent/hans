@@ -3,8 +3,10 @@
 #include <iostream>
 #include <stdexcept>
 #include <vector>
+// clang-format off
 #include "hans/graphics/gl.h"
 #include <GLFW/glfw3.h>
+// clang-format on
 #include "hans/common/DataLoader.hpp"
 #include "hans/common/LinearAllocator.hpp"
 #include "hans/common/ListView.hpp"
