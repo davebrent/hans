@@ -388,7 +388,7 @@
     (define the-attachments '())
     (define (process-obj obj)
       (let ((rec (hans-object-rec obj)))
-        (if (graphics-object? rec)
+        (if (and (graphics-object? rec) (not (eq? '() (object-record-fbo rec))))
           (let* ((fbo         (object-record-fbo rec))
                  (start       (length the-attachments))
                  (attachments (fbo-attachments fbo)))
