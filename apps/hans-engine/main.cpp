@@ -84,16 +84,16 @@ int main(int argc, char* argv[]) {
   config.channels = 2;
   config.samplerate = 44100;
   config.blocksize = 256;
-  config.width = 1184;
-  config.height = 640;
+  config.width = 640;
+  config.height = 360;
 
   // clang-format off
   options.add_options()
     ("p,program", "Initial program to run", cxxopts::value<std::string>())
     ("h,help", "Show this screen")
-    ("width", "Screen width [default: 1184]",
+    ("width", "Screen width [default: 640]",
      cxxopts::value<uint16_t>(config.width), "PX")
-    ("height", "Screen height [default: 640]",
+    ("height", "Screen height [default: 360]",
      cxxopts::value<uint16_t>(config.height), "PX")
     ("channels", "Audio channels [default: 2]",
      cxxopts::value<uint8_t>(config.channels), "N")
