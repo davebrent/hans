@@ -5,6 +5,7 @@
              (hans modules snd-ringbuffer objects)
              (hans modules gfx-superformula objects)
              (hans modules gfx-quad objects)
+             (hans modules gfx-scopes objects)
              (hans modules gfx-sndtex objects)
              (hans modules gfx-filter objects))
 
@@ -16,6 +17,8 @@
 
 (define hans (make-environment settings
   `((gfx-quad         . ,gfx-quad)
+    (gfx-oscilloscope . ,gfx-oscilloscope)
+    (gfx-phasescope   . ,gfx-phasescope)
     (gfx-sndtex       . ,gfx-sndtex)
     (gfx-superformula . ,gfx-superformula)
     (gfx-filter       . ,gfx-filter)
@@ -66,7 +69,22 @@
       (make-graphics-graph
         (hans 'connect reader 0 window 0)))))
 
-(let ((programs (list (make-program "cgadisplay" "filter/shader/cgadisplay")
+(define (make-oscscope-audio name buff-name)
+  (let ((adc    (hans 'create 'snd-in           `((channel . 0))       '(0 0)))
+        (ring   (hans 'create 'snd-ringbuffer   `((name . ,buff-name)) '(0 0)))
+        (dac    (hans 'create 'snd-out          `((channel . 0))       '(0 0)))
+        (scope  (hans 'create 'gfx-oscilloscope `((left . ,buff-name)
+                                                  (right . ,buff-name)) '(0 0)))
+        (window (hans 'create 'gfx-quad         '()                    '(0 0))))
+    (hans-program name
+      (make-audio-graph
+        (hans 'connect adc 0 ring 0)
+        (hans 'connect ring 0 dac 0))
+      (make-graphics-graph
+        (hans 'connect scope 0 window 0)))))
+
+(let ((programs (list (make-oscscope-audio "oscilloscope" "rb-foobar-2")
+                      (make-program "cgadisplay" "filter/shader/cgadisplay")
                       (make-program "dotscreen" "filter/shader/dotscreen")
                       (make-program "greyscale" "filter/shader/greyscale")
                       (make-sine-audio "audio-01")

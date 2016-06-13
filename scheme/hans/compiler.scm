@@ -511,6 +511,7 @@
                                register-allocation-pass
                                validate-shader-pass
                                create-requested-resources-pass))
+
   (if (not (hans-file? file))
     (exit-with-error "Unknown file type")
     (begin
