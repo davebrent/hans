@@ -15,8 +15,6 @@ target_link_libraries(hans-engine
     ${LIBSWSCALE_LIBRARIES}
     ${LIBAVUTIL_LIBRARIES}
     ${PORTAUDIO_LIBRARIES}
-    ${SQLITE3_LIBRARIES}
-    ${LIBZMQ_LIBRARIES}
 )
 
 install(TARGETS hans-engine DESTINATION bin)

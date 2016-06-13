@@ -11,14 +11,14 @@ Vagrant.configure(2) do |config|
     sudo apt-get install -y cmake
     sudo apt-get install -y vim
     sudo apt-get install -y valgrind
-    sudo apt-get install -y sqlite3
     sudo apt-get install -y portaudio19-dev
-    sudo apt-get install -y libsqlite3-dev
     sudo apt-get install -y libepoxy-dev
     sudo apt-get install -y libglfw3-dev libxrandr-dev libxinerama-dev \
       libxi-dev libxcursor-dev
     sudo apt-get install -y libavcodec-dev libavdevice-dev libavfilter-dev \
       libavformat-dev libavresample-dev libswscale-dev libavutil-dev
+    sudo apt-get install -y guile-2.0 guile-2.0-dev
+    sudo apt-get install -y librtmidi-dev
 
     # Tool dependencies
     sudo apt-get install -y python-dev

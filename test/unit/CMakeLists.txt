@@ -18,5 +18,4 @@ target_link_libraries(hans-unittest
     ${GLFW_LIBRARIES}
     ${EPOXY_LIBRARIES}
     ${PORTAUDIO_LIBRARIES}
-    ${SQLITE3_LIBRARIES}
 )

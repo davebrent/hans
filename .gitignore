@@ -1,6 +1,4 @@
 .DS_Store
-*.sqlite
-*.log
 *.hans
 .vagrant/
 build/
