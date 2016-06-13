@@ -1,6 +1,6 @@
 #include "hans/engine/ProgramManager.hpp"
 #include <cassert>
-#include <iostream>
+#include <cstring>
 
 using namespace hans;
 

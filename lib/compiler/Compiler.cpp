@@ -1,5 +1,6 @@
 #include <libguile.h>
 #include <cassert>
+#include <cstring>
 #include <iostream>
 #include <stdexcept>
 #include <vector>
