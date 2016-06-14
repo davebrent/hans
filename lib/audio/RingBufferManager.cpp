@@ -79,7 +79,8 @@ bool RingBufferManager::write(hans_ring_buffer ring,
 hans_audio_sample* RingBufferManager::read(hans_hash name, uint8_t frame) {
   auto ring = find(name);
   auto tail = m_tails[ring.index];
-  auto samples = m_base + (m_frame_size * ((tail + frame) % RB_FRAMES));
+  auto samples =
+      m_base + ring.offset + (m_frame_size * ((tail + frame) % RB_FRAMES));
   return reinterpret_cast<hans_audio_sample*>(samples);
 }
 
