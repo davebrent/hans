@@ -1,6 +1,6 @@
 #include "hans/audio/AudioBusManager.hpp"
-#include <stdexcept>
 #include <cstring>
+#include <stdexcept>
 
 using namespace hans;
 
