@@ -21,6 +21,10 @@ common::LinearAllocator::~LinearAllocator() {
 }
 
 void* common::LinearAllocator::allocate(size_t size, size_t alignment) {
+  if (m_current == m_end) {
+    return nullptr;
+  }
+
   void* current = static_cast<void*>(m_current);
   size_t space = m_end - m_current;
   void* aligned = std::align(alignment, size, current, space);
