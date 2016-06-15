@@ -1,55 +1,33 @@
 #include "hans/engine/ParameterManager.hpp"
 #include <catch.hpp>
-#include <memory>
-#include "hans/common/StringManager.hpp"
+#include "hans/common/ListView.hpp"
+#include "hans/common/types.hpp"
 
 using namespace hans;
 
 TEST_CASE("parameter manager", "[parameters]") {
-  // common::StringManager s(16);
-  // object_id, id, name, size
-  // std::vector<hans_parameter> parameters = {{0, 0, s.intern("a"), 1},
-  //                                           {1, 1, s.intern("b"), 2},
-  //                                           {1, 2, s.intern("c"), 3},
-  //                                           {2, 3, s.intern("d"), 1}};
+  SECTION("making parameters for multiple object instances") {
+    hans_parameter_value data[2] = {10, 20};
+    hans_parameter fixture[2];
+    fixture[0].object = 1;
+    fixture[0].name = 0x10;
+    fixture[0].size = 1;
+    fixture[0].offset = 0;
 
-  // SECTION("parameters for existing objects") {
-  //   engine::ParameterManager parameter_manager(parameters);
-  //   parameter_manager.set_capacity(5);
+    fixture[1].object = 2;
+    fixture[1].name = 0x10;
+    fixture[1].size = 1;
+    fixture[1].offset = 1;
 
-  //   auto resources = std::make_unique<hans_object_resource[]>(2);
-  //   auto created = parameter_manager.make(resources.get(), 1, 0);
+    auto parameters = common::ListView<hans_parameter>(&fixture[0], 2);
+    auto values = common::ListView<hans_parameter_value>(&data[0], 2);
+    auto manager = engine::ParameterManager();
+    manager.use(parameters, values);
 
-  //   REQUIRE(resources[0].name == s.intern("b"));
-  //   REQUIRE(resources[1].name == s.intern("c"));
-  //   REQUIRE(created == 2);
+    auto handle1 = manager.make(1, 0x10);
+    auto handle2 = manager.make(2, 0x10);
 
-  //   SECTION("setting and retrieving parameter values") {
-  //     parameter_manager.set(resources[0].parameter, 0, 100);
-  //     REQUIRE(parameter_manager.get(resources[0].parameter, 0) == 100);
-  //   }
-  // }
-
-  // SECTION("copying values") {
-  //   engine::ParameterManager manager_a(parameters);
-  //   engine::ParameterManager manager_b(parameters);
-  //   engine::ParameterManager manager_c(parameters);
-
-  //   manager_a.set_capacity(5);
-  //   manager_b.set_capacity(5);
-  //   manager_c.set_capacity(5);
-
-  //   auto resources = std::make_unique<hans_object_resource[]>(5);
-  //   auto created = manager_a.make(resources.get(), 1, 0);
-
-  //   manager_a.set(resources[0].parameter, 1, 10);
-  //   manager_a.set(resources[1].parameter, 0, 11);
-
-  //   manager_c.copy(manager_a);
-  //   manager_a.copy(manager_b);
-  //   manager_b.copy(manager_c);
-
-  //   REQUIRE(manager_b.get(resources[0].parameter, 1) == 10);
-  //   REQUIRE(manager_b.get(resources[1].parameter, 0) == 11);
-  // }
+    REQUIRE(manager.get(handle1, 0) == 10);
+    REQUIRE(manager.get(handle2, 0) == 20);
+  }
 }

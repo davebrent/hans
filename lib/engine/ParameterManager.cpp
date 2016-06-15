@@ -17,7 +17,7 @@ hans_parameter engine::ParameterManager::make(const hans_instance_id object,
                                               const hans_hash name) const {
   auto parameters = m_parameters;
   for (auto i = 0; i < m_parameters_len; ++i) {
-    if (parameters[i].name == name) {
+    if (parameters[i].name == name && parameters[i].object == object) {
       return parameters[i];
     }
   }
