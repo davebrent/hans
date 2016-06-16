@@ -132,8 +132,3 @@ bool engine::RegisterManager::write(const hans_register& reg,
   std::memcpy(dest, data, bin_size);
   return true;
 }
-
-bool engine::RegisterManager::write(const hans_register& reg,
-                                    const hans_audio_sample* samples) {
-  return write(reg, static_cast<const void*>(samples));
-}

@@ -20,7 +20,6 @@ class RegisterManager {
   void* read(const hans_register& reg) const;
   /// Write data to a register
   bool write(const hans_register& reg, const void* data);
-  bool write(const hans_register& reg, const hans_audio_sample* samples);
 
  private:
   size_t m_audio_reg_size;
