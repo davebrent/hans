@@ -129,20 +129,33 @@ void engine::ProgramManager::tick_graphics(float delta) {
   auto chain = program.graphics;
   auto objects = m_objects;
   auto chains = m_chains;
+  auto num_objects = m_num_objects;
 
   for (auto i = chain.start; i < chain.end; ++i) {
-    auto& object = objects[chains[i]];
-    auto instance = static_cast<hans_graphics_object*>(object.instance);
-    if (instance->update != nullptr) {
-      instance->update(instance, m_api);
+    auto instance_id = chains[i];
+    for (auto k = 0; k < num_objects; ++k) {
+      auto& object = objects[k];
+      if (object.id == instance_id) {
+        auto instance = static_cast<hans_graphics_object*>(object.instance);
+        if (instance->update != nullptr) {
+          instance->update(instance, m_api);
+        }
+        break;
+      }
     }
   }
 
   for (auto i = chain.start; i < chain.end; ++i) {
-    auto& object = objects[chains[i]];
-    auto instance = static_cast<hans_graphics_object*>(object.instance);
-    if (instance->draw != nullptr) {
-      instance->draw(instance, m_api);
+    auto instance_id = chains[i];
+    for (auto k = 0; k < num_objects; ++k) {
+      auto& object = objects[k];
+      if (object.id == instance_id) {
+        auto instance = static_cast<hans_graphics_object*>(object.instance);
+        if (instance->draw != nullptr) {
+          instance->draw(instance, m_api);
+        }
+        break;
+      }
     }
   }
 }
@@ -152,10 +165,17 @@ void engine::ProgramManager::tick_audio() {
   auto chain = program.audio;
   auto objects = m_objects;
   auto chains = m_chains;
+  auto num_objects = m_num_objects;
 
   for (auto i = chain.start; i < chain.end; ++i) {
-    auto& object = objects[chains[i]];
-    auto instance = static_cast<hans_audio_object*>(object.instance);
-    instance->callback(instance, m_api);
+    auto instance_id = chains[i];
+    for (auto k = 0; k < num_objects; ++k) {
+      auto& object = objects[k];
+      if (object.id == instance_id) {
+        auto instance = static_cast<hans_audio_object*>(object.instance);
+        instance->callback(instance, m_api);
+        break;
+      }
+    }
   }
 }
