@@ -1,5 +1,7 @@
 set(HANS_TEST_SOURCES 
     audio/AudioBufferManager.cpp
+    audio/AudioBusManager.cpp
+    audio/RingBufferManager.cpp
     common/LinearAllocator.cpp
     common/StringManager.cpp
     engine/ParameterManager.cpp
