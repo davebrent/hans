@@ -36,6 +36,26 @@ static void hans_osc_parse_args(hans_constructor_api* api,
   }
 }
 
+static void hans_osc_new(hans_constructor_api* api, void* buffer, size_t size) {
+  hans_osc_data* data = static_cast<hans_osc_data*>(buffer);
+  data->phase = 0;
+  data->channels = 1;
+  hans_osc_parse_args(api, data);
+  api->request_resource(api, HANS_OUTLET, &data->channels);
+}
+
+static void hans_osc_setup(hans_audio_object* self, hans_object_api* api) {
+  hans_osc_data* data = static_cast<hans_osc_data*>(self->data);
+  data->samplerate = api->config->samplerate;
+  data->waveform = api->parameters->make(self->id, LIBOSC_PARAM_WAVEFORM);
+  data->frequency = api->parameters->make(self->id, LIBOSC_PARAM_FREQUENCY);
+  data->buffer = api->audio_buffers->make(self->id, LIBOSC_AUDIO_BUFFER);
+
+  for (auto i = 0; i < data->channels; ++i) {
+    data->outlets[i] = api->registers->make(self->id, HANS_OUTLET, i);
+  }
+}
+
 // Sine wave oscillator that uses linear interpolation on a 514 point buffer
 static void hans_osc_sine_callback(hans_audio_object* self,
                                    hans_object_api* api) {
@@ -81,29 +101,10 @@ static void hans_osc_callback(hans_audio_object* self, hans_object_api* api) {
   }
 
   auto samples = api->audio_buffers->get(data->buffer, 0);
-  for (auto outlet : data->outlets) {
+  for (auto i = 0; i < data->channels; ++i) {
+    auto& outlet = data->outlets[i];
     api->registers->write(outlet, samples);
   }
-}
-
-static void hans_osc_setup(hans_audio_object* self, hans_object_api* api) {
-  hans_osc_data* data = static_cast<hans_osc_data*>(self->data);
-  data->samplerate = api->config->samplerate;
-  data->waveform = api->parameters->make(self->id, LIBOSC_PARAM_WAVEFORM);
-  data->frequency = api->parameters->make(self->id, LIBOSC_PARAM_FREQUENCY);
-  data->buffer = api->audio_buffers->make(self->id, LIBOSC_AUDIO_BUFFER);
-
-  for (auto i = 0; i < data->channels; ++i) {
-    data->outlets[i] = api->registers->make(self->id, HANS_OUTLET, i);
-  }
-}
-
-static void hans_osc_new(hans_constructor_api* api, void* buffer, size_t size) {
-  hans_osc_data* data = static_cast<hans_osc_data*>(buffer);
-  data->phase = 0;
-  data->channels = 1;
-  hans_osc_parse_args(api, data);
-  api->request_resource(api, HANS_OUTLET, &data->channels);
 }
 
 void hans_osc_init(void* instance) {
