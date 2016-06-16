@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
   hans_config config;
   config.channels = 2;
   config.samplerate = 44100;
-  config.blocksize = 256;
+  config.blocksize = 64;
   config.width = 640;
   config.height = 360;
 
