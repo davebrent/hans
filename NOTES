@@ -2,6 +2,10 @@
 
 Todo
 ----
+* Disable audio if no audio graphs are present
+* Add gl error checking after every call behind some flag
+* Update parameters based on an objects arguments
+* Look into scripting OSX's debugger?
 * Move settings into hans-file & remove from command line
 * Add ring buffer & double buffer functionality for sharing data between graphs
 * Add file watching functionality
