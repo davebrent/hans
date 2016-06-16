@@ -1,6 +1,6 @@
 # Hans
 
-A modular audio visual toolkit
+A modular audio visualisation toolkit
 
 ## Dependencies
 
