@@ -6,6 +6,7 @@
              (hans modules gfx-superformula objects)
              (hans modules gfx-quad objects)
              (hans modules gfx-scopes objects)
+             (hans modules gfx-script objects)
              (hans modules gfx-sndtex objects)
              (hans modules gfx-filter objects))
 
@@ -19,6 +20,7 @@
   `((gfx-quad         . ,gfx-quad)
     (gfx-oscilloscope . ,gfx-oscilloscope)
     (gfx-phasescope   . ,gfx-phasescope)
+    (gfx-script       . ,gfx-script)
     (gfx-sndtex       . ,gfx-sndtex)
     (gfx-superformula . ,gfx-superformula)
     (gfx-filter       . ,gfx-filter)
@@ -83,7 +85,17 @@
       (make-graphics-graph
         (hans 'connect scope 0 window 0)))))
 
-(let ((programs (list (make-oscscope-audio "oscilloscope" "rb-foobar-2")
+(define (make-script-program name)
+  (let ((script (hans 'create 'gfx-script `((path . "../examples/sketch.scm")) '(0 0)))
+        (effect (hans 'create 'gfx-filter `((name . "filter/shader/dotscreen")) '(0 0)))
+        (window (hans 'create 'gfx-quad '() '(0 0))))
+    (hans-program name
+      (make-audio-graph)
+      (make-graphics-graph
+        (hans 'connect script 0 window 0)))))
+
+(let ((programs (list (make-script-program "script")
+                      (make-oscscope-audio "oscilloscope" "rb-foobar-2")
                       (make-program "cgadisplay" "filter/shader/cgadisplay")
                       (make-program "dotscreen" "filter/shader/dotscreen")
                       (make-program "greyscale" "filter/shader/greyscale")
