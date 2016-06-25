@@ -35,6 +35,7 @@
            hans-object-rec
            hans-object-name
            hans-object-args
+           hans-object-position
            hans-object-resources
            set-hans-object-resources!
            hans-object-registers
