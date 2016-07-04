@@ -459,6 +459,14 @@
                   (list-objects file))))))
 
     (set! the-strings (append the-strings
+                              (fold (lambda (obj strs)
+                                      (append strs
+                                        (filter string?
+                                          (map cdr (hans-object-args obj)))))
+                                    '()
+                                    (list-objects file))))
+
+    (set! the-strings (append the-strings
       (remove (lambda (val)
                 (eq? val #f))
               (map (compose (lambda (res)
