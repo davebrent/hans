@@ -1,3 +1,4 @@
+#include <libguile.h>
 #include <cxxopts.hpp>
 #include <iostream>
 #include "hans/audio/AudioBufferManager.hpp"
@@ -77,7 +78,7 @@ static int run(const char* filepath, hans_hash program, hans_config& config) {
   return 0;
 }
 
-int main(int argc, char* argv[]) {
+void inner_main(void* closure, int argc, char* argv[]) {
   cxxopts::Options options(argv[0], " <file>");
 
   hans_config config;
@@ -113,14 +114,14 @@ int main(int argc, char* argv[]) {
     options.parse(argc, argv);
   } catch (const cxxopts::OptionException& e) {
     std::cout << "error parsing options: " << e.what() << std::endl;
-    return 1;
+    return;
   }
 
   auto args = options["positional"].as<std::vector<std::string>>();
 
   if (options.count("help") || args.size() == 0) {
     std::cout << options.help({""}) << std::endl;
-    return 0;
+    return;
   }
 
   hans_hash program = 0;
@@ -128,5 +129,9 @@ int main(int argc, char* argv[]) {
     program = hasher(options["program"].as<std::string>().c_str());
   }
 
-  return run(args.at(0).c_str(), program, config);
+  run(args.at(0).c_str(), program, config);
 };
+
+int main(int argc, char** argv) {
+  scm_boot_guile(argc, argv, inner_main, nullptr);
+}

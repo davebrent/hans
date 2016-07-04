@@ -5,6 +5,7 @@ target_link_libraries(hans-engine
     hans
     hansmodule
     ${OPENGL_LIBRARIES}
+    ${GUILE_LIBRARIES}
     ${GLFW_LIBRARIES}
     ${EPOXY_LIBRARIES}
     ${LIBAVCODEC_LIBRARIES}
