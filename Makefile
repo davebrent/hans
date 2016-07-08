@@ -22,9 +22,6 @@ check: $(BUILD_DIR)
 lint:
 	@cppcheck --enable=all --quiet -I include/ $(SRC_DIRS)
 
-docs:
-	@doxygen Doxyfile
-
 format:
 	@find $(SRC_DIRS) \( -name '*.h' -or \
 					-name '*.hpp' -or \
