@@ -535,7 +535,10 @@ static SCM valid_shaders(SCM lst) {
   auto shader_list = common::ListView<hans_shader>(&shader_vec[0], len);
 
   bool res = glfwInit();
-  assert(res == GL_TRUE);
+  if (res != GL_TRUE) {
+    return SCM_BOOL_F;
+  }
+
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
   glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
