@@ -1,11 +1,11 @@
-add_library(hans-sequencer-bindings SHARED
+add_library(hanssequencer SHARED
     bindings.cpp
     Device.cpp
     MidiOutBackend.cpp
     ConsoleBackend.cpp)
 
-target_link_libraries(hans-sequencer-bindings
+target_link_libraries(hanssequencer
   ${RTMIDI_LIBRARIES}
   ${GUILE_LIBRARIES})
 
-install(TARGETS hans-sequencer-bindings DESTINATION lib)
+install(TARGETS hanssequencer DESTINATION lib)

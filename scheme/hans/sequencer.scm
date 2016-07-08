@@ -19,7 +19,7 @@
            send-event
            run))
 
-(load-extension "libhans-sequencer-bindings" "scm_init_sequencer_module")
+(load-extension "libhanssequencer" "scm_init_sequencer_module")
 
 ;; Transport
 

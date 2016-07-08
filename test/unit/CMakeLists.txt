@@ -1,23 +1,15 @@
-set(HANS_TEST_SOURCES 
-    audio/AudioBufferManager.cpp
-    audio/AudioBusManager.cpp
-    audio/RingBufferManager.cpp
-    common/LinearAllocator.cpp
-    common/StringManager.cpp
-    engine/ParameterManager.cpp
-    engine/RegisterManager.cpp
-    sequencer/Device.cpp
-    main.cpp
-)
-
-add_executable(hans-unittest ${HANS_TEST_SOURCES})
+add_executable(hans-unittest
+  audio/AudioBufferManager.cpp
+  audio/AudioBusManager.cpp
+  audio/RingBufferManager.cpp
+  common/LinearAllocator.cpp
+  common/StringManager.cpp
+  engine/ParameterManager.cpp
+  engine/RegisterManager.cpp
+  sequencer/Device.cpp
+  main.cpp)
 
 target_link_libraries(hans-unittest
-    hans
-    hansmodule
-    hans-sequencer-bindings
-    ${OPENGL_LIBRARIES}
-    ${GLFW_LIBRARIES}
-    ${EPOXY_LIBRARIES}
-    ${PORTAUDIO_LIBRARIES}
-)
+  hans
+  hansmodule
+  hanssequencer)

@@ -23,7 +23,7 @@
            validate-connections-pass
            create-requested-resources-pass))
 
-(load-extension "libhans-compiler-bindings" "scm_init_hans_compiler_module")
+(load-extension "libhanscompiler" "scm_init_hans_compiler_module")
 
 (define (gather lst iterator)
   "Gather an iterator function such as for-each into a list of all results"
