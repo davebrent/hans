@@ -85,8 +85,8 @@
 
 (hans-compile
   (hans-file (list (make-pgm-attractors "attractors")
-                   (make-pgm-script "script"
-                                    "../examples/sketches/fluctuating.scm")
+                   ;(make-pgm-script "script"
+                   ;                 "../examples/sketches/fluctuating.scm")
                    (make-pgm-scope "oscilloscope" "rb-foobar-2")
                    (make-pgm-fx "cga" "filter/shader/cgadisplay")
                    (make-pgm-fx "dotscreen" "filter/shader/dotscreen")
@@ -96,4 +96,4 @@
                    (make-pgm-ringbuffer "ringbuffer" "rb-foobar")))
   '((output        . "programs.hans")
     (library-paths . ("/Users/dave/Projects/hans/build/lib"
-                      "/vagrant/build/lib"))))
+                      "/usr/lib"))))

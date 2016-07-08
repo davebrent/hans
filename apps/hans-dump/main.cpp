@@ -84,14 +84,14 @@ class Dumper {
     }
   }
 
-  void print(const char* label, const ListView<size_t>& values) {
-    std::cout << "- Type: " << label << std::endl;
-    std::cout << "  Values: ";
-    for (const auto& value : values) {
-      std::cout << value << " ";
-    }
-    std::cout << std::endl;
-  }
+  // void print(const char* label, const ListView<size_t>& values) {
+  //   std::cout << "- Type: " << label << std::endl;
+  //   std::cout << "  Values: ";
+  //   for (const auto& value : values) {
+  //     std::cout << value << " ";
+  //   }
+  //   std::cout << std::endl;
+  // }
 
   void print(const char* label, const ListView<hans_fbo>& fbos) {
     std::cout << "- Type: FBOS" << std::endl;
@@ -198,7 +198,7 @@ class Dumper {
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Values: " << std::endl;
     for (const auto& hash : hashes) {
-      std::cout << "  - Hash: " << hash << std::endl;
+      std::cout << "  - Value: " << hash << std::endl;
     }
   }
 
@@ -250,7 +250,7 @@ int main(int argc, char* argv[]) {
   printer.print("Libraries", reader.data.libraries);
   printer.print("Objects", reader.data.objects);
   printer.print("Programs", reader.data.programs);
-  printer.print("Chains", reader.data.chains);
+  // printer.print("Chains", reader.data.chains);
   printer.print("Registers", reader.data.registers);
   printer.print("Parameters", reader.data.parameters);
   printer.print("Parameter values", reader.data.parameter_values);
@@ -262,7 +262,7 @@ int main(int argc, char* argv[]) {
 
   if (verbose) {
     printer.print("String hashes", reader.data.string_hashes);
-    printer.print("String offsets", reader.data.string_offsets);
+    // printer.print("String offsets", reader.data.string_offsets);
     printer.print("String values", reader.data.strings);
   }
 
