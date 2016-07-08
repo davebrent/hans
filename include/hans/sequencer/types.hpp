@@ -6,7 +6,7 @@
 namespace hans {
 namespace sequencer {
 
-enum status { START, STOP, CONTINUE, TICK };
+enum clock_status { START, STOP, CONTINUE, TICK };
 
 typedef struct {
   uint32_t ppb; // ticks per beat
@@ -15,7 +15,7 @@ typedef struct {
   uint32_t bar;
 } time_event;
 
-typedef struct { status status; } clock_event;
+typedef struct { clock_status status; } clock_event;
 
 typedef struct {
   float pitch;
