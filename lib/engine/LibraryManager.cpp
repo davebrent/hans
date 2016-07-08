@@ -1,5 +1,6 @@
 #include "hans/engine/LibraryManager.hpp"
 #include <dlfcn.h>
+#include <iostream>
 
 using namespace hans;
 
@@ -39,6 +40,8 @@ void engine::LibraryManager::load(
       if (symbol != nullptr) {
         ((hans_module_setup)symbol)(&api);
       }
+    } else {
+      std::cerr << "Library error: " << dlerror() << std::endl;
     }
   }
 }
