@@ -53,8 +53,6 @@
            graphics-object
            graphics-object?))
 
-(load-extension "libhans-compiler-bindings" "scm_init_hans_compiler_module")
-
 (define-record-type <audio-buffer>
   (audio-buffer name channels size)
   audio-buffer?
