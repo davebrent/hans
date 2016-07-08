@@ -1,12 +1,18 @@
 #include "hans/graphics/Window.hpp"
 #include <GLFW/glfw3.h>
 #include <cassert>
+#include <iostream>
 
 using namespace hans;
+
+static void error_callback(int error, const char* description) {
+  std::cout << "Window Error: " << error << " " << description << std::endl;
+}
 
 graphics::Window::Window(const char* title, unsigned width, unsigned height) {
   m_window = nullptr;
 
+  glfwSetErrorCallback(error_callback);
   bool res = glfwInit();
   assert(res == GL_TRUE);
 
@@ -15,10 +21,6 @@ graphics::Window::Window(const char* title, unsigned width, unsigned height) {
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
   glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
   glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-
-  // glfwWindowHint(GLFW_FOCUSED, GL_FALSE);
-  // glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
-  // glfwWindowHint(GLFW_DECORATED, GL_FALSE);
 
   m_window = glfwCreateWindow(width, height, title, nullptr, nullptr);
   assert(m_window != nullptr);
