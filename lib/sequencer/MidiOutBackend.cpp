@@ -1,6 +1,6 @@
 #include "./MidiOutBackend.hpp"
 #include <cmath>
-#include <exception>
+#include <stdexcept>
 #include <string>
 
 using namespace hans;
