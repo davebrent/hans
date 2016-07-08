@@ -40,8 +40,8 @@ static SCM restore() {
 }
 
 static SCM fill(SCM r, SCM g, SCM b, SCM a) {
-  IMRenderer::get_instance().fill(scm_to_int(r), scm_to_int(g), scm_to_int(b),
-                                  scm_to_int(a));
+  IMRenderer::get_instance().fill(scm_to_double(r), scm_to_double(g),
+                                  scm_to_double(b), scm_to_double(a));
   return SCM_BOOL_T;
 }
 
@@ -51,8 +51,8 @@ static SCM no_fill() {
 }
 
 static SCM stroke(SCM r, SCM g, SCM b, SCM a) {
-  IMRenderer::get_instance().stroke(scm_to_int(r), scm_to_int(g), scm_to_int(b),
-                                    scm_to_int(a));
+  IMRenderer::get_instance().stroke(scm_to_double(r), scm_to_double(g),
+                                    scm_to_double(b), scm_to_double(a));
   return SCM_BOOL_T;
 }
 
