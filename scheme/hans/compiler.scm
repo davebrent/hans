@@ -90,14 +90,15 @@
 
   (define (resolve-library name paths)
     "Returns the location of a library or throws an error if not found"
-    ;; TODO: Swap shared library extension based on platform
-
-    (let* ((library (string-append name ".dylib"))
-           (possible (map (lambda (path)
-                            (os-path-join path library)) paths))
+    (let* ((names (map (lambda (ext) (string-append name ext))
+                       '(".dylib" ".so")))
+           (possible (fold (lambda (path all)
+                             (append all (map (lambda (library)
+                                                (os-path-join path library))
+                                              names))) '() paths))
            (result (filter file-exists? possible)))
       (if (equal? result '())
-        (exit-with-error "Unable to find library -" library "in" possible)
+        (exit-with-error "Unable to find library -" name "in" possible)
         (car result))))
 
   (let* ((search-paths (get-search-paths options))
