@@ -65,6 +65,15 @@
       (make-graphics-graph
         (hans-connect scope 0 window 0)))))
 
+(define (make-pgm-attractors name)
+  ;; Strange attractors object
+  (let ((attractors (hans-create 'gfx-attractors))
+        (window (hans-create 'gfx-quad)))
+    (hans-program name
+      (make-audio-graph)
+      (make-graphics-graph
+        (hans-connect attractors 0 window 0)))))
+
 (define (make-pgm-script name sketch)
   ;; Creating graphics with processing like functions
   (let ((script (hans-create 'gfx-script `((path . ,sketch))))
@@ -75,7 +84,8 @@
         (hans-connect script 0 window 0)))))
 
 (hans-compile
-  (hans-file (list (make-pgm-script "script"
+  (hans-file (list (make-pgm-attractors "attractors")
+                   (make-pgm-script "script"
                                     "../examples/sketches/fluctuating.scm")
                    (make-pgm-scope "oscilloscope" "rb-foobar-2")
                    (make-pgm-fx "cga" "filter/shader/cgadisplay")
