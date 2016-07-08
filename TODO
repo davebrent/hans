@@ -1,0 +1,44 @@
+* Major
+- Parameter modulation
+- Audio analysis
+    - Add FFTManager in engine
+    - Audio feature objects
+- Add recording
+    - Record parameter changes
+    - Record audio out
+        - Pick an audio library for recording (maybe loading as well?)
+- Add video exporting
+    - Pick a format and library for turning recording into a video
+
+* Objects
+- Add audio playback
+    - Load an audio file
+    - Wavetable object to playback a buffer
+    - Example program
+- Share textures with audio graph (double buffer?)
+    - Load scanline of pixels into an audio buffer
+    - Example of scaline playback
+
+* Refactor
+- Allow "sketches" to have access to creating and using parameters
+- Move settings into hans-file & remove from command line
+- Update parameter defaults based on an objects arguments
+- Disable audio if no audio graphs are present
+- Disable graphics if no graphics graphs are present
+- Split "engine" into guile functions (make-engine etc.)
+- Replace "apps" with a "bin" directory containg the "apps" as guile scripts
+- Separate compiler passes into "frontend" & "backend" passes
+
+* Build system
+- Add continuous integration
+    - Improve scheme test suite (auto-discover tests, run from a single command)
+- Add support to build system for installing scheme modules
+
+* Nice to have
+- Add file watching functionality
+- Add gl error checking after every call behind some flag
+- Find a way of auto-formatting scheme code
+- Add other types of ctrl_event interpolation to sequencer
+- Add a renoise sequencer backend to sequencer lib
+- Add an example that implements a shadertoy clone
+- Have a full workflow kind of working

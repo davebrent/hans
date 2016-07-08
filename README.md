@@ -6,6 +6,7 @@ A modular audio visualisation toolkit
 
 * [GLFW](https://github.com/glfw/glfw)
 * [Epoxy](https://github.com/anholt/libepoxy)
+* [NanoVG](https://github.com/memononen/nanovg)
 * [PortAudio](http://portaudio.com/)
 * [FFmpeg](https://www.ffmpeg.org/)
 * [cxxopts](https://github.com/jarro2783/cxxopts)
