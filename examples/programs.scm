@@ -65,9 +65,9 @@
       (make-graphics-graph
         (hans-connect scope 0 window 0)))))
 
-(define (make-pgm-script name)
+(define (make-pgm-script name sketch)
   ;; Creating graphics with processing like functions
-  (let ((script (hans-create 'gfx-script `((path . "../examples/sketch.scm"))))
+  (let ((script (hans-create 'gfx-script `((path . ,sketch))))
         (window (hans-create 'gfx-quad)))
     (hans-program name
       (make-audio-graph)
@@ -75,7 +75,8 @@
         (hans-connect script 0 window 0)))))
 
 (hans-compile
-  (hans-file (list (make-pgm-script "script")
+  (hans-file (list (make-pgm-script "script"
+                                    "../examples/sketches/fluctuating.scm")
                    (make-pgm-scope "oscilloscope" "rb-foobar-2")
                    (make-pgm-fx "cga" "filter/shader/cgadisplay")
                    (make-pgm-fx "dotscreen" "filter/shader/dotscreen")
