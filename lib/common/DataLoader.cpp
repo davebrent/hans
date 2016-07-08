@@ -12,7 +12,6 @@ common::DataWriter::DataWriter(size_t size) : m_allocator(size) {
 
 common::DataWriter::~DataWriter() {
   if (m_cleanup) {
-    delete[] m_file.blobs;
     std::free(m_file.data);
   }
 }
@@ -59,7 +58,6 @@ bool common::DataWriter::write(const char* uri) {
   stream.write(reinterpret_cast<char*>(m_file.data), m_file.size);
   stream.close();
 
-  delete[] m_file.blobs;
   std::free(m_file.data);
   m_cleanup = false;
   return true;
