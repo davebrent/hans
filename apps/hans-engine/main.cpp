@@ -8,7 +8,6 @@
 #include "hans/audio/RingBufferManager.hpp"
 #include "hans/common/DataLoader.hpp"
 #include "hans/common/ListView.hpp"
-#include "hans/common/Logging.hpp"
 #include "hans/common/StringManager.hpp"
 #include "hans/common/hasher.hpp"
 #include "hans/engine/LibraryManager.hpp"
@@ -27,7 +26,6 @@ static int run(const char* filepath, hans_hash program, hans_config& config) {
   DataReader reader(filepath);
   auto d = reader.data;
 
-  auto logger = ConsoleLogger(Logger::DEBUG);
   auto strings = StringManager(d.string_hashes, d.string_offsets, d.strings);
   auto libraries = LibraryManager(strings, d.objects);
   auto programs = ProgramManager();
@@ -45,7 +43,6 @@ static int run(const char* filepath, hans_hash program, hans_config& config) {
   hans_object_api object_api;
   object_api.config = &config;
   object_api.strings = &strings;
-  object_api.logger = &logger;
   object_api.parameters = &parameters;
   object_api.audio_buses = &audio_buses;
   object_api.audio_buffers = &audio_buffers;
@@ -62,7 +59,7 @@ static int run(const char* filepath, hans_hash program, hans_config& config) {
   programs.switch_to(program);
 
   if (!audio_stream.open()) {
-    logger.log(Logger::ERROR, "Unable to open audio stream");
+    std::cerr << "Unable to open audio stream" << std::endl;
   }
 
   audio_stream.start();

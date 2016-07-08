@@ -3,7 +3,6 @@
 
 #include <portaudio.h>
 #include "hans/audio/AudioDevices.hpp"
-#include "hans/common/Logger.hpp"
 #include "hans/common/types.hpp"
 #include "hans/engine/ProgramManager.hpp"
 

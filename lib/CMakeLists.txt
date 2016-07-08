@@ -13,7 +13,6 @@ set(HANS_MODULE_SOURCES
 
 set(HANS_SOURCES
     common/DataLoader.cpp
-    common/Logging.cpp
     audio/AudioDevices.cpp
     audio/AudioStream.cpp
     engine/LibraryManager.cpp

@@ -3,7 +3,6 @@
 
 #include <vector>
 #include "hans/common/ListView.hpp"
-#include "hans/common/Logger.hpp"
 #include "hans/common/StringManager.hpp"
 #include "hans/common/types.hpp"
 #include "hans/graphics/gl.h"

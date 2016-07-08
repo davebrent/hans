@@ -4,7 +4,6 @@
 #include "hans/audio/AudioBufferManager.hpp"
 #include "hans/audio/AudioBusManager.hpp"
 #include "hans/audio/RingBufferManager.hpp"
-#include "hans/common/Logger.hpp"
 #include "hans/common/StringManager.hpp"
 #include "hans/common/types.hpp"
 #include "hans/engine/ParameterManager.hpp"
@@ -17,7 +16,6 @@ typedef struct {
   hans_config* config;
   hans::engine::ParameterManager* parameters;
   hans::engine::RegisterManager* registers;
-  hans::common::Logger* logger;
   hans::common::StringManager* strings;
   hans::audio::AudioBufferManager* audio_buffers;
   hans::audio::AudioBusManager* audio_buses;

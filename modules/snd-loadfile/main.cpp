@@ -1,6 +1,7 @@
 #include <math.h>
 #include <cassert>
 #include <cstdlib>
+#include <iostream>
 #include "./snd.loadfile_generated.h"
 #include "hans/engine/object.hpp"
 
@@ -24,15 +25,14 @@ void hans_loadsf_setup(hans_audio_object* self, hans_object_api* api) {
   int err = avformat_open_input(&format_ctx, filepath, nullptr, nullptr);
 
   if (err) {
-    api->logger->log(common::Logger::ERROR, "Unable to open input file");
+    std::cerr << "Unable to open input file" << std::endl;
     return;
   }
 
   err = avformat_find_stream_info(format_ctx, nullptr);
 
   if (err < 0) {
-    api->logger->log(common::Logger::ERROR,
-                     "Unable to read stream information");
+    std::cerr << "Unable to read stream information" << std::endl;
     return;
   }
 
@@ -45,7 +45,7 @@ void hans_loadsf_setup(hans_audio_object* self, hans_object_api* api) {
   }
 
   if (audio_stream == -1) {
-    api->logger->log(common::Logger::ERROR, "Unable to find stream");
+    std::cerr << "Unable to find stream" << std::endl;
     return;
   }
 
@@ -53,31 +53,29 @@ void hans_loadsf_setup(hans_audio_object* self, hans_object_api* api) {
   AVCodec* codec = avcodec_find_decoder(codec_ctx_orig->codec_id);
 
   if (codec == nullptr) {
-    api->logger->log(common::Logger::ERROR, "Codec not supported");
+    std::cerr << "Codec not supported" << std::endl;
     return;
   }
 
   codec_ctx = avcodec_alloc_context3(codec);
 
   if (avcodec_copy_context(codec_ctx, codec_ctx_orig) != 0) {
-    api->logger->log(common::Logger::ERROR, "Unable to copy codec context");
+    std::cerr << "Unable to copy codec context" << std::endl;
     return;
   }
 
   if (avcodec_open2(codec_ctx, codec, nullptr) < 0) {
-    api->logger->log(common::Logger::ERROR, "Unable to open codec");
+    std::cerr << "Unable to open codec" << std::endl;
     return;
   }
 
   if (codec_ctx->sample_fmt != AV_SAMPLE_FMT_S16) {
-    api->logger->log(common::Logger::ERROR,
-                     "Unsupported sample format (not 16 signed)");
+    std::cerr << "Unsupported sample format (not 16 signed)" << std::endl;
     return;
   }
 
   if (av_sample_fmt_is_planar(codec_ctx->sample_fmt) == 1) {
-    api->logger->log(common::Logger::ERROR,
-                     "Unsupported sample format (planar)");
+    std::cerr << "Unsupported sample format (planar)" << std::endl;
     return;
   }
 
@@ -105,13 +103,13 @@ void hans_loadsf_setup(hans_audio_object* self, hans_object_api* api) {
     int read = avcodec_decode_audio4(codec_ctx, frame, &has_frame, &packet);
 
     if (read < 0) {
-      api->logger->log(common::Logger::ERROR, "Failed to decode");
+      std::cerr << "Failed to decode" << std::endl;
       return;
     }
 
     if (has_frame) {
       if (frame->sample_rate != 44100) {
-        api->logger->log(common::Logger::ERROR, "Unsupported sample rate");
+        std::cerr << "Unsupported sample rate" << std::endl;
         return;
       }
 
