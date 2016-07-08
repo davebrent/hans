@@ -78,6 +78,7 @@ void IMRenderer::no_fill() {
 }
 
 void IMRenderer::stroke(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {
+  m_no_stroke = false;
   m_stroke = nvgRGBA(r, g, b, a);
   nvgStrokeColor(m_nvg, m_stroke);
 }
@@ -87,7 +88,6 @@ void IMRenderer::no_stroke() {
 }
 
 void IMRenderer::stroke_width(float width) {
-  m_no_stroke = false;
   nvgStrokeWidth(m_nvg, width);
 }
 
