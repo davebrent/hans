@@ -79,6 +79,22 @@ static SCM line(SCM x1, SCM y1, SCM x2, SCM y2) {
   return SCM_BOOL_T;
 }
 
+static SCM triangle(SCM x1, SCM y1, SCM x2, SCM y2, SCM x3, SCM y3) {
+  IMRenderer::get_instance().triangle(scm_to_double(x1), scm_to_double(y1),
+                                      scm_to_double(x2), scm_to_double(y2),
+                                      scm_to_double(x3), scm_to_double(y3));
+  return SCM_BOOL_T;
+}
+
+static SCM quad(SCM x1, SCM y1, SCM x2, SCM y2, SCM x3, SCM y3, SCM x4,
+                SCM y4) {
+  IMRenderer::get_instance().quad(scm_to_double(x1), scm_to_double(y1),
+                                  scm_to_double(x2), scm_to_double(y2),
+                                  scm_to_double(x3), scm_to_double(y3),
+                                  scm_to_double(x4), scm_to_double(y4));
+  return SCM_BOOL_T;
+}
+
 static SCM rect(SCM x, SCM y, SCM w, SCM h) {
   IMRenderer::get_instance().rect(scm_to_double(x), scm_to_double(y),
                                   scm_to_double(w), scm_to_double(h));
@@ -180,6 +196,8 @@ void script_setup(hans_graphics_object* self, hans_object_api* api) {
   scm_c_define_gsubr("ellipse", 4, 0, 0, (scm_t_subr)ellipse);
   scm_c_define_gsubr("line", 4, 0, 0, (scm_t_subr)line);
   scm_c_define_gsubr("rect", 4, 0, 0, (scm_t_subr)rect);
+  scm_c_define_gsubr("triangle", 6, 0, 0, (scm_t_subr)triangle);
+  scm_c_define_gsubr("quad", 8, 0, 0, (scm_t_subr)quad);
   scm_c_define_gsubr("translate", 2, 0, 0, (scm_t_subr)translate);
   scm_c_define_gsubr("rotate", 1, 0, 0, (scm_t_subr)rotate);
   scm_c_define_gsubr("scale", 2, 0, 0, (scm_t_subr)scale);

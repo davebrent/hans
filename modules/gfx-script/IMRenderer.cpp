@@ -120,6 +120,37 @@ void IMRenderer::rect(float x, float y, float w, float h) {
   }
 }
 
+void IMRenderer::triangle(float x1, float y1, float x2, float y2, float x3,
+                          float y3) {
+  nvgBeginPath(m_nvg);
+  nvgMoveTo(m_nvg, x1, y1);
+  nvgLineTo(m_nvg, x2, y2);
+  nvgLineTo(m_nvg, x3, y3);
+  nvgClosePath(m_nvg);
+  if (!m_no_fill) {
+    nvgFill(m_nvg);
+  }
+  if (!m_no_stroke) {
+    nvgStroke(m_nvg);
+  }
+}
+
+void IMRenderer::quad(float x1, float y1, float x2, float y2, float x3,
+                      float y3, float x4, float y4) {
+  nvgBeginPath(m_nvg);
+  nvgMoveTo(m_nvg, x1, y1);
+  nvgLineTo(m_nvg, x2, y2);
+  nvgLineTo(m_nvg, x3, y3);
+  nvgLineTo(m_nvg, x4, y4);
+  nvgClosePath(m_nvg);
+  if (!m_no_fill) {
+    nvgFill(m_nvg);
+  }
+  if (!m_no_stroke) {
+    nvgStroke(m_nvg);
+  }
+}
+
 void IMRenderer::translate(float x, float y) {
   nvgTranslate(m_nvg, x, y);
 }
