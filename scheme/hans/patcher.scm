@@ -15,7 +15,7 @@
            hans-graph-id
            set-hans-graph-id!
 
-           hans-program
+           make-program
            hans-program?
            hans-program-name
            hans-program-audio-graph
@@ -97,6 +97,18 @@
 
 (define (make-graphics-graph . connections)
   (hans-graph 'graphics (unique-objects connections) (make-conns connections)))
+
+(define* (make-program name #:optional graph-1 graph-2)
+  (define (graph-or-default sym default)
+    (if (and (hans-graph? graph-1) (eqv? (hans-graph-type graph-1) sym))
+      graph-1
+      (if (and (hans-graph? graph-2) (eqv? (hans-graph-type graph-2) sym))
+        graph-2
+        (default))))
+  (hans-program
+    name
+    (graph-or-default 'audio make-audio-graph)
+    (graph-or-default 'graphics make-graphics-graph)))
 
 (define (make-environment settings objects)
   "Patching environment for instancing and connecting objects"

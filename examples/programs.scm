@@ -10,8 +10,7 @@
   ;; Apply a filter to another graphics object
   (let ((effect (hans-create 'gfx-filter `((name . ,shader))))
         (window (hans-create 'gfx-quad)))
-    (hans-program name
-      (make-audio-graph)
+    (make-program name
       (make-graphics-graph
         (hans-connect superformula 0 effect 0)
         (hans-connect effect 0 window 0)))))
@@ -20,21 +19,19 @@
   ;; Creating audio signals
   (let ((osc (hans-create 'snd-oscillator `((channels . 2))))
         (dac (hans-create 'snd-out `((channel . 0) (channel . 1)))))
-    (hans-program name
+    (make-program name
       (make-audio-graph
         (hans-connect osc 0 dac 0)
-        (hans-connect osc 1 dac 1))
-      (make-graphics-graph))))
+        (hans-connect osc 1 dac 1)))))
 
 (define (make-pgm-pass name)
   ;; Passing audio from microphone to speakers
   (let ((adc (hans-create 'snd-in `((channel . 0) (channel . 1))))
         (dac (hans-create 'snd-out `((channel . 0) (channel . 1)))))
-    (hans-program name
+    (make-program name
       (make-audio-graph
         (hans-connect adc 0 dac 0)
-        (hans-connect adc 1 dac 1))
-      (make-graphics-graph))))
+        (hans-connect adc 1 dac 1)))))
 
 (define (make-pgm-ringbuffer name buff-name)
   ;; Sharing audio data with a graphics object
@@ -43,7 +40,7 @@
         (dac    (hans-create 'snd-out `((channel . 0))))
         (reader (hans-create 'gfx-sndtex `((name . ,buff-name))))
         (window (hans-create 'gfx-quad)))
-    (hans-program name
+    (make-program name
       (make-audio-graph
         (hans-connect adc 0 ring 0)
         (hans-connect ring 0 dac 0))
@@ -58,7 +55,7 @@
         (scope (hans-create 'gfx-oscilloscope `((left . ,buff-name)
                                                 (right . ,buff-name))))
         (window (hans-create 'gfx-quad)))
-    (hans-program name
+    (make-program name
       (make-audio-graph
         (hans-connect adc 0 ring 0)
         (hans-connect ring 0 dac 0))
@@ -69,8 +66,7 @@
   ;; Strange attractors object
   (let ((attractors (hans-create 'gfx-attractors))
         (window (hans-create 'gfx-quad)))
-    (hans-program name
-      (make-audio-graph)
+    (make-program name
       (make-graphics-graph
         (hans-connect attractors 0 window 0)))))
 
@@ -78,8 +74,7 @@
   ;; Creating graphics with processing like functions
   (let ((script (hans-create 'gfx-script `((path . ,sketch))))
         (window (hans-create 'gfx-quad)))
-    (hans-program name
-      (make-audio-graph)
+    (make-program name
       (make-graphics-graph
         (hans-connect script 0 window 0)))))
 
