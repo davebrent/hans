@@ -1,5 +1,4 @@
-(use-modules (srfi srfi-1)
-             (hans utils))
+(use-modules (srfi srfi-1))
 
 (define (random-range minimum maximum)
   (+ minimum (random (- maximum minimum))))
