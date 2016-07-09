@@ -1,0 +1,10 @@
+language: cpp
+
+services:
+  - docker
+
+install:
+  - docker build -t davebrent/hans .
+
+script:
+  - docker run davebrent/hans make check
