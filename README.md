@@ -1,5 +1,7 @@
 # Hans
 
+[![Build Status](https://travis-ci.org/davebrent/hans.svg?branch=master)](https://travis-ci.org/davebrent/hans)
+
 A modular audio visualisation toolkit
 
 ## Dependencies
