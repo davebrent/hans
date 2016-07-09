@@ -20,6 +20,20 @@ common::LinearAllocator::~LinearAllocator() {
   std::free(m_start);
 }
 
+static void* align(size_t align, size_t size, void*& ptr,
+                   size_t& space) noexcept {
+  const auto intptr = reinterpret_cast<uintptr_t>(ptr);
+  const auto aligned = (intptr - 1u + align) & -align;
+  const auto diff = aligned - intptr;
+
+  if ((size + diff) > space) {
+    return nullptr;
+  } else {
+    space -= diff;
+    return ptr = reinterpret_cast<void*>(aligned);
+  }
+}
+
 void* common::LinearAllocator::allocate(size_t size, size_t alignment) {
   if (m_current == m_end) {
     return nullptr;
@@ -27,7 +41,7 @@ void* common::LinearAllocator::allocate(size_t size, size_t alignment) {
 
   void* current = static_cast<void*>(m_current);
   size_t space = m_end - m_current;
-  void* aligned = std::align(alignment, size, current, space);
+  void* aligned = align(alignment, size, current, space);
 
   m_current = static_cast<char*>(aligned);
 
