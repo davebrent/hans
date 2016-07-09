@@ -1,6 +1,7 @@
 (add-to-load-path ".")
 (use-modules (hans compiler)
              (hans patcher)
+             (hans os)
              (examples common))
 
 ;; Objects may be shared among programs
@@ -78,10 +79,12 @@
       (make-graphics-graph
         (hans-connect script 0 window 0)))))
 
+(define (base filename)
+  (os-path-join (dirname (current-filename)) filename))
+
 (hans-compile
   (hans-file (list (make-pgm-attractors "attractors")
-                   ;(make-pgm-script "script"
-                   ;                 "../examples/sketches/fluctuating.scm")
+                   (make-pgm-script "script" (base "sketches/concentric.scm"))
                    (make-pgm-scope "oscilloscope" "rb-foobar-2")
                    (make-pgm-fx "cga" "filter/shader/cgadisplay")
                    (make-pgm-fx "dotscreen" "filter/shader/dotscreen")
@@ -89,6 +92,6 @@
                    (make-pgm-sine "sine")
                    (make-pgm-pass "passthrough")
                    (make-pgm-ringbuffer "ringbuffer" "rb-foobar")))
-  '((output        . "programs.hans")
-    (library-paths . ("/Users/dave/Projects/hans/build/lib"
+  `((output        . "programs.hans")
+    (library-paths . (,(base "../build/lib")
                       "/usr/lib"))))
