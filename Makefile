@@ -16,7 +16,7 @@ check: $(BUILD_DIR)
 	@cd $(BUILD_DIR) && ./test/unit/hans-unittest
 
 lint:
-	@cppcheck --enable=all --quiet -I include/ $(SRC_DIRS)
+	@cppcheck --quiet --enable=warning,performance -I include $(SRC_DIRS)
 
 format:
 	@find $(SRC_DIRS) \( -name '*.h' -or \
