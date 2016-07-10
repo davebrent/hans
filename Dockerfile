@@ -37,7 +37,7 @@ RUN cd /app/nanovg && \
   premake4 gmake && \
   cd build/ && \
   make nanovg && \
-  cp libnanovg.so /usr/local/lib
+  cp libnanovg.so /usr/lib
 RUN mkdir -p /usr/local/lib/pkgconfig
 RUN echo "libdir=/app/nanovg/build\n" \
          "includedir=/app/nanovg/src\n" \
