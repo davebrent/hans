@@ -17,4 +17,17 @@ typedef struct {
   size_t offset;
 } hans_parameter;
 
+typedef struct {
+  hans_instance_id object;
+  hans_hash parameter;
+  uint8_t component;
+} hans_modulator_port;
+
+typedef struct {
+  hans_modulator_port source;
+  hans_modulator_port dest;
+  float offset;
+  float scale;
+} hans_modulator;
+
 #endif // HANS_COMMON_TYPES_PARAMETERS_H_

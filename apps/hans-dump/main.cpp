@@ -168,6 +168,28 @@ class Dumper {
     }
   }
 
+  void print(const char* label, const ListView<hans_modulator>& modulators) {
+    const auto& s = m_strings;
+    std::cout << "- Type: " << label << std::endl;
+    std::cout << "  Values: " << std::endl;
+    for (const auto& mod : modulators) {
+      std::cout << "  - Offset: " << mod.offset << std::endl;
+      std::cout << "    Scale: " << mod.scale << std::endl;
+      std::cout << "    Source: " << std::endl;
+      std::cout << "    - Object: " << mod.source.object << std::endl;
+      std::cout << "      Parameter: " << s.lookup(mod.source.parameter)
+                << std::endl;
+      std::cout << "      Component: " << size_t(mod.source.component)
+                << std::endl;
+      std::cout << "    Destination: " << std::endl;
+      std::cout << "    - Object: " << mod.dest.object << std::endl;
+      std::cout << "      Parameter: " << s.lookup(mod.dest.parameter)
+                << std::endl;
+      std::cout << "      Component: " << size_t(mod.dest.component)
+                << std::endl;
+    }
+  }
+
   void print(const char* label, const ListView<hans_register>& registers) {
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Values: " << std::endl;
@@ -259,6 +281,7 @@ int main(int argc, char* argv[]) {
   printer.print("Shaders", reader.data.shaders);
   printer.print("Audio buffers", reader.data.audio_buffers);
   printer.print("Ring buffers", reader.data.ring_buffers);
+  printer.print("Modulators", reader.data.modulators);
 
   if (verbose) {
     printer.print("String hashes", reader.data.string_hashes);

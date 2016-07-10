@@ -31,6 +31,7 @@ static int run(const char* filepath, hans_hash program, hans_config& config) {
   auto programs = ProgramManager();
   auto registers = RegisterManager(config);
   auto parameters = ParameterManager();
+  auto modulators = ModulationManager(parameters, d.modulators);
   auto window = Window("Hans", config.width, config.height);
   auto shaders = ShaderManager(strings, d.shaders);
   auto fbos = FrameBufferManager(d.fbos, d.fbo_attachments);
@@ -50,9 +51,11 @@ static int run(const char* filepath, hans_hash program, hans_config& config) {
   object_api.shaders = &shaders;
   object_api.registers = &registers;
   object_api.fbos = &fbos;
+  object_api.modulators = &modulators;
 
   libraries.load(d.libraries);
   parameters.use(d.parameters, d.parameter_values);
+  modulators.setup();
   registers.use(d.registers);
   programs.use(object_api, d.objects, d.programs, d.chains, d.object_data);
   programs.setup_all();

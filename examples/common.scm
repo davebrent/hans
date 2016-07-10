@@ -12,7 +12,8 @@
   :use-module (hans modules gfx-filter objects)
   :export (settings
            hans-create
-           hans-connect))
+           hans-connect
+           hans-modulate))
 
 (define settings `(
   (width     . 640)
@@ -40,3 +41,8 @@
 
 (define (hans-connect source outlet sink inlet)
   (hans 'connect source outlet sink inlet))
+
+(define (hans-modulate src-object src-param src-comp
+                       dest-object dest-param dest-comp offset scale)
+  (hans 'modulate src-object src-param src-comp
+                  dest-object dest-param dest-comp offset scale))

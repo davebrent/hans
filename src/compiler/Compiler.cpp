@@ -79,6 +79,44 @@ static hans_shader_type scm_to_hans_shader_type(SCM type) {
   throw std::runtime_error("Unknown shader type");
 }
 
+static SCM write_modulators(SCM writer, SCM lst) {
+  auto len = lst_length(lst);
+  std::vector<hans_modulator> result;
+  result.reserve(len);
+
+  auto zero = scm_from_int(0);
+  auto one = scm_from_int(1);
+  auto two = scm_from_int(2);
+  auto three = scm_from_int(3);
+  auto four = scm_from_int(4);
+  auto five = scm_from_int(5);
+  auto six = scm_from_int(6);
+  auto seven = scm_from_int(7);
+
+  for (auto i = 0; i < len; ++i) {
+    auto item = scm_list_ref(lst, scm_from_int(i));
+
+    hans_modulator_port source;
+    source.object = scm_to_int(scm_list_ref(item, zero));
+    source.parameter = scm_to_hans_hash(scm_list_ref(item, one));
+    source.component = scm_to_int(scm_list_ref(item, two));
+
+    hans_modulator_port dest;
+    dest.object = scm_to_int(scm_list_ref(item, three));
+    dest.parameter = scm_to_hans_hash(scm_list_ref(item, four));
+    dest.component = scm_to_int(scm_list_ref(item, five));
+
+    hans_modulator modulator;
+    modulator.source = source;
+    modulator.dest = dest;
+    modulator.offset = scm_to_double(scm_list_ref(item, six));
+    modulator.scale = scm_to_double(scm_list_ref(item, seven));
+    result.push_back(modulator);
+  }
+
+  return write_list<hans_modulator>(writer, HANS_BLOB_MODULATORS, result);
+}
+
 static SCM write_libraries(SCM writer, SCM lst) {
   auto len = lst_length(lst);
   std::vector<hans_library> result;
@@ -799,6 +837,7 @@ void scm_init_hans_compiler_module() {
   data_writer_tag = scm_make_smob_type("hans-file-writer", data_writer_size);
   scm_c_define_gsubr("hans-file-write", 2, 0, 0, (scm_t_subr)hans_file_write);
 
+  scm_c_define_gsubr("write-modulators", 2, 0, 0, (scm_t_subr)write_modulators);
   scm_c_define_gsubr("write-libraries", 2, 0, 0, (scm_t_subr)write_libraries);
   scm_c_define_gsubr("write-objects", 2, 0, 0, (scm_t_subr)write_objects);
   scm_c_define_gsubr("write-object-data", 2, 0, 0,

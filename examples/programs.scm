@@ -69,7 +69,10 @@
         (window (hans-create 'gfx-quad)))
     (make-program name
       (make-graphics-graph
-        (hans-connect attractors 0 window 0)))))
+        (hans-connect attractors 0 window 0))
+      (make-modulation
+        (hans-modulate attractors 'a 0 attractors 'b 0 0 1)
+        (hans-modulate attractors 'b 0 attractors 'a 0 0 1)))))
 
 (define (make-pgm-script name sketch)
   ;; Creating graphics with processing like functions

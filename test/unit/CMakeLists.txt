@@ -5,6 +5,7 @@ add_executable(hans-unittest
   common/LinearAllocator.cpp
   common/StringManager.cpp
   engine/ParameterManager.cpp
+  engine/ModulationManager.cpp
   engine/RegisterManager.cpp
   sequencer/Device.cpp
   main.cpp)

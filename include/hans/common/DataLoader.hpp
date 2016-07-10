@@ -44,6 +44,7 @@ class DataReader {
     ListView<hans_fbo_attachment> fbo_attachments;
     ListView<hans_audio_buffer> audio_buffers;
     ListView<hans_ring_buffer> ring_buffers;
+    ListView<hans_modulator> modulators;
   } file_data;
 
   explicit DataReader(const char* uri);

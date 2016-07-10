@@ -21,6 +21,7 @@
            object-resources-pass
            validate-shader-pass
            validate-connections-pass
+           validate-modulators-pass
            create-requested-resources-pass))
 
 (load-extension "libhanscompiler" "scm_init_hans_compiler_module")
@@ -213,6 +214,48 @@
                              (rstrip (cdr result))))))
                   (zip shaders result)))
     file))
+
+(define (validate-modulators-pass file options)
+  "Validate all modulators in a hans file"
+  (define (parameter-exists? object name)
+    (not (eq? #f (find (lambda (item)
+                         (eq? item name))
+                       (map parameter-name
+                            (object-record-parameters
+                              (hans-object-rec object)))))))
+
+  (define (validate program)
+    (for-each (lambda (modulator)
+                (let ((src-object  (list-ref modulator 0))
+                      (src-name    (list-ref modulator 1))
+                      (src-comp    (list-ref modulator 2))
+                      (dest-object (list-ref modulator 3))
+                      (dest-name   (list-ref modulator 4))
+                      (dest-comp   (list-ref modulator 5)))
+                  ;; Self modulating
+                  (if (and (eqv? (hans-object-instance-id src-object)
+                                 (hans-object-instance-id dest-object))
+                           (eqv? src-name dest-name)
+                           (eqv? src-comp dest-comp))
+                    (exit-with-error "Error: self modulating parameter"
+                                     (hans-object-instance-id src-object)
+                                     (object-record-name
+                                       (hans-object-rec src-object))
+                                     src-name))
+                  ;; Check they exist
+                  (if (not (parameter-exists? src-object src-name))
+                    (exit-with-error "Error: Modulator parameter not found"
+                                     (object-record-name
+                                       (hans-object-rec src-object))
+                                     src-name))
+                  (if (not (parameter-exists? dest-object dest-name))
+                    (exit-with-error "Error: Modulator parameter not found"
+                                     (object-record-name
+                                       (hans-object-rec dest-object))
+                                     dest-name))))
+              (hans-program-modulators program)))
+  (for-each validate (hans-file-programs file))
+  file)
 
 (define (object-resources-pass file options)
   "Fill in object runtime resource requests"
@@ -492,6 +535,24 @@
                             (hans-object-registers obj)))
                      file))))
 
+  (define (do-modulators writer file)
+    (define (transform-mod mod)
+      `(,(hans-object-instance-id (list-ref mod 0))
+        ,(symbol->string (list-ref mod 1))
+        ,(list-ref mod 2)
+        ,(hans-object-instance-id (list-ref mod 3))
+        ,(symbol->string (list-ref mod 4))
+        ,(list-ref mod 5)
+        ,(list-ref mod 6)
+        ,(list-ref mod 7)))
+
+    (write-modulators writer
+      (fold (lambda (prog prev)
+              (let ((modulators (hans-program-modulators prog)))
+                (append prev (map transform-mod modulators))))
+            '()
+            (hans-file-programs file))))
+
   (let* ((writer (make-hans-file-writer 96768))
          (bytes  (fold (lambda (pass total)
                          (+ total (pass writer file))) 0 (list do-libraries
@@ -504,6 +565,7 @@
                                                                do-fbos
                                                                do-audio-buffers
                                                                do-ring-buffers
+                                                               do-modulators
                                                                do-strings))))
     (hans-file-write writer (assq-ref options 'output))
     file))
@@ -519,6 +581,7 @@
                                topological-sort-pass
                                register-allocation-pass
                                validate-shader-pass
+                               validate-modulators-pass
                                create-requested-resources-pass))
 
   (if (not (hans-file? file))

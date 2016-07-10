@@ -131,6 +131,8 @@ void engine::ProgramManager::tick_graphics(float delta) {
   auto chains = m_chains;
   auto num_objects = m_num_objects;
 
+  m_api->modulators->begin();
+
   for (auto i = chain.start; i < chain.end; ++i) {
     auto instance_id = chains[i];
     for (auto k = 0; k < num_objects; ++k) {
@@ -158,6 +160,8 @@ void engine::ProgramManager::tick_graphics(float delta) {
       }
     }
   }
+
+  m_api->modulators->end();
 }
 
 void engine::ProgramManager::tick_audio() {

@@ -24,6 +24,7 @@ add_library(hans SHARED
   audio/AudioStream.cpp
   engine/LibraryManager.cpp
   engine/ProgramManager.cpp
+  engine/ModulationManager.cpp
   graphics/Window.cpp)
 
 target_link_libraries(hans
