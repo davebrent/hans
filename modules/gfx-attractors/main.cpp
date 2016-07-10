@@ -12,17 +12,24 @@ using namespace hans;
 #define GFX_SHDRS_VERTEX 0x2852785caca700a4
 // "attractors/shaders/frag"
 #define GFX_SHDRS_FRAGMENT 0x956f8b548265e345
+// "a", "b", "c", "d", "e", "f"
+#define PARAM_NAME_A 0x71717d2d36b6b11
+#define PARAM_NAME_B 0xea8bfc7d922a2a37
+#define PARAM_NAME_C 0xd8788d18ba82e0b5
+#define PARAM_NAME_D 0x17dffbc5a8f17839
+#define PARAM_NAME_E 0x7115e430772d6a11
+#define PARAM_NAME_F 0x5647bce94f90d9aa
 
 typedef struct {
   GLuint vao;
   hans_fbo fbo;
 
-  float a;
-  float b;
-  float c;
-  float d;
-  float e;
-  float f;
+  hans_parameter a;
+  hans_parameter b;
+  hans_parameter c;
+  hans_parameter d;
+  hans_parameter e;
+  hans_parameter f;
 
   hans_register outlet;
   hans_shader_program_instance program;
@@ -43,12 +50,12 @@ static void attractors_new(hans_constructor_api* api, void* buffer,
 static void attractors_setup(hans_graphics_object* self, hans_object_api* api) {
   auto data = static_cast<attractors_data*>(self->data);
 
-  data->a = 0.08;
-  data->b = 1.39;
-  data->c = 0.08;
-  data->d = 1.03;
-  data->e = 1.37;
-  data->f = 0.43;
+  data->a = api->parameters->make(self->id, PARAM_NAME_A);
+  data->b = api->parameters->make(self->id, PARAM_NAME_B);
+  data->c = api->parameters->make(self->id, PARAM_NAME_C);
+  data->d = api->parameters->make(self->id, PARAM_NAME_D);
+  data->e = api->parameters->make(self->id, PARAM_NAME_E);
+  data->f = api->parameters->make(self->id, PARAM_NAME_F);
 
   data->outlet = api->registers->make(self->id, HANS_OUTLET, 0);
   data->fbo = api->fbos->make(self->id);
@@ -96,15 +103,16 @@ static void attractors_setup(hans_graphics_object* self, hans_object_api* api) {
   glEnableVertexAttribArray(pos);
 }
 
-static float rand_fract(float scale) {
-  auto ran = ((double)rand() / RAND_MAX);
-  auto r = (((ran)*2.f) - 1.0) * scale;
-  return r;
-}
-
 static void attractors_update(hans_graphics_object* self,
                               hans_object_api* api) {
   auto data = static_cast<attractors_data*>(self->data);
+
+  float a = api->parameters->get(data->a, 0);
+  float b = api->parameters->get(data->b, 0);
+  float c = api->parameters->get(data->c, 0);
+  float d = api->parameters->get(data->d, 0);
+  float e = api->parameters->get(data->e, 0);
+  float f = api->parameters->get(data->f, 0);
 
   float xs = 0, ys = 0, zs = 0;
 
@@ -112,17 +120,10 @@ static void attractors_update(hans_graphics_object* self,
   for (int i = 0; i < data->buffer_length; i += 2) {
     data->positions[i + 0] = xs;
     data->positions[i + 1] = ys;
-    xs = (sin(data->a * xs) + sin(data->b * ys)) - cos(data->c * zs);
-    ys = (sin(data->d * xs) + sin(data->e * ys)) - cos(data->f * zs);
+    xs = (sin(a * xs) + sin(b * ys)) - cos(c * zs);
+    ys = (sin(d * xs) + sin(e * ys)) - cos(f * zs);
     zs = zs + 0.1;
   }
-
-  data->a = data->a + rand_fract(0.05);
-  data->b = data->b + rand_fract(0.05);
-  data->c = data->c + rand_fract(0.05);
-  data->d = data->d + rand_fract(0.05);
-  data->e = data->e + rand_fract(0.05);
-  data->f = data->f + rand_fract(0.05);
 
   glBindBuffer(GL_ARRAY_BUFFER, data->position_buffer);
   glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(float) * data->buffer_length,
