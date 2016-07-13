@@ -1,5 +1,4 @@
 add_executable(hans-engine main.cpp)
-set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -ldl")
 
 target_link_libraries(hans-engine
     hans
