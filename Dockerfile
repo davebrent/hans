@@ -57,7 +57,7 @@ RUN cd /app/build && cmake \
   .. && make install
 
 # Install guile modules
-RUN cd /usr/share/guile/2.0 && ln -s /app/scheme/hans/ hans
+RUN cd /usr/share/guile/2.0 && ln -s /app/scm/ hans
 RUN echo "(use-modules (ice-9 readline)) (activate-readline)" > ~/.guile
 
 # Build examples
