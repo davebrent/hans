@@ -1,4 +1,4 @@
-.PHONY: lint docs format check
+I.PHONY: lint docs format check
 
 BUILD_DIR=build
 SRC_DIRS=src include modules test apps
@@ -13,6 +13,7 @@ $(BUILD_DIR):
 		.. && make install
 
 check: $(BUILD_DIR)
+	@find test/scm/*.scm -exec env DYLD_LIBRARY_PATH=build/lib guile {} \;
 	@cd $(BUILD_DIR) && ./test/unit/hans-unittest
 
 lint:
