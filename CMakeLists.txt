@@ -47,7 +47,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} ${CMAKE_CXX_FLAGS_TSAN}")
 include_directories(include)
 include_directories(3rdparty/include)
 
-add_subdirectory(lib)
+add_subdirectory(src)
 add_subdirectory(apps)
 add_subdirectory(test)
 add_subdirectory(modules)
