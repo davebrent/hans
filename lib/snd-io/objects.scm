@@ -1,4 +1,4 @@
-(define-module (hans modules snd-io objects))
+(define-module (hans lib snd-io objects))
 (use-modules (hans objects))
 
 (define library "libhans.snd.io")

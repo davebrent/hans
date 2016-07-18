@@ -1,4 +1,4 @@
-(define-module (hans modules gfx-sndtex objects))
+(define-module (hans lib gfx-sndtex objects))
 (use-modules (hans objects)
              (hans utils))
 

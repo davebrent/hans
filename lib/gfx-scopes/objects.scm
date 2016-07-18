@@ -1,4 +1,4 @@
-(define-module (hans modules gfx-scopes objects))
+(define-module (hans lib gfx-scopes objects))
 (use-modules (hans objects)
              (hans utils))
 

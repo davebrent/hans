@@ -1,4 +1,4 @@
-(define-module (hans modules snd-loadfile objects))
+(define-module (hans lib snd-loadfile objects))
 (use-modules (hans objects))
 
 (define library "libhans.snd.loadfile")

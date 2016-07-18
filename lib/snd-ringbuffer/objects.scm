@@ -1,4 +1,4 @@
-(define-module (hans modules snd-ringbuffer objects))
+(define-module (hans lib snd-ringbuffer objects))
 (use-modules (hans objects))
 
 (define library "libhans.snd.ringbuffer")

@@ -1,4 +1,4 @@
-(define-module (hans modules gfx-attractors objects))
+(define-module (hans lib gfx-attractors objects))
 (use-modules (hans objects)
              (hans utils))
 

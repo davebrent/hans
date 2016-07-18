@@ -1,4 +1,4 @@
-(define-module (hans modules gfx-filter objects))
+(define-module (hans lib gfx-filter objects))
 (use-modules (hans objects)
              (hans utils))
 

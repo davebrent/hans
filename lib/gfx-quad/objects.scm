@@ -1,4 +1,4 @@
-(define-module (hans modules gfx-quad objects))
+(define-module (hans lib gfx-quad objects))
 (use-modules (hans objects)
              (hans utils))
 

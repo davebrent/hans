@@ -1,4 +1,4 @@
-(define-module (hans modules gfx-superformula objects))
+(define-module (hans lib gfx-superformula objects))
 (use-modules (hans objects)
              (hans utils))
 

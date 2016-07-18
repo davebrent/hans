@@ -1,4 +1,4 @@
-(define-module (hans modules snd-oscillator objects))
+(define-module (hans lib snd-oscillator objects))
 (use-modules (hans objects))
 
 (define library "libhans.snd.oscillator")

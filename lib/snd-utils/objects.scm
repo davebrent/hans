@@ -1,4 +1,4 @@
-(define-module (hans modules snd-utils objects))
+(define-module (hans lib snd-utils objects))
 (use-modules (hans objects))
 
 (define library "libhans.snd.utils")
