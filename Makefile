@@ -1,4 +1,4 @@
-I.PHONY: lint docs format check
+.PHONY: lint docs format check
 
 BUILD_DIR=build
 SRC_DIRS=src include modules test apps
