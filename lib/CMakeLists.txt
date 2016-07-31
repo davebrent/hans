@@ -1,3 +1,4 @@
+add_subdirectory(snd-analysis)
 add_subdirectory(snd-io)
 add_subdirectory(snd-oscillator)
 add_subdirectory(snd-ringbuffer)

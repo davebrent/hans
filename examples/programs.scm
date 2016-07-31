@@ -82,11 +82,44 @@
       (make-graphics-graph
         (hans-connect script 0 window 0)))))
 
+(define (make-pgm-fft name buff-name)
+  ;; Real time FFT
+  (let ((adc  (hans-create 'snd-in `((channel . 0))))
+        (osc (hans-create 'snd-oscillator))
+        (ring (hans-create 'snd-ringbuffer `((name . ,buff-name))))
+        (fft  (hans-create 'snd-fft))
+        (ifft (hans-create 'snd-ifft))
+        (dac  (hans-create 'snd-out `((channel . 0))))
+        (window (hans-create 'gfx-quad))
+        (scope (hans-create 'gfx-oscilloscope `((left . ,buff-name)
+                                                (right . ,buff-name)))))
+    (make-program name
+      (make-audio-graph
+        (hans-connect adc 0 fft 0)
+        (hans-connect fft 0 ifft 0)
+        (hans-connect fft 1 ifft 1)
+        (hans-connect ifft 0 ring 0)
+        (hans-connect ring 0 dac 0))
+      (make-graphics-graph
+        (hans-connect scope 0 window 0)))))
+
+(define (make-pgm-feature name method)
+  ;; Real time feature extraction
+  (let ((osc  (hans-create 'snd-oscillator))
+        (feat (hans-create 'snd-feature `((method . ,method))))
+        (dac  (hans-create 'snd-out `((channel . 0)))))
+    (make-program name
+      (make-audio-graph
+        (hans-connect osc 0 feat 0)
+        (hans-connect feat 0 dac 0)))))
+
 (define (base filename)
   (os-path-join (dirname (current-filename)) filename))
 
 (hans-compile
-  (hans-file (list (make-pgm-attractors "attractors")
+  (hans-file (list (make-pgm-feature "feature" "centroid")
+                   (make-pgm-fft "fft" "rb-buff")
+                   (make-pgm-attractors "attractors")
                    (make-pgm-script "script" (base "sketches/concentric.scm"))
                    (make-pgm-scope "oscilloscope" "rb-foobar-2")
                    (make-pgm-fx "cga" "filter/shader/cgadisplay")

@@ -25,7 +25,8 @@ RUN apt-get clean && apt-get update && \
   guile-2.0 \
   guile-2.0-dev \
   librtmidi-dev \
-  libglm-dev
+  libglm-dev \
+  libaubio-dev
 
 RUN mkdir -p /app
 WORKDIR /app
