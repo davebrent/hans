@@ -18,8 +18,8 @@ class IMRenderer {
   }
 
   void destroy();
-  void set_script_data(script_data* data);
-  script_data* get_script_data();
+  void set_script_state(ScriptState* data);
+  ScriptState* get_script_state();
 
   void begin_frame();
   void end_frame();
@@ -56,7 +56,7 @@ class IMRenderer {
 
  private:
   NVGcontext* m_nvg;
-  script_data* m_script;
+  ScriptState* m_script;
 
   float m_width;
   float m_height;

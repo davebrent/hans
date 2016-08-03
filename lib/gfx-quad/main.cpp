@@ -1,14 +1,14 @@
-#include <cassert>
-#include <iostream>
-#include "./gfx.quad_generated.h"
 #include "hans/engine/object.hpp"
+
+#define LIBQUAD_VERT_SHADER 0xb3e177b2033e92a3
+#define LIBQUAD_FRAG_SHADER 0x14702fc4633a84b9
 
 using namespace hans;
 
 static const float VERTICES[] = {-1, 1, -1, -1, 1, -1, 1, 1};
 static const int INDEX[] = {0, 1, 2, 2, 3, 0};
 
-typedef struct {
+struct QuadState {
   hans_fbo fbo;
   GLuint vao;
   GLuint texture;
@@ -17,19 +17,36 @@ typedef struct {
   hans_shader_program_instance program;
   hans_register inlet;
   uint32_t texture_value;
-} QuadData;
+};
 
-void quad_setup(hans_graphics_object* self, hans_object_api* api) {
-  auto data = static_cast<QuadData*>(self->data);
+class QuadObject : protected GraphicsObject {
+  friend class hans::engine::LibraryManager;
 
-  data->fbo = api->fbos->make(self->id);
-  data->inlet = api->registers->make(self->id, HANS_INLET, 0);
+ public:
+  using GraphicsObject::GraphicsObject;
+  virtual void create(ObjectPatcher& patcher) override;
+  virtual void setup(hans_object_api& api) override;
+  virtual void update(hans_object_api& api) override {
+  }
+  virtual void draw(hans_object_api& api) override;
+
+ private:
+  QuadState state;
+};
+
+void QuadObject::create(ObjectPatcher& patcher) {
+  patcher.request(HANS_INLET, 1);
+}
+
+void QuadObject::setup(hans_object_api& api) {
+  state.fbo = api.fbos->make(id);
+  state.inlet = api.registers->make(id, HANS_INLET, 0);
 
   GLuint vbo;
   GLuint ebo;
 
-  glGenVertexArrays(1, &data->vao);
-  glBindVertexArray(data->vao);
+  glGenVertexArrays(1, &state.vao);
+  glBindVertexArray(state.vao);
 
   glGenBuffers(1, &vbo);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -39,54 +56,39 @@ void quad_setup(hans_graphics_object* self, hans_object_api* api) {
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
   glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(INDEX), INDEX, GL_STATIC_DRAW);
 
-  glBindVertexArray(data->vao);
+  glBindVertexArray(state.vao);
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
-  data->v_shader = api->shaders->create_shader(LIBQUAD_VERT_SHADER);
-  data->f_shader = api->shaders->create_shader(LIBQUAD_FRAG_SHADER);
-  data->program = api->shaders->create_program(data->v_shader, data->f_shader);
-  glUseProgram(data->program.handle);
+  state.v_shader = api.shaders->create_shader(LIBQUAD_VERT_SHADER);
+  state.f_shader = api.shaders->create_shader(LIBQUAD_FRAG_SHADER);
+  state.program = api.shaders->create_program(state.v_shader, state.f_shader);
+  glUseProgram(state.program.handle);
 
-  data->texture = glGetUniformLocation(data->program.handle, "u_texture");
+  state.texture = glGetUniformLocation(state.program.handle, "u_texture");
 
-  GLint pos_attrib = glGetAttribLocation(data->program.handle, "position");
+  GLint pos_attrib = glGetAttribLocation(state.program.handle, "position");
   glVertexAttribPointer(pos_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(pos_attrib);
 
-  auto register_value = api->registers->read(data->inlet);
-  data->texture_value = *static_cast<uint32_t*>(register_value);
+  auto register_value = api.registers->read(state.inlet);
+  state.texture_value = *static_cast<uint32_t*>(register_value);
 }
 
-void quad_draw(hans_graphics_object* self, hans_object_api* api) {
-  auto data = static_cast<QuadData*>(self->data);
-
-  glUseProgram(data->program.handle);
+void QuadObject::draw(hans_object_api& api) {
+  glUseProgram(state.program.handle);
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, data->texture_value);
-  glUniform1i(data->texture, 0);
+  glBindTexture(GL_TEXTURE_2D, state.texture_value);
+  glUniform1i(state.texture, 0);
 
-  api->fbos->release_fbo();
+  api.fbos->release_fbo();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  glBindVertexArray(data->vao);
+  glBindVertexArray(state.vao);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
-void quad_new(hans_constructor_api* api, void* buffer, size_t size) {
-  uint8_t num_inlets = 1;
-  api->request_resource(api, HANS_INLET, &num_inlets);
-}
-
-void quad_init(void* instance) {
-  hans_graphics_object* object = static_cast<hans_graphics_object*>(instance);
-  object->setup = quad_setup;
-  object->update = nullptr;
-  object->draw = quad_draw;
-}
-
 extern "C" {
-void setup(hans_library_api* api) {
-  auto size = sizeof(QuadData);
-  api->register_object(api, "gfx-quad", size, quad_new, quad_init, nullptr);
+void setup(hans::engine::LibraryManager* library) {
+  library->add_object<QuadState, QuadObject>("gfx-quad");
 }
 }

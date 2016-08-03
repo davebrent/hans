@@ -1,14 +1,18 @@
 #include <math.h>
-#include <cassert>
 #include <cstdlib>
-#include <iostream>
 #include "./buffers.h"
-#include "./snd.oscillator_generated.h"
 #include "hans/engine/object.hpp"
 
 #define SND_OSC_MAX_CHANNELS 8
+#define ARG_PHASE 0x9c38c179d4311f91       /* phase */
+#define PARAM_WAVEFORM 0x6c94e62ff18c189f  /* waveform */
+#define ARG_CHANNELS 0xc579d4daf43017c2    /* channels */
+#define PARAM_FREQUENCY 0xce6a758b9a7e1778 /* frequency */
+#define AUDIO_BUFFER 0x635d6522b5c8c630    /* snd/osc/buffer */
 
-typedef struct {
+using namespace hans;
+
+struct OscState {
   unsigned samplerate;
   uint8_t channels;
   unsigned phase;
@@ -16,107 +20,92 @@ typedef struct {
   hans_parameter waveform;
   hans_audio_buffer buffer;
   hans_register outlets[SND_OSC_MAX_CHANNELS];
-} hans_osc_data;
+};
 
-static void hans_osc_parse_args(hans_constructor_api* api,
-                                hans_osc_data* data) {
-  auto args = api->get_arguments(api);
-  for (int i = 0; i < args.length; ++i) {
-    switch (args.data[i].name) {
-    case LIBOSC_ARG_CHANNELS:
-      assert(args.data[i].type == HANS_NUMBER);
-      data->channels = args.data[i].number;
-      break;
+class OscObject : protected AudioObject {
+  friend class hans::engine::LibraryManager;
 
-    case LIBOSC_ARG_PHASE:
-      assert(args.data[i].type == HANS_NUMBER);
-      data->phase = args.data[i].number;
-      break;
+ public:
+  using AudioObject::AudioObject;
+  virtual void create(ObjectPatcher& patcher) override;
+  virtual void setup(hans_object_api& api) override;
+  virtual void callback(hans_object_api& api) override;
+
+ private:
+  OscState state;
+};
+
+void OscObject::create(ObjectPatcher& patcher) {
+  state.phase = 0;
+  state.channels = 1;
+
+  auto args = patcher.get_args();
+  for (auto i = 0; i < args.length; ++i) {
+    const auto& arg = args.data[i];
+    if (arg.name == ARG_CHANNELS && arg.type == HANS_NUMBER) {
+      state.channels = arg.number;
+    } else if (arg.name == ARG_PHASE && arg.type == HANS_NUMBER) {
+      state.phase = arg.number;
     }
+  }
+
+  patcher.request(HANS_OUTLET, state.channels);
+}
+
+void OscObject::setup(hans_object_api& api) {
+  state.samplerate = api.config->samplerate;
+  state.waveform = api.parameters->make(id, PARAM_WAVEFORM);
+  state.frequency = api.parameters->make(id, PARAM_FREQUENCY);
+  state.buffer = api.audio_buffers->make(id, AUDIO_BUFFER);
+
+  for (auto i = 0; i < state.channels; ++i) {
+    state.outlets[i] = api.registers->make(id, HANS_OUTLET, i);
   }
 }
 
-static void hans_osc_new(hans_constructor_api* api, void* buffer, size_t size) {
-  hans_osc_data* data = static_cast<hans_osc_data*>(buffer);
-  data->phase = 0;
-  data->channels = 1;
-  hans_osc_parse_args(api, data);
-  api->request_resource(api, HANS_OUTLET, &data->channels);
-}
+static void sine_callback(OscState& state, hans_object_api& api) {
+  auto output = api.audio_buffers->get(state.buffer, 0);
+  auto frequency = api.parameters->get(state.frequency, 0);
 
-static void hans_osc_setup(hans_audio_object* self, hans_object_api* api) {
-  hans_osc_data* data = static_cast<hans_osc_data*>(self->data);
-  data->samplerate = api->config->samplerate;
-  data->waveform = api->parameters->make(self->id, LIBOSC_PARAM_WAVEFORM);
-  data->frequency = api->parameters->make(self->id, LIBOSC_PARAM_FREQUENCY);
-  data->buffer = api->audio_buffers->make(self->id, LIBOSC_AUDIO_BUFFER);
+  for (int i = 0; i < state.buffer.size; ++i) {
+    state.phase += 512.f / (state.samplerate / frequency);
 
-  for (auto i = 0; i < data->channels; ++i) {
-    data->outlets[i] = api->registers->make(self->id, HANS_OUTLET, i);
-  }
-}
-
-// Sine wave oscillator that uses linear interpolation on a 514 point buffer
-static void hans_osc_sine_callback(hans_audio_object* self,
-                                   hans_object_api* api) {
-  auto data = static_cast<hans_osc_data*>(self->data);
-  auto output = api->audio_buffers->get(data->buffer, 0);
-  auto frequency = api->parameters->get(data->frequency, 0);
-
-  for (int i = 0; i < data->buffer.size; ++i) {
-    data->phase += 512.f / (data->samplerate / frequency);
-
-    if (data->phase >= 511) {
-      data->phase -= 512;
+    if (state.phase >= 511) {
+      state.phase -= 512;
     }
 
-    auto point_1 = HANS_SINE_BUFFER[1 + data->phase];
-    auto point_2 = HANS_SINE_BUFFER[2 + data->phase];
-    auto remaining = data->phase - floor(data->phase);
+    auto point_1 = HANS_SINE_BUFFER[1 + state.phase];
+    auto point_2 = HANS_SINE_BUFFER[2 + state.phase];
+    auto remaining = state.phase - floor(state.phase);
     output[i] = ((1 - remaining) * point_1 + remaining * point_2);
   }
 }
 
-// Maybe replace with pure data's implementation?
-// https://github.com/pure-data/pure-data/blob/master/src/d_osc.c#L457-L503
-static void hans_osc_noise_callback(hans_audio_object* self,
-                                    hans_object_api* api) {
-  auto data = static_cast<hans_osc_data*>(self->data);
-  auto output = api->audio_buffers->get(data->buffer, 0);
-
-  for (int i = 0; i < data->buffer.size; ++i) {
+static void noise_callback(OscState& state, hans_object_api& api) {
+  auto output = api.audio_buffers->get(state.buffer, 0);
+  for (int i = 0; i < state.buffer.size; ++i) {
     auto noise = rand() / (float)RAND_MAX;
     noise = noise * 2 - 1;
     output[i] = noise;
   }
 }
 
-static void hans_osc_callback(hans_audio_object* self, hans_object_api* api) {
-  hans_osc_data* data = static_cast<hans_osc_data*>(self->data);
-
-  if (api->parameters->get(data->waveform, 0) > 0.5) {
-    hans_osc_noise_callback(self, api);
+void OscObject::callback(hans_object_api& api) {
+  if (api.parameters->get(state.waveform, 0) > 0.5) {
+    noise_callback(state, api);
   } else {
-    hans_osc_sine_callback(self, api);
+    sine_callback(state, api);
   }
 
-  auto samples = api->audio_buffers->get(data->buffer, 0);
-  for (auto i = 0; i < data->channels; ++i) {
-    auto& outlet = data->outlets[i];
-    api->registers->write(outlet, samples);
+  auto samples = api.audio_buffers->get(state.buffer, 0);
+  for (auto i = 0; i < state.channels; ++i) {
+    auto& outlet = state.outlets[i];
+    api.registers->write(outlet, samples);
   }
-}
-
-void hans_osc_init(void* instance) {
-  auto object = static_cast<hans_audio_object*>(instance);
-  object->setup = hans_osc_setup;
-  object->callback = hans_osc_callback;
 }
 
 extern "C" {
-void setup(hans_library_api* api) {
-  size_t size = sizeof(hans_osc_data);
-  api->register_object(api, "snd-oscillator", size, hans_osc_new, hans_osc_init,
-                       nullptr);
+void setup(engine::LibraryManager* library) {
+  library->add_object<OscState, OscObject>("snd-oscillator");
 }
 }

@@ -2,15 +2,15 @@
 #define HANS_SCRIPT_TYPES_H_
 
 #include <libguile.h>
-#include "hans/engine/object.hpp"
+#include "hans/common/types.hpp"
 
-typedef struct {
+struct ScriptState {
   hans_hash path;
   hans_fbo fbo;
   hans_register outlet;
   float width;
   float height;
   SCM draw;
-} script_data;
+};
 
 #endif // HANS_SCRIPT_TYPES_H_

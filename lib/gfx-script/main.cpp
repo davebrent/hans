@@ -1,6 +1,5 @@
 #include <libguile.h>
 #include <cstdlib>
-#include <iostream>
 #include "./IMRenderer.hpp"
 #include "./types.hpp"
 #include "hans/engine/object.hpp"
@@ -11,10 +10,10 @@ using namespace hans;
 
 static SCM size(SCM w, SCM h) {
   auto& renderer = IMRenderer::get_instance();
-  auto data = renderer.get_script_data();
-  data->width = scm_to_double(w);
-  data->height = scm_to_double(h);
-  renderer.size(data->width, data->height);
+  auto state = renderer.get_script_state();
+  state->width = scm_to_double(w);
+  state->height = scm_to_double(h);
+  renderer.size(state->width, state->height);
   return SCM_BOOL_T;
 }
 
@@ -151,37 +150,52 @@ static SCM text(SCM x, SCM y, SCM text) {
   return SCM_BOOL_T;
 }
 
-static SCM draw(SCM proc) {
-  auto data = IMRenderer::get_instance().get_script_data();
-  data->draw = proc;
+static SCM script_draw(SCM proc) {
+  auto state = IMRenderer::get_instance().get_script_state();
+  state->draw = proc;
   return SCM_BOOL_T;
 }
 
-void script_new(hans_constructor_api* api, void* buffer, size_t size) {
-  auto data = static_cast<script_data*>(buffer);
+class ScriptObject : protected GraphicsObject {
+  friend class engine::LibraryManager;
 
-  uint8_t num_inlets = 1;
-  uint8_t num_outlets = 1;
+ public:
+  using GraphicsObject::GraphicsObject;
+  ~ScriptObject();
+  virtual void create(ObjectPatcher& patcher) override;
+  virtual void setup(hans_object_api& api) override;
+  virtual void update(hans_object_api& api) override {
+  }
+  virtual void draw(hans_object_api& api) override;
 
-  api->request_resource(api, HANS_INLET, &num_inlets);
-  api->request_resource(api, HANS_OUTLET, &num_outlets);
+ private:
+  ScriptState state;
+};
 
-  auto args = api->get_arguments(api);
-  for (int i = 0; i < args.length; ++i) {
-    if (args.data[i].type == HANS_STRING && args.data[i].name == ARG_PATH) {
-      data->path = args.data[i].string;
+ScriptObject::~ScriptObject() {
+  // FIXME: During compile step this initializes and then destroys renderer
+  // IMRenderer::get_instance().destroy();
+}
+
+void ScriptObject::create(ObjectPatcher& patcher) {
+  patcher.request(HANS_INLET, 1);
+  patcher.request(HANS_OUTLET, 1);
+
+  auto args = patcher.get_args();
+  for (auto i = 0; i < args.length; ++i) {
+    const auto& arg = args.data[i];
+    if (arg.type == HANS_STRING && arg.name == ARG_PATH) {
+      state.path = arg.string;
     }
   }
 }
 
-void script_setup(hans_graphics_object* self, hans_object_api* api) {
-  auto data = static_cast<script_data*>(self->data);
+void ScriptObject::setup(hans_object_api& api) {
+  state.outlet = api.registers->make(id, HANS_OUTLET, 0);
+  state.fbo = api.fbos->make(id);
 
-  data->outlet = api->registers->make(self->id, HANS_OUTLET, 0);
-  data->fbo = api->fbos->make(self->id);
-
-  auto texture = api->fbos->get_color_attachment(data->fbo, 0);
-  api->registers->write(data->outlet, &texture);
+  auto texture = api.fbos->get_color_attachment(state.fbo, 0);
+  api.registers->write(state.outlet, &texture);
 
   scm_c_define_gsubr("size", 2, 0, 0, (scm_t_subr)size);
   scm_c_define_gsubr("save", 0, 0, 0, (scm_t_subr)save);
@@ -206,40 +220,26 @@ void script_setup(hans_graphics_object* self, hans_object_api* api) {
   scm_c_define_gsubr("text-size", 1, 0, 0, (scm_t_subr)text_size);
   scm_c_define_gsubr("text-width", 1, 0, 0, (scm_t_subr)text_width);
   scm_c_define_gsubr("text", 3, 0, 0, (scm_t_subr)text);
-  scm_c_define_gsubr("draw", 1, 0, 0, (scm_t_subr)draw);
+  scm_c_define_gsubr("draw", 1, 0, 0, (scm_t_subr)script_draw);
 
   auto& renderer = IMRenderer::get_instance();
-  renderer.set_script_data(data);
-  scm_c_primitive_load(api->strings->lookup(data->path));
-  renderer.set_script_data(nullptr);
+  renderer.set_script_state(&state);
+  scm_c_primitive_load(api.strings->lookup(state.path));
+  renderer.set_script_state(nullptr);
 }
 
-void script_draw(hans_graphics_object* self, hans_object_api* api) {
-  auto data = static_cast<script_data*>(self->data);
-
-  api->fbos->bind_fbo(data->fbo);
+void ScriptObject::draw(hans_object_api& api) {
+  api.fbos->bind_fbo(state.fbo);
 
   auto& renderer = IMRenderer::get_instance();
-  renderer.size(data->width, data->height);
+  renderer.size(state.width, state.height);
   renderer.begin_frame();
-  scm_call_0(data->draw);
+  scm_call_0(state.draw);
   renderer.end_frame();
 }
 
-void script_destroy(void* instance) {
-  IMRenderer::get_instance().destroy();
-}
-
-void script_init(void* instance) {
-  hans_graphics_object* object = static_cast<hans_graphics_object*>(instance);
-  object->setup = script_setup;
-  object->update = nullptr;
-  object->draw = script_draw;
-}
-
 extern "C" {
-void setup(hans_library_api* api) {
-  api->register_object(api, "gfx-script", sizeof(script_data), script_new,
-                       script_init, script_destroy);
+void setup(engine::LibraryManager* library) {
+  library->add_object<ScriptState, ScriptObject>("gfx-script");
 }
 }

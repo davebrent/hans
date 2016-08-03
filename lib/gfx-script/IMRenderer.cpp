@@ -29,11 +29,11 @@ void IMRenderer::destroy() {
   m_nvg = nullptr;
 }
 
-void IMRenderer::set_script_data(script_data* data) {
-  m_script = data;
+void IMRenderer::set_script_state(ScriptState* state) {
+  m_script = state;
 }
 
-script_data* IMRenderer::get_script_data() {
+ScriptState* IMRenderer::get_script_state() {
   return m_script;
 }
 

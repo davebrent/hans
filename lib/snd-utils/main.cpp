@@ -1,71 +1,50 @@
-#include <cassert>
-#include "./snd.utils_generated.h"
 #include "hans/engine/object.hpp"
 
-typedef struct { float gain; } hans_gain_data;
+#define UTILS_ARG_PAN 0x3d9fff7097514989
+#define UTILS_ARG_GAIN 0xf98f299598722871
 
-void hans_gain_callback(hans_audio_object* self, hans_object_api* api) {
-  hans_gain_data* data = static_cast<hans_gain_data*>(self->data);
+using namespace hans;
+
+struct GainState {
+  float gain;
+};
+
+class GainObject : protected AudioObject {
+  friend class hans::engine::LibraryManager;
+
+ public:
+  using AudioObject::AudioObject;
+  virtual void create(ObjectPatcher& patcher) override;
+  virtual void setup(hans_object_api& api) override;
+  virtual void callback(hans_object_api& api) override;
+
+ private:
+  GainState state;
+};
+
+void GainObject::create(ObjectPatcher& patcher) {
+  patcher.request(HANS_INLET, 1);
+  patcher.request(HANS_OUTLET, 1);
+
+  auto args = patcher.get_args();
+  for (auto i = 0; i < args.length; ++i) {
+    const auto& arg = args.data[i];
+    if (arg.name == UTILS_ARG_GAIN && arg.type == HANS_NUMBER) {
+      state.gain = arg.number;
+    }
+  }
 }
 
-void hans_gain_setup(hans_audio_object* self, hans_object_api* api) {
-  hans_gain_data* data = static_cast<hans_gain_data*>(self->data);
-  data->gain = 1;
+void GainObject::setup(hans_object_api& api) {
+  state.gain = 1;
 }
 
-void hans_gain_new(hans_constructor_api* api, void* buffer, size_t size) {
-  uint8_t num_inlets = 1;
-  uint8_t num_outlets = 1;
-
-  api->request_resource(api, HANS_INLET, &num_inlets);
-  api->request_resource(api, HANS_OUTLET, &num_outlets);
+void GainObject::callback(hans_object_api& api) {
+  // TODO: Implement
 }
-
-void hans_gain_init(void* instance) {
-  auto object = static_cast<hans_audio_object*>(instance);
-  object->setup = hans_gain_setup;
-  object->callback = hans_gain_callback;
-}
-
-/*
-typedef struct {
-  float direction;
-} hans_pan_data;
-
-void hans_pan_callback(hans_audio_object* self, hans_audio_sample* input,
-                      hans_audio_sample* output) {
-  hans_pan_data* data = static_cast<hans_pan_data*>(self->data);
-}
-
-void hans_pan_setup(hans_audio_object* self, hans_object_api* api) {
-  hans_pan_data* data = static_cast<hans_pan_data*>(self->data);
-  data->direction = 0;
-}
-
-void hans_pan_new(hans_constructor_api* api, void* buffer, size_t size) {
-  user_object->inlets_len = 1;
-  user_object->outlets_len = 1;
-
-  hans_audio_object* object = static_cast<hans_audio_object*>(buffer);
-  object->setup = hans_pan_setup;
-  object->callback = hans_pan_callback;
-
-  void* offset = static_cast<char*>(buffer) + sizeof(hans_audio_object);
-  hans_pan_data* data = static_cast<hans_pan_data*>(offset);
-  object->data = data;
-}
-*/
 
 extern "C" {
-void setup(hans_library_api* api) {
-  size_t size = sizeof(hans_gain_data);
-  api->register_object(api, "snd-gain", size, hans_gain_new, hans_gain_init,
-                       nullptr);
-
-  /*
-  size = sizeof(hans_audio_object) + sizeof(hans_pan_data);
-  success = api->register_object(api, "snd.pan", size, hans_gain_new, nullptr);
-  assert(success == true);
-  */
+void setup(engine::LibraryManager* library) {
+  library->add_object<GainState, GainObject>("snd-gain");
 }
 }
