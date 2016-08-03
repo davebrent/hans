@@ -26,9 +26,11 @@ static int run(const char* filepath, hans_hash program, hans_config& config) {
   DataReader reader(filepath);
   auto d = reader.data;
 
+  hans_object_api object_api;
+
   auto strings = StringManager(d.string_hashes, d.string_offsets, d.strings);
   auto libraries = LibraryManager(strings, d.objects);
-  auto programs = ProgramManager();
+  auto programs = ProgramManager(object_api);
   auto registers = RegisterManager(config);
   auto parameters = ParameterManager();
   auto modulators = ModulationManager(parameters, d.modulators);
@@ -41,7 +43,6 @@ static int run(const char* filepath, hans_hash program, hans_config& config) {
   auto audio_stream = AudioStream(config, audio_devices, audio_buses, programs);
   auto ring_buffers = RingBufferManager(config, d.ring_buffers);
 
-  hans_object_api object_api;
   object_api.config = &config;
   object_api.strings = &strings;
   object_api.parameters = &parameters;
@@ -57,7 +58,7 @@ static int run(const char* filepath, hans_hash program, hans_config& config) {
   parameters.use(d.parameters, d.parameter_values);
   modulators.setup();
   registers.use(d.registers);
-  programs.use(object_api, d.objects, d.programs, d.chains, d.object_data);
+  programs.use(d.objects, d.programs, d.chains, d.object_data);
   programs.setup_all();
   programs.switch_to(program);
 

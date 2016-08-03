@@ -9,8 +9,8 @@ typedef struct {
   hans_hash name;
   size_t size;
   hans_new_object make;
-  hans_init_object init;
   hans_del_object destroy;
+  hans_serialize_object serialize;
   void* instance;
 } hans_object;
 

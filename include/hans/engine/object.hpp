@@ -6,6 +6,7 @@
 #include "hans/audio/RingBufferManager.hpp"
 #include "hans/common/StringManager.hpp"
 #include "hans/common/types.hpp"
+#include "hans/engine/LibraryManager.hpp"
 #include "hans/engine/ModulationManager.hpp"
 #include "hans/engine/ParameterManager.hpp"
 #include "hans/engine/RegisterManager.hpp"
@@ -26,23 +27,35 @@ typedef struct {
   hans::graphics::FrameBufferManager* fbos;
 } hans_object_api;
 
-typedef struct hans_audio_object hans_audio_object;
+namespace hans {
 
-struct hans_audio_object {
+class Object {
+ public:
+  Object(hans_instance_id _id) {
+    id = _id;
+  }
+
+  virtual ~Object() {
+  }
+  virtual void create(ObjectPatcher& patcher) = 0;
+  virtual void setup(hans_object_api& api) = 0;
+
+ protected:
   hans_instance_id id;
-  void* data;
-  void (*setup)(hans_audio_object* self, hans_object_api* api);
-  void (*callback)(hans_audio_object* self, hans_object_api* api);
 };
 
-typedef struct hans_graphics_object hans_graphics_object;
-
-struct hans_graphics_object {
-  hans_instance_id id;
-  void* data;
-  void (*setup)(hans_graphics_object* self, hans_object_api* api);
-  void (*update)(hans_graphics_object* self, hans_object_api* api);
-  void (*draw)(hans_graphics_object* self, hans_object_api* api);
+class AudioObject : protected Object {
+ public:
+  using Object::Object;
+  virtual void callback(hans_object_api& api) = 0;
 };
+
+class GraphicsObject : protected Object {
+ public:
+  using Object::Object;
+  virtual void update(hans_object_api& api) = 0;
+  virtual void draw(hans_object_api& api) = 0;
+};
+}
 
 #endif // HANS_ENGINE_OBJECT_H

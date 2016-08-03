@@ -14,6 +14,7 @@
 #include "hans/common/StringManager.hpp"
 #include "hans/common/hasher.hpp"
 #include "hans/common/types.hpp"
+#include "hans/engine/object.hpp"
 #include "hans/engine/LibraryManager.hpp"
 #include "hans/graphics/ShaderManager.hpp"
 
@@ -150,7 +151,6 @@ static SCM write_objects(SCM writer, SCM lst) {
     item.name = scm_to_hans_hash(name);
     item.size = 0;
     item.make = nullptr;
-    item.init = nullptr;
     item.destroy = nullptr;
     item.instance = nullptr;
     result.push_back(item);
@@ -611,19 +611,6 @@ static SCM valid_shaders(SCM lst) {
   return scm_reverse(out);
 }
 
-typedef struct {
-  // Resource requests
-  std::vector<SCM> requests;
-  // All object arguments
-  hans_argument* args;
-  // Object index into args array
-  std::vector<int> arg_offsets;
-  std::vector<int> arg_lengths;
-  // Current object being created
-  int current_object;
-  common::StringManager* strings;
-} object_info_data;
-
 static std::vector<hans_library> scm_to_hans_libs(
     SCM libraries, common::StringManager& strings) {
   int len = lst_length(libraries);
@@ -696,39 +683,94 @@ static std::vector<hans_object> scm_to_hans_objs(
   return result;
 }
 
-/// Return a pointer to the start of the objects arguments array
-static hans_arguments get_arguments(hans_constructor_api* api) {
-  auto info = static_cast<object_info_data*>(api->data);
+class GuileObjectPatcher : public ObjectPatcher {
+ public:
+  GuileObjectPatcher(const SCM& objects, common::StringManager& strings);
+  ~GuileObjectPatcher();
+  virtual hans_arguments get_args();
+  virtual void missing_arg(hans_argument_type type, hans_hash name);
+  virtual void request(hans_resource_type type, size_t value);
 
-  auto offset = info->arg_offsets.at(info->current_object);
-  auto length = info->arg_lengths.at(info->current_object);
+  std::vector<SCM> get_requests();
+  void next();
+
+ private:
+  const SCM& m_objects;
+  common::StringManager& m_strings;
+
+  std::vector<SCM> m_requests;
+
+  hans_argument* m_args;
+  std::vector<int> m_arg_offsets;
+  std::vector<int> m_arg_lengths;
+
+  size_t m_current_object;
+};
+
+GuileObjectPatcher::GuileObjectPatcher(const SCM& objects,
+                                       common::StringManager& strings)
+    : m_objects(objects), m_strings(strings) {
+  m_current_object = 0;
+
+  auto total_num_args = 0;
+  auto arg_key = scm_from_locale_symbol("args");
+  for (int i = 0; i < lst_length(m_objects); ++i) {
+    auto obj = scm_list_ref(m_objects, scm_from_int(i));
+    auto args = scm_assq_ref(obj, arg_key);
+
+    // FIXME: Check that its not #f
+    auto len = lst_length(args);
+
+    m_arg_offsets.push_back(total_num_args);
+    m_arg_lengths.push_back(len);
+    total_num_args += len;
+  }
+
+  m_args = new hans_argument[total_num_args];
+
+  for (int i = 0; i < lst_length(objects); ++i) {
+    auto num_args = m_arg_lengths.at(i);
+    if (num_args == 0) {
+      continue;
+    }
+
+    auto obj = scm_list_ref(objects, scm_from_int(i));
+    auto args = scm_assq_ref(obj, arg_key);
+
+    auto out = &m_args[m_arg_offsets.at(i)];
+    scm_to_hans_obj_args(args, strings, out, num_args);
+  }
+}
+
+GuileObjectPatcher::~GuileObjectPatcher() {
+  delete[] m_args;
+}
+
+hans_arguments GuileObjectPatcher::get_args() {
+  auto offset = m_arg_offsets.at(m_current_object);
+  auto length = m_arg_lengths.at(m_current_object);
 
   hans_arguments out;
-  out.data = &info->args[offset];
+  out.data = &m_args[offset];
   out.length = length;
   return out;
 }
 
-/// Signal back to the callee that the object is missing a required argument
-static void missing_argument(hans_constructor_api* api, hans_argument_type type,
-                             hans_hash name) {
+void GuileObjectPatcher::missing_arg(hans_argument_type type, hans_hash name) {
   // TODO: Currently unused
 }
 
-static void request_resource(hans_constructor_api* api, hans_resource_type type,
-                             void* data) {
-  auto info = static_cast<object_info_data*>(api->data);
+void GuileObjectPatcher::request(hans_resource_type type, size_t value) {
   SCM req;
 
   switch (type) {
   case HANS_INLET:
   case HANS_OUTLET: {
-    auto amount = *static_cast<uint8_t*>(data);
-    req = scm_cons(hans_resource_type_to_scm(type), scm_from_int(amount));
+    req = scm_cons(hans_resource_type_to_scm(type), scm_from_int(value));
     break;
   }
   case HANS_RING_BUFFER: {
-    auto name = info->strings->lookup(*static_cast<hans_hash*>(data));
+    auto name = m_strings.lookup(value);
     auto str = scm_from_locale_string(name);
     req = scm_cons(hans_resource_type_to_scm(type), str);
     break;
@@ -737,7 +779,16 @@ static void request_resource(hans_constructor_api* api, hans_resource_type type,
     throw std::runtime_error("Unkown resource request");
   }
 
-  info->requests.push_back(req);
+  m_requests.push_back(req);
+}
+
+std::vector<SCM> GuileObjectPatcher::get_requests() {
+  return m_requests;
+}
+
+void GuileObjectPatcher::next() {
+  m_requests.clear();
+  m_current_object += 1;
 }
 
 /// Returns an alist for each object instance describing its runtime resources
@@ -747,41 +798,7 @@ static SCM get_object_info(SCM libraries, SCM objects) {
   std::vector<hans_library> libs = scm_to_hans_libs(libraries, strings);
   std::vector<hans_object> objs = scm_to_hans_objs(objects, strings);
 
-  object_info_data info;
-  info.strings = &strings;
-  info.current_object = 0;
-  info.requests.reserve(6); // No. of resource types
-  info.arg_offsets.reserve(objs.size());
-  info.arg_lengths.reserve(objs.size());
-
-  auto total_num_args = 0;
-  auto arg_key = scm_from_locale_symbol("args");
-  for (int i = 0; i < lst_length(objects); ++i) {
-    auto obj = scm_list_ref(objects, scm_from_int(i));
-    auto args = scm_assq_ref(obj, arg_key);
-
-    // FIXME: Check that its not #f
-    auto len = lst_length(args);
-
-    info.arg_offsets.push_back(total_num_args);
-    info.arg_lengths.push_back(len);
-    total_num_args += len;
-  }
-
-  info.args = new hans_argument[total_num_args];
-
-  for (int i = 0; i < lst_length(objects); ++i) {
-    auto num_args = info.arg_lengths.at(i);
-    if (num_args == 0) {
-      continue;
-    }
-
-    auto obj = scm_list_ref(objects, scm_from_int(i));
-    auto args = scm_assq_ref(obj, arg_key);
-
-    auto out = &info.args[info.arg_offsets.at(i)];
-    scm_to_hans_obj_args(args, strings, out, num_args);
-  }
+  auto patcher = GuileObjectPatcher(objects, strings);
 
   auto object_list = common::ListView<hans_object>(&objs[0], objs.size());
   auto library_list = common::ListView<hans_library>(&libs[0], libs.size());
@@ -791,41 +808,36 @@ static SCM get_object_info(SCM libraries, SCM objects) {
   auto total_objects_bytes = 0;
   for (auto& obj : objs) {
     assert(obj.make != nullptr);
-    assert(obj.init != nullptr);
     assert(obj.size != 0);
     total_objects_bytes += obj.size;
   }
 
   common::LinearAllocator allocator(total_objects_bytes);
 
-  hans_constructor_api constructor_api;
-  constructor_api.get_arguments = get_arguments;
-  constructor_api.missing_argument = missing_argument;
-  constructor_api.request_resource = request_resource;
-  constructor_api.data = &info;
-
   SCM out = SCM_EOL;
 
   for (auto& obj : objs) {
     auto buff = static_cast<char*>(allocator.allocate(obj.size));
-    obj.make(&constructor_api, buff, obj.size);
+
+    Object* instance = static_cast<Object*>(obj.make(0, buff));
+    instance->create(patcher);
 
     SCM lst = SCM_EOL;
-    for (auto& req : info.requests) {
+    for (auto& req : patcher.get_requests()) {
       lst = scm_cons(req, lst);
     }
 
-    // Copy object data
     auto bv = scm_c_make_bytevector(obj.size);
     auto dest = SCM_BYTEVECTOR_CONTENTS(bv);
-    std::memcpy(dest, buff, obj.size);
+    std::memcpy(dest, obj.serialize(instance), obj.size);
 
-    info.requests.clear();
-    info.current_object += 1;
+    patcher.next();
+    obj.destroy(instance);
+
     out = scm_cons(scm_list_2(bv, lst), out);
   }
 
-  delete[] info.args;
+  objs.clear();
   return scm_reverse(out);
 }
 

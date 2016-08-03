@@ -4,15 +4,14 @@
 
 using namespace hans;
 
-engine::ProgramManager::ProgramManager() : m_allocator(0) {
+engine::ProgramManager::ProgramManager(hans_object_api& api)
+    : m_api(api), m_allocator(0) {
 }
 
-void engine::ProgramManager::use(hans_object_api& api,
-                                 common::ListView<hans_object>& objects,
+void engine::ProgramManager::use(common::ListView<hans_object>& objects,
                                  common::ListView<hans_program>& programs,
                                  common::ListView<size_t>& chains,
                                  hans_blob init_object_data) {
-  m_api = &api;
   m_objects = &objects[0];
   m_chains = &chains[0];
   m_num_objects = objects.size();
@@ -32,34 +31,16 @@ void engine::ProgramManager::switch_to(hans_hash name) {
   }
 }
 
-template <typename T>
-static void call_setup(const hans_object& object, hans_object_api* api) {
-  T* instance = static_cast<T*>(object.instance);
-  instance->id = object.id;
-  if (instance->setup != nullptr) {
-    instance->setup(instance, api);
-  }
-}
-
 void engine::ProgramManager::setup_all() {
   auto objects = m_objects;
   size_t internal_data_size = 0;
-  size_t external_data_size = 0;
 
   for (auto i = 0; i < m_num_objects; ++i) {
     auto& object = objects[i];
     internal_data_size += object.size;
-    switch (object.type) {
-    case HANS_OBJECT_AUDIO:
-      external_data_size += sizeof(hans_audio_object);
-      break;
-    case HANS_OBJECT_GRAPHICS:
-      external_data_size += sizeof(hans_graphics_object);
-      break;
-    }
   }
 
-  m_allocator.reset(internal_data_size + external_data_size);
+  m_allocator.reset(internal_data_size);
 
   // Copy over inital state
   assert(m_init_object_data.size == internal_data_size);
@@ -70,37 +51,11 @@ void engine::ProgramManager::setup_all() {
   auto internal_base = static_cast<char*>(m_allocator.start());
   for (auto i = 0; i < m_num_objects; ++i) {
     auto& object = objects[i];
+    auto instance = static_cast<Object*>(object.make(object.id, internal_base));
+    instance->setup(m_api);
 
-    switch (object.type) {
-    case HANS_OBJECT_AUDIO: {
-      object.instance = m_allocator.allocate(sizeof(hans_audio_object));
-      auto instance = static_cast<hans_audio_object*>(object.instance);
-      instance->data = internal_base;
-      break;
-    }
-    case HANS_OBJECT_GRAPHICS: {
-      object.instance = m_allocator.allocate(sizeof(hans_graphics_object));
-      auto instance = static_cast<hans_graphics_object*>(object.instance);
-      instance->data = internal_base;
-      break;
-    }
-    }
-
+    object.instance = instance;
     internal_base += object.size;
-
-    // Patches the instance's function pointers
-    if (object.init != nullptr) {
-      object.init(object.instance);
-    }
-
-    switch (object.type) {
-    case HANS_OBJECT_AUDIO:
-      call_setup<hans_audio_object>(object, m_api);
-      break;
-    case HANS_OBJECT_GRAPHICS:
-      call_setup<hans_graphics_object>(object, m_api);
-      break;
-    }
   }
 }
 
@@ -108,19 +63,7 @@ void engine::ProgramManager::close_all() {
   auto objects = m_objects;
   for (auto i = 0; i < m_num_objects; ++i) {
     auto& object = objects[i];
-
-    if (object.destroy == nullptr) {
-      continue;
-    }
-
-    switch (object.type) {
-    case HANS_OBJECT_AUDIO:
-      object.destroy(static_cast<hans_audio_object*>(object.instance));
-      break;
-    case HANS_OBJECT_GRAPHICS:
-      object.destroy(static_cast<hans_graphics_object*>(object.instance));
-      break;
-    }
+    object.destroy(object.instance);
   }
 }
 
@@ -131,17 +74,15 @@ void engine::ProgramManager::tick_graphics(float delta) {
   auto chains = m_chains;
   auto num_objects = m_num_objects;
 
-  m_api->modulators->begin();
+  m_api.modulators->begin();
 
   for (auto i = chain.start; i < chain.end; ++i) {
     auto instance_id = chains[i];
     for (auto k = 0; k < num_objects; ++k) {
       auto& object = objects[k];
       if (object.id == instance_id) {
-        auto instance = static_cast<hans_graphics_object*>(object.instance);
-        if (instance->update != nullptr) {
-          instance->update(instance, m_api);
-        }
+        auto instance = static_cast<GraphicsObject*>(object.instance);
+        instance->update(m_api);
         break;
       }
     }
@@ -152,16 +93,14 @@ void engine::ProgramManager::tick_graphics(float delta) {
     for (auto k = 0; k < num_objects; ++k) {
       auto& object = objects[k];
       if (object.id == instance_id) {
-        auto instance = static_cast<hans_graphics_object*>(object.instance);
-        if (instance->draw != nullptr) {
-          instance->draw(instance, m_api);
-        }
+        auto instance = static_cast<GraphicsObject*>(object.instance);
+        instance->draw(m_api);
         break;
       }
     }
   }
 
-  m_api->modulators->end();
+  m_api.modulators->end();
 }
 
 void engine::ProgramManager::tick_audio() {
@@ -176,8 +115,8 @@ void engine::ProgramManager::tick_audio() {
     for (auto k = 0; k < num_objects; ++k) {
       auto& object = objects[k];
       if (object.id == instance_id) {
-        auto instance = static_cast<hans_audio_object*>(object.instance);
-        instance->callback(instance, m_api);
+        auto instance = static_cast<AudioObject*>(object.instance);
+        instance->callback(m_api);
         break;
       }
     }
