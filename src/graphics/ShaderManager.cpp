@@ -3,16 +3,17 @@
 #include <stdexcept>
 
 using namespace hans;
+using namespace hans::common;
+using namespace hans::graphics;
 
-graphics::ShaderManager::ShaderManager(
-    const common::StringManager& string_manager,
-    const hans::common::ListView<hans_shader>& shaders)
+ShaderManager::ShaderManager(const StringManager& string_manager,
+                             const ListView<Shader>& shaders)
     : m_string_manager(string_manager) {
   m_shaders = &shaders[0];
   m_length = shaders.size();
 }
 
-graphics::ShaderManager::~ShaderManager() {
+ShaderManager::~ShaderManager() {
   for (auto& shader : m_shader_handles) {
     glDeleteShader(shader);
   }
@@ -21,8 +22,8 @@ graphics::ShaderManager::~ShaderManager() {
   }
 }
 
-const char* graphics::ShaderManager::validate_shader(const hans_hash name) {
-  auto instance = create_shader(name);
+const char* ShaderManager::validate(const hash name) {
+  auto instance = create(name);
   auto handle = instance.handle;
 
   GLint status = GL_TRUE;
@@ -41,9 +42,8 @@ const char* graphics::ShaderManager::validate_shader(const hans_hash name) {
   return nullptr;
 }
 
-hans_shader_instance graphics::ShaderManager::create_shader(
-    const hans_hash name) {
-  hans_shader_instance instance;
+Shader::Instance ShaderManager::create(const hash name) {
+  Shader::Instance instance;
   instance.name = name;
 
   auto shaders = m_shaders;
@@ -59,10 +59,10 @@ hans_shader_instance graphics::ShaderManager::create_shader(
     auto code = m_string_manager.lookup(shader.code);
 
     switch (shader.type) {
-    case HANS_SHADER_VERTEX:
+    case Shader::Types::VERTEX:
       instance.handle = glCreateShader(GL_VERTEX_SHADER);
       break;
-    case HANS_SHADER_FRAGMENT:
+    case Shader::Types::FRAGMENT:
       instance.handle = glCreateShader(GL_FRAGMENT_SHADER);
       break;
     default:
@@ -82,15 +82,14 @@ hans_shader_instance graphics::ShaderManager::create_shader(
   return instance;
 }
 
-hans_shader_program_instance graphics::ShaderManager::create_program(
-    const hans_shader_instance& vertex_shader,
-    const hans_shader_instance& fragment_shader) {
-  hans_shader_program_instance program;
+ShaderProgram ShaderManager::create(const Shader::Instance& vertex,
+                                    const Shader::Instance& fragment) {
+  ShaderProgram program;
   program.handle = glCreateProgram();
   m_program_handles.push_back(program.handle);
 
-  glAttachShader(program.handle, vertex_shader.handle);
-  glAttachShader(program.handle, fragment_shader.handle);
+  glAttachShader(program.handle, vertex.handle);
+  glAttachShader(program.handle, fragment.handle);
   glLinkProgram(program.handle);
   return program;
 }

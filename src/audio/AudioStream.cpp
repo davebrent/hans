@@ -1,26 +1,26 @@
 #include "hans/audio/AudioStream.hpp"
 #include <portaudio.h>
 #include <chrono>
-#include <iostream>
 #include <thread>
 
 using namespace hans;
+using namespace hans::audio;
+using namespace hans::common;
+using namespace hans::engine;
 
 static int audio_callback(const void* input, void* output,
                           unsigned long frame_count,
                           const PaStreamCallbackTimeInfo* time_info,
                           PaStreamCallbackFlags status_flags, void* user_data) {
-  audio::AudioStream* stream = static_cast<audio::AudioStream*>(user_data);
-  stream->callback(
-      static_cast<const hans_audio_sample**>(const_cast<void*>(input)),
-      static_cast<hans_audio_sample**>(output));
+  AudioStream* stream = static_cast<AudioStream*>(user_data);
+  stream->callback(static_cast<const sample**>(const_cast<void*>(input)),
+                   static_cast<sample**>(output));
   return paContinue;
 }
 
-audio::AudioStream::AudioStream(const hans_config& config,
-                                audio::AudioDevices& audio_devices,
-                                audio::AudioBusManager& audio_bus_manager,
-                                engine::ProgramManager& program_manager)
+AudioStream::AudioStream(const Config& config, AudioDevices& audio_devices,
+                         AudioBusManager& audio_bus_manager,
+                         ProgramManager& program_manager)
     : m_audio_devices(audio_devices),
       m_audio_bus_manager(audio_bus_manager),
       m_program_manager(program_manager),
@@ -39,21 +39,21 @@ audio::AudioStream::AudioStream(const hans_config& config,
   }
 }
 
-audio::AudioStream::~AudioStream() {
+AudioStream::~AudioStream() {
   if (m_stream != nullptr) {
     Pa_CloseStream(m_stream);
   }
 }
 
-void audio::AudioStream::set_input_device(const hans_audio_device& device) {
+void AudioStream::set_input_device(const Device& device) {
   m_input_device = device.id;
 }
 
-void audio::AudioStream::set_output_device(const hans_audio_device& device) {
+void AudioStream::set_output_device(const Device& device) {
   m_output_device = device.id;
 }
 
-bool audio::AudioStream::open() {
+bool AudioStream::open() {
   PaStreamParameters input_params;
   input_params.device = m_input_device;
   input_params.channelCount = m_config.channels;
@@ -80,8 +80,7 @@ bool audio::AudioStream::open() {
   return false;
 }
 
-void audio::AudioStream::callback(const hans_audio_sample** input,
-                                  hans_audio_sample** output) {
+void AudioStream::callback(const sample** input, sample** output) {
   if (m_state == HANS_AUDIO_PENDING) {
     m_state = HANS_AUDIO_STARTED;
   }
@@ -114,7 +113,7 @@ void audio::AudioStream::callback(const hans_audio_sample** input,
   }
 }
 
-bool audio::AudioStream::start() {
+bool AudioStream::start() {
   if (m_stream == nullptr) {
     return false;
   }
@@ -131,7 +130,7 @@ bool audio::AudioStream::start() {
   return false;
 }
 
-bool audio::AudioStream::stop() {
+bool AudioStream::stop() {
   if (m_stream == nullptr) {
     return true;
   }
@@ -150,7 +149,7 @@ bool audio::AudioStream::stop() {
   return false;
 }
 
-bool audio::AudioStream::close() {
+bool AudioStream::close() {
   if (m_stream == nullptr) {
     return false;
   }

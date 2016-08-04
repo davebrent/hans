@@ -4,23 +4,25 @@
 #include "hans/common/types.hpp"
 
 using namespace hans;
+using namespace hans::audio;
+using namespace hans::common;
 
 TEST_CASE("ring buffer manager", "[ringbuffer]") {
   SECTION("writing data to multiple ring buffers") {
-    hans_config config;
+    Config config;
     config.blocksize = 4;
 
-    hans_ring_buffer fixture[2];
+    RingBuffer fixture[2];
     fixture[0].name = 0x10;
     fixture[0].producer = 1;
     fixture[1].name = 0x20;
     fixture[1].producer = 2;
 
-    auto list = common::ListView<hans_ring_buffer>(&fixture[0], 2);
-    auto manager = audio::RingBufferManager(config, list);
+    auto list = ListView<RingBuffer>(&fixture[0], 2);
+    auto manager = RingBufferManager(config, list);
 
-    hans_audio_sample frame1[4] = {13, 14, 15, 16};
-    hans_audio_sample frame2[4] = {23, 24, 25, 26};
+    audio::sample frame1[4] = {13, 14, 15, 16};
+    audio::sample frame2[4] = {23, 24, 25, 26};
 
     manager.write(fixture[0], &frame1[0]);
     manager.write(fixture[1], &frame2[0]);

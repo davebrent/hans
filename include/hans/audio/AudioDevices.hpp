@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include "hans/audio/types.hpp"
 #include "hans/common/types.hpp"
 
 namespace hans {
@@ -13,18 +14,18 @@ class AudioDevices {
   AudioDevices();
   ~AudioDevices();
 
-  class Iterator : public std::vector<hans_audio_device>::iterator {
+  class Iterator : public std::vector<Device>::iterator {
    public:
-    explicit Iterator(typename std::vector<hans_audio_device>::iterator c);
+    explicit Iterator(typename std::vector<Device>::iterator c);
   };
 
   Iterator begin();
   Iterator end();
 
-  std::vector<hans_audio_device> get_devices();
+  std::vector<Device> get_devices();
 
  private:
-  std::vector<hans_audio_device> m_devices;
+  std::vector<Device> m_devices;
 };
 
 } // namespace audio

@@ -3,6 +3,7 @@
 
 #include <vector>
 #include "hans/audio/AudioBufferManager.hpp"
+#include "hans/audio/types.hpp"
 #include "hans/common/LinearAllocator.hpp"
 #include "hans/common/types.hpp"
 
@@ -12,21 +13,20 @@ namespace audio {
 class AudioBusManager {
  public:
   /// Creates N audio buses
-  explicit AudioBusManager(const hans_config& config, size_t num);
+  explicit AudioBusManager(const common::Config& config, size_t num);
   /// Create an audio bus
-  hans_audio_bus_handle make();
+  bus_handle make();
   /// Write samples to a channel of a specified audio bus
-  bool write(hans_audio_bus_handle handle, uint8_t channel,
-             const hans_audio_sample* samples);
+  bool write(bus_handle handle, uint8_t channel, const sample* samples);
   /// Read data from the audio bus (the data should not be modified)
-  hans_audio_sample* read(hans_audio_bus_handle handle, uint8_t channel);
+  sample* read(bus_handle handle, uint8_t channel);
   /// Returns true if the bus's data has changed
-  bool is_dirty(hans_audio_bus_handle handle);
+  bool is_dirty(bus_handle handle);
   /// Sets a bus as no longer being dirty
-  void set_clean(hans_audio_bus_handle handle);
+  void set_clean(bus_handle handle);
 
  private:
-  hans::common::LinearAllocator m_allocator;
+  common::LinearAllocator m_allocator;
   uint16_t m_blocksize = 0;
   uint8_t m_channels = 0;
   char* m_base = nullptr;

@@ -4,8 +4,9 @@
 #include <vector>
 
 using namespace hans;
+using namespace hans::audio;
 
-audio::AudioDevices::AudioDevices() {
+AudioDevices::AudioDevices() {
   PaError error = Pa_Initialize();
 
   if (error != paNoError) {
@@ -21,7 +22,7 @@ audio::AudioDevices::AudioDevices() {
   for (unsigned i = 0; i < num_devices; ++i) {
     auto info = Pa_GetDeviceInfo(i);
 
-    hans_audio_device device;
+    Device device;
     device.id = i;
     device.name = info->name;
     device.max_input_channels = info->maxInputChannels;
@@ -33,23 +34,22 @@ audio::AudioDevices::AudioDevices() {
   }
 }
 
-audio::AudioDevices::~AudioDevices() {
+AudioDevices::~AudioDevices() {
   Pa_Terminate();
 }
 
-audio::AudioDevices::Iterator::Iterator(
-    typename std::vector<hans_audio_device>::iterator c)
-    : std::vector<hans_audio_device>::iterator(c) {
+AudioDevices::Iterator::Iterator(typename std::vector<Device>::iterator c)
+    : std::vector<Device>::iterator(c) {
 }
 
-audio::AudioDevices::Iterator audio::AudioDevices::begin() {
+AudioDevices::Iterator AudioDevices::begin() {
   return Iterator(m_devices.begin());
 }
 
-audio::AudioDevices::Iterator audio::AudioDevices::end() {
+AudioDevices::Iterator AudioDevices::end() {
   return Iterator(m_devices.end());
 }
 
-std::vector<hans_audio_device> audio::AudioDevices::get_devices() {
+std::vector<Device> AudioDevices::get_devices() {
   return m_devices;
 }

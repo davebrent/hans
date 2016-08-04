@@ -3,18 +3,19 @@
 #include <stdexcept>
 
 using namespace hans;
+using namespace hans::common;
+using namespace hans::engine;
 
-void engine::ParameterManager::use(
-    common::ListView<hans_parameter> parameters,
-    common::ListView<hans_parameter_value> values) {
+void ParameterManager::use(ListView<Parameter> parameters,
+                           ListView<Parameter::Value> values) {
   m_parameters = &parameters[0];
   m_parameters_len = parameters.size();
   m_values = &values[0];
   m_values_len = values.size();
 }
 
-hans_parameter engine::ParameterManager::make(const hans_instance_id object,
-                                              const hans_hash name) const {
+Parameter ParameterManager::make(const ObjectDef::ID object,
+                                 const hash name) const {
   auto parameters = m_parameters;
   for (auto i = 0; i < m_parameters_len; ++i) {
     if (parameters[i].name == name && parameters[i].object == object) {
@@ -24,16 +25,15 @@ hans_parameter engine::ParameterManager::make(const hans_instance_id object,
   throw std::runtime_error("ParameterManager: Unknown parameter");
 }
 
-void engine::ParameterManager::set(const hans_parameter& parameter,
-                                   const hans_parameter_size& component,
-                                   const hans_parameter_value& value) {
+void ParameterManager::set(const Parameter& parameter,
+                           const Parameter::Length& component,
+                           const Parameter::Value& value) {
   assert(parameter.offset + component < m_values_len);
   m_values[parameter.offset + component] = value;
 }
 
-hans_parameter_value engine::ParameterManager::get(
-    const hans_parameter& parameter,
-    const hans_parameter_size& component) const {
+Parameter::Value ParameterManager::get(
+    const Parameter& parameter, const Parameter::Length& component) const {
   assert(parameter.offset + component < m_values_len);
   return m_values[parameter.offset + component];
 }

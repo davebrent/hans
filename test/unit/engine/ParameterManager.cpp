@@ -4,11 +4,13 @@
 #include "hans/common/types.hpp"
 
 using namespace hans;
+using namespace hans::common;
+using namespace hans::engine;
 
 TEST_CASE("parameter manager", "[parameters]") {
   SECTION("making parameters for multiple object instances") {
-    hans_parameter_value data[2] = {10, 20};
-    hans_parameter fixture[2];
+    Parameter::Value data[2] = {10, 20};
+    Parameter fixture[2];
     fixture[0].object = 1;
     fixture[0].name = 0x10;
     fixture[0].size = 1;
@@ -19,9 +21,9 @@ TEST_CASE("parameter manager", "[parameters]") {
     fixture[1].size = 1;
     fixture[1].offset = 1;
 
-    auto parameters = common::ListView<hans_parameter>(&fixture[0], 2);
-    auto values = common::ListView<hans_parameter_value>(&data[0], 2);
-    auto manager = engine::ParameterManager();
+    auto parameters = ListView<Parameter>(&fixture[0], 2);
+    auto values = ListView<Parameter::Value>(&data[0], 2);
+    auto manager = ParameterManager();
     manager.use(parameters, values);
 
     auto handle1 = manager.make(1, 0x10);

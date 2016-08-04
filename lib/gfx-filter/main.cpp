@@ -18,21 +18,20 @@
 #define FILTER_GREYSCALE_SHADER 0x18ae8a6b858ebee
 
 using namespace hans;
+using namespace hans::engine;
 
 static const float VERTICES[] = {-1, 1, -1, -1, 1, -1, 1, 1};
 static const int INDEX[] = {0, 1, 2, 2, 3, 0};
 
 struct FilterState {
-  hans_fbo fbo;
+  graphics::FBO fbo;
   GLuint vao;
   GLuint texture;
-  hans_hash shader;
-  hans_shader_instance v_shader;
-  hans_shader_instance f_shader;
-  hans_shader_program_instance program;
-  hans_register inlet_texture;
-  hans_register outlet_texture;
-  hans_parameter amount;
+  hash shader;
+  graphics::ShaderProgram program;
+  Register inlet_texture;
+  Register outlet_texture;
+  Parameter amount;
   GLuint u_center_loc;
   GLuint u_resolution_loc;
   GLuint u_amount_loc;
@@ -40,39 +39,37 @@ struct FilterState {
 };
 
 class FilterObject : protected GraphicsObject {
-  friend class engine::LibraryManager;
+  friend class LibraryManager;
 
  public:
   using GraphicsObject::GraphicsObject;
-  virtual void create(ObjectPatcher& patcher) override;
-  virtual void setup(hans_object_api& api) override;
-  virtual void update(hans_object_api& api) override {
+  virtual void create(IPatcher& patcher) override;
+  virtual void setup(Engine& engine) override;
+  virtual void update(Engine& engine) override {
   }
-  virtual void draw(hans_object_api& api) override;
+  virtual void draw(Engine& engine) const override;
 
  private:
   FilterState state;
 };
 
-void FilterObject::create(ObjectPatcher& patcher) {
-  patcher.request(HANS_INLET, 1);
-  patcher.request(HANS_OUTLET, 1);
+void FilterObject::create(IPatcher& patcher) {
+  patcher.request(IPatcher::Resources::INLET, 1);
+  patcher.request(IPatcher::Resources::OUTLET, 1);
 
   state.shader = FILTER_PASSTHROUGH_SHADER;
-  auto args = patcher.get_args();
-  for (int i = 0; i < args.length; ++i) {
-    if (args.data[i].type == HANS_STRING &&
-        args.data[i].name == FILTER_ARG_NAME) {
-      state.shader = args.data[i].string;
+  for (const auto& arg : patcher.arguments()) {
+    if (arg.type == Argument::Types::STRING && arg.name == FILTER_ARG_NAME) {
+      state.shader = arg.string;
     }
   }
 }
 
-void FilterObject::setup(hans_object_api& api) {
-  state.amount = api.parameters->make(id, FILTER_AMOUNT);
-  state.inlet_texture = api.registers->make(id, HANS_INLET, 0);
-  state.outlet_texture = api.registers->make(id, HANS_OUTLET, 0);
-  state.fbo = api.fbos->make(id);
+void FilterObject::setup(Engine& engine) {
+  state.amount = engine.parameters->make(id, FILTER_AMOUNT);
+  state.inlet_texture = engine.registers->make(id, Register::Types::INLET, 0);
+  state.outlet_texture = engine.registers->make(id, Register::Types::OUTLET, 0);
+  state.fbo = engine.fbos->make(id);
 
   GLuint vbo;
   GLuint ebo;
@@ -92,9 +89,9 @@ void FilterObject::setup(hans_object_api& api) {
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
-  state.v_shader = api.shaders->create_shader(FILTER_VERT_SHADER);
-  state.f_shader = api.shaders->create_shader(state.shader);
-  state.program = api.shaders->create_program(state.v_shader, state.f_shader);
+  auto v_shader = engine.shaders->create(FILTER_VERT_SHADER);
+  auto f_shader = engine.shaders->create(state.shader);
+  state.program = engine.shaders->create(v_shader, f_shader);
   glUseProgram(state.program.handle);
 
   state.u_resolution_loc =
@@ -107,15 +104,15 @@ void FilterObject::setup(hans_object_api& api) {
   glVertexAttribPointer(pos_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(pos_attrib);
 
-  auto register_value = api.registers->read(state.inlet_texture);
+  auto register_value = engine.registers->read(state.inlet_texture);
   state.texture_value = *static_cast<uint32_t*>(register_value);
 
   // Send the textures we will be writing to to the outlet
-  auto out_tex = api.fbos->get_color_attachment(state.fbo, 0);
-  api.registers->write(state.outlet_texture, &out_tex);
+  auto out_tex = engine.fbos->get_color_attachment(state.fbo, 0);
+  engine.registers->write(state.outlet_texture, &out_tex);
 }
 
-void FilterObject::draw(hans_object_api& api) {
+void FilterObject::draw(Engine& engine) const {
   glUseProgram(state.program.handle);
 
   glActiveTexture(GL_TEXTURE0);
@@ -130,9 +127,9 @@ void FilterObject::draw(hans_object_api& api) {
 
   glUniform2f(state.u_resolution_loc, input_width, input_height);
   glUniform2f(state.u_center_loc, input_width / 2.f, input_height / 2.f);
-  glUniform1f(state.u_amount_loc, api.parameters->get(state.amount, 0));
+  glUniform1f(state.u_amount_loc, engine.parameters->get(state.amount, 0));
 
-  api.fbos->bind_fbo(state.fbo);
+  engine.fbos->bind_fbo(state.fbo);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glBindVertexArray(state.vao);
@@ -140,7 +137,7 @@ void FilterObject::draw(hans_object_api& api) {
 }
 
 extern "C" {
-void setup(engine::LibraryManager* library) {
+void setup(LibraryManager* library) {
   library->add_object<FilterState, FilterObject>("gfx-filter");
 }
 }

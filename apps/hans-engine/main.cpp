@@ -22,15 +22,15 @@ using namespace hans::common;
 using namespace hans::engine;
 using namespace hans::graphics;
 
-static int run(const char* filepath, hans_hash program, hans_config& config) {
+static int run(const char* filepath, hash program, Config& config) {
   DataReader reader(filepath);
   auto d = reader.data;
 
-  hans_object_api object_api;
+  Engine engine;
 
   auto strings = StringManager(d.string_hashes, d.string_offsets, d.strings);
   auto libraries = LibraryManager(strings, d.objects);
-  auto programs = ProgramManager(object_api);
+  auto programs = ProgramManager(engine);
   auto registers = RegisterManager(config);
   auto parameters = ParameterManager();
   auto modulators = ModulationManager(parameters, d.modulators);
@@ -43,16 +43,16 @@ static int run(const char* filepath, hans_hash program, hans_config& config) {
   auto audio_stream = AudioStream(config, audio_devices, audio_buses, programs);
   auto ring_buffers = RingBufferManager(config, d.ring_buffers);
 
-  object_api.config = &config;
-  object_api.strings = &strings;
-  object_api.parameters = &parameters;
-  object_api.audio_buses = &audio_buses;
-  object_api.audio_buffers = &audio_buffers;
-  object_api.ring_buffers = &ring_buffers;
-  object_api.shaders = &shaders;
-  object_api.registers = &registers;
-  object_api.fbos = &fbos;
-  object_api.modulators = &modulators;
+  engine.config = &config;
+  engine.strings = &strings;
+  engine.parameters = &parameters;
+  engine.audio_buses = &audio_buses;
+  engine.audio_buffers = &audio_buffers;
+  engine.ring_buffers = &ring_buffers;
+  engine.shaders = &shaders;
+  engine.registers = &registers;
+  engine.fbos = &fbos;
+  engine.modulators = &modulators;
 
   libraries.load(d.libraries);
   parameters.use(d.parameters, d.parameter_values);
@@ -74,15 +74,15 @@ static int run(const char* filepath, hans_hash program, hans_config& config) {
     window.update();
   }
 
-  programs.close_all();
   audio_stream.close();
+  programs.close_all();
   return 0;
 }
 
 void inner_main(void* closure, int argc, char* argv[]) {
   cxxopts::Options options(argv[0], " <file>");
 
-  hans_config config;
+  Config config;
   config.channels = 2;
   config.samplerate = 44100;
   config.blocksize = 64;
@@ -125,7 +125,7 @@ void inner_main(void* closure, int argc, char* argv[]) {
     return;
   }
 
-  hans_hash program = 0;
+  hash program = 0;
   if (options.count("program") != 0) {
     program = hasher(options["program"].as<std::string>().c_str());
   }

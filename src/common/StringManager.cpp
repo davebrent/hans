@@ -5,13 +5,13 @@
 #include "hans/common/hasher.hpp"
 
 using namespace hans;
+using namespace hans::common;
 
-common::StringManager::StringManager(size_t size) : m_allocator(size) {
+StringManager::StringManager(size_t size) : m_allocator(size) {
 }
 
-common::StringManager::StringManager(common::ListView<hans_hash> hashes,
-                                     common::ListView<size_t> offsets,
-                                     common::ListView<const char> data) {
+StringManager::StringManager(ListView<hash> hashes, ListView<size_t> offsets,
+                             ListView<const char> data) {
   auto bytes = data.size();
 
   m_allocator.reset(bytes);
@@ -27,15 +27,15 @@ common::StringManager::StringManager(common::ListView<hans_hash> hashes,
   }
 }
 
-hans_hash common::StringManager::intern(const char* string) {
+hash StringManager::intern(const char* string) {
   // Check if we have seen the string before
   size_t len = strlen(string);
-  hans_hash hash = common::hasher(string);
+  auto hashed = hasher(string);
 
   auto end = m_hashes.end();
-  auto it = std::find(m_hashes.begin(), end, hash);
+  auto it = std::find(m_hashes.begin(), end, hashed);
   if (it != end) {
-    return hash;
+    return hashed;
   }
 
   // Calculate the space needed to copy the string
@@ -44,7 +44,7 @@ hans_hash common::StringManager::intern(const char* string) {
 
   void* ptr = m_allocator.allocate(size);
   if (ptr == nullptr) {
-    return hash;
+    return hashed;
   }
 
   // Perform the copy
@@ -54,14 +54,14 @@ hans_hash common::StringManager::intern(const char* string) {
 
   // Store the hash and a reference to the copied string
   m_strings.push_back(static_cast<const char*>(ptr));
-  m_hashes.push_back(hash);
-  return hash;
+  m_hashes.push_back(hashed);
+  return hashed;
 }
 
-const char* common::StringManager::lookup(const hans_hash& hash) const {
+const char* StringManager::lookup(hash hashed) const {
   auto begin = m_hashes.begin();
   auto end = m_hashes.end();
-  auto it = std::find(begin, end, hash);
+  auto it = std::find(begin, end, hashed);
   if (it != end) {
     return m_strings.at(it - begin);
   }

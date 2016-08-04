@@ -23,6 +23,7 @@
 #define PARAM_A 0x7fc8bcdf01428509
 
 using namespace hans;
+using namespace hans::engine;
 
 class SuperFormulaGeometry {
  public:
@@ -130,26 +131,26 @@ static GLenum to_draw_mode(int mode) {
 
 struct UniformParameter {
   int size;
-  hans_hash name;
-  hans_parameter parameter;
+  hash name;
+  Parameter parameter;
   GLuint uniform;
 };
 
-static void update_uniforms(hans_object_api& api,
+static void update_uniforms(Engine& engine,
                             const std::vector<UniformParameter>& uniforms) {
   for (const UniformParameter& p : uniforms) {
     switch (p.size) {
     case 1:
-      glUniform1f(p.uniform, api.parameters->get(p.parameter, 0));
+      glUniform1f(p.uniform, engine.parameters->get(p.parameter, 0));
       break;
     case 2:
-      glUniform2f(p.uniform, api.parameters->get(p.parameter, 0),
-                  api.parameters->get(p.parameter, 1));
+      glUniform2f(p.uniform, engine.parameters->get(p.parameter, 0),
+                  engine.parameters->get(p.parameter, 1));
       break;
     case 3:
-      glUniform3f(p.uniform, api.parameters->get(p.parameter, 0),
-                  api.parameters->get(p.parameter, 1),
-                  api.parameters->get(p.parameter, 2));
+      glUniform3f(p.uniform, engine.parameters->get(p.parameter, 0),
+                  engine.parameters->get(p.parameter, 1),
+                  engine.parameters->get(p.parameter, 2));
       break;
     }
   }
@@ -158,46 +159,46 @@ static void update_uniforms(hans_object_api& api,
 struct FormulaState {
   int segments;
   float rotation;
-  hans_fbo fbo;
+  graphics::FBO fbo;
   GLuint shape_vao;
   GLuint model_view_matrix;
   GLuint proj_matrix;
-  hans_shader_program_instance program;
-  hans_register outlet_colors;
-  hans_register outlet_normals;
-  hans_register outlet_depth;
-  hans_parameter translation;
-  hans_parameter rotation_axis;
-  hans_parameter rotation_speed;
-  hans_parameter draw_mode;
+  graphics::ShaderProgram program;
+  Register outlet_colors;
+  Register outlet_normals;
+  Register outlet_depth;
+  Parameter translation;
+  Parameter rotation_axis;
+  Parameter rotation_speed;
+  Parameter draw_mode;
   std::vector<UniformParameter> uniforms;
 };
 
 class FormulaObject : protected GraphicsObject {
-  friend class engine::LibraryManager;
+  friend class LibraryManager;
 
  public:
   using GraphicsObject::GraphicsObject;
-  virtual void create(ObjectPatcher& patcher) override;
-  virtual void setup(hans_object_api& api) override;
-  virtual void update(hans_object_api& api) override {
-  }
-  virtual void draw(hans_object_api& api) override;
+  virtual void create(IPatcher& patcher) override;
+  virtual void setup(Engine& engine) override;
+  virtual void update(Engine& engine) override;
+  virtual void draw(Engine& engine) const override;
 
  private:
   FormulaState state;
 };
 
-void FormulaObject::create(ObjectPatcher& patcher) {
-  patcher.request(HANS_OUTLET, 3);
+void FormulaObject::create(IPatcher& patcher) {
+  patcher.request(IPatcher::Resources::OUTLET, 3);
 }
 
-void FormulaObject::setup(hans_object_api& api) {
+void FormulaObject::setup(Engine& engine) {
   state.segments = 90;
   state.rotation = 0;
 
 #define MAKE_UNIFORM_PARAM(SIZE, NAME) \
-  state.uniforms.push_back({.size = SIZE, .name = api.strings->intern(NAME)});
+  state.uniforms.push_back(            \
+      {.size = SIZE, .name = engine.strings->intern(NAME)});
 
   state.uniforms.reserve(13);
   MAKE_UNIFORM_PARAM(2, "m");
@@ -217,18 +218,18 @@ void FormulaObject::setup(hans_object_api& api) {
 #undef MAKE_UNIFORM_PARAM
 
   for (auto& uniform : state.uniforms) {
-    uniform.parameter = api.parameters->make(id, uniform.name);
+    uniform.parameter = engine.parameters->make(id, uniform.name);
   }
 
-  state.rotation_speed = api.parameters->make(id, PARAM_ROTATION_SPEED);
-  state.rotation_axis = api.parameters->make(id, PARAM_ROTATION_AXIS);
-  state.translation = api.parameters->make(id, PARAM_TRANSLATE);
-  state.draw_mode = api.parameters->make(id, PARAM_DRAW_MODE);
+  state.rotation_speed = engine.parameters->make(id, PARAM_ROTATION_SPEED);
+  state.rotation_axis = engine.parameters->make(id, PARAM_ROTATION_AXIS);
+  state.translation = engine.parameters->make(id, PARAM_TRANSLATE);
+  state.draw_mode = engine.parameters->make(id, PARAM_DRAW_MODE);
 
-  state.outlet_colors = api.registers->make(id, HANS_OUTLET, 0);
-  state.outlet_normals = api.registers->make(id, HANS_OUTLET, 1);
-  state.outlet_depth = api.registers->make(id, HANS_OUTLET, 2);
-  state.fbo = api.fbos->make(id);
+  state.outlet_colors = engine.registers->make(id, Register::Types::OUTLET, 0);
+  state.outlet_normals = engine.registers->make(id, Register::Types::OUTLET, 1);
+  state.outlet_depth = engine.registers->make(id, Register::Types::OUTLET, 2);
+  state.fbo = engine.fbos->make(id);
 
   // Setup buffers
   SuperFormulaGeometry geometry(state.segments);
@@ -250,9 +251,9 @@ void FormulaObject::setup(hans_object_api& api) {
                geometry.indices, GL_STATIC_DRAW);
 
   // Setup shaders
-  auto vert_shader = api.shaders->create_shader(VERT_SHADER);
-  auto frag_shader = api.shaders->create_shader(FRAG_SHADER);
-  state.program = api.shaders->create_program(vert_shader, frag_shader);
+  auto vert_shader = engine.shaders->create(VERT_SHADER);
+  auto frag_shader = engine.shaders->create(FRAG_SHADER);
+  state.program = engine.shaders->create(vert_shader, frag_shader);
   glUseProgram(state.program.handle);
 
   // Setup attributes and frag locations
@@ -266,51 +267,53 @@ void FormulaObject::setup(hans_object_api& api) {
   state.proj_matrix =
       glGetUniformLocation(state.program.handle, "projection_matrix");
   for (UniformParameter& uparam : state.uniforms) {
-    const char* name = api.strings->lookup(uparam.name);
+    const char* name = engine.strings->lookup(uparam.name);
     uparam.uniform = glGetUniformLocation(state.program.handle, name);
   }
 
   default_gl_state();
 
   // Send the textures we will be writing to to the output registers
-  auto color_tex = api.fbos->get_color_attachment(state.fbo, 0);
-  auto normal_tex = api.fbos->get_color_attachment(state.fbo, 1);
-  auto depth_tex = api.fbos->get_depth_attachment(state.fbo);
+  auto color_tex = engine.fbos->get_color_attachment(state.fbo, 0);
+  auto normal_tex = engine.fbos->get_color_attachment(state.fbo, 1);
+  auto depth_tex = engine.fbos->get_depth_attachment(state.fbo);
 
-  api.registers->write(state.outlet_colors, &color_tex);
-  api.registers->write(state.outlet_normals, &normal_tex);
-  api.registers->write(state.outlet_depth, &depth_tex);
+  engine.registers->write(state.outlet_colors, &color_tex);
+  engine.registers->write(state.outlet_normals, &normal_tex);
+  engine.registers->write(state.outlet_depth, &depth_tex);
 }
 
-void FormulaObject::draw(hans_object_api& api) {
-  auto translation = glm::vec3(api.parameters->get(state.translation, 0),
-                               api.parameters->get(state.translation, 1),
-                               api.parameters->get(state.translation, 2));
+void FormulaObject::update(Engine& engine) {
+  state.rotation += engine.parameters->get(state.rotation_speed, 0);
+}
 
-  auto axis = glm::vec3(api.parameters->get(state.rotation_axis, 0),
-                        api.parameters->get(state.rotation_axis, 1),
-                        api.parameters->get(state.rotation_axis, 2));
+void FormulaObject::draw(Engine& engine) const {
+  auto translation = glm::vec3(engine.parameters->get(state.translation, 0),
+                               engine.parameters->get(state.translation, 1),
+                               engine.parameters->get(state.translation, 2));
+
+  auto axis = glm::vec3(engine.parameters->get(state.rotation_axis, 0),
+                        engine.parameters->get(state.rotation_axis, 1),
+                        engine.parameters->get(state.rotation_axis, 2));
 
   auto model_view_matrix = glm::mat4();
 
-  auto aspect = (float)api.config->width / (float)api.config->height;
+  auto aspect = (float)engine.config->width / (float)engine.config->height;
   auto projection_matrix = glm::perspective(45.0f, aspect, 0.1f, 100.f);
   model_view_matrix = glm::translate(model_view_matrix, translation);
   model_view_matrix = glm::rotate(model_view_matrix, state.rotation, axis);
-
-  state.rotation += api.parameters->get(state.rotation_speed, 0);
 
   glUseProgram(state.program.handle);
   glUniformMatrix4fv(state.model_view_matrix, 1, 0,
                      glm::value_ptr(model_view_matrix));
   glUniformMatrix4fv(state.proj_matrix, 1, 0,
                      glm::value_ptr(projection_matrix));
-  update_uniforms(api, state.uniforms);
+  update_uniforms(engine, state.uniforms);
 
   GLenum mode = to_draw_mode(std::min<float>(
-      std::max<float>(api.parameters->get(state.draw_mode, 0), 0), 10));
+      std::max<float>(engine.parameters->get(state.draw_mode, 0), 0), 10));
 
-  api.fbos->bind_fbo(state.fbo);
+  engine.fbos->bind_fbo(state.fbo);
   glClearColor(0.2, 0.2, 0.2, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -320,7 +323,7 @@ void FormulaObject::draw(hans_object_api& api) {
 }
 
 extern "C" {
-void setup(engine::LibraryManager* library) {
+void setup(LibraryManager* library) {
   library->add_object<FormulaState, FormulaObject>("gfx-superformula");
 }
 }

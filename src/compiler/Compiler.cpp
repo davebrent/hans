@@ -19,6 +19,10 @@
 #include "hans/graphics/ShaderManager.hpp"
 
 using namespace hans;
+using namespace hans::audio;
+using namespace hans::common;
+using namespace hans::engine;
+using namespace hans::graphics;
 
 static scm_t_bits data_writer_tag;
 
@@ -32,49 +36,49 @@ static bool str_eqaul_sym(const char* str, SCM sym) {
   return scm_is_true(scm_eq_p(scm_from_locale_symbol(str), sym)) == 1;
 }
 
-static hans_hash scm_to_hans_hash(SCM value) {
+static hash scm_to_hans_hash(SCM value) {
   assert(scm_is_true(scm_string_p(value)) == 1);
   auto string = scm_to_locale_string(value);
-  auto hash = common::hasher(string);
+  auto hashed = hasher(string);
   std::free(string);
-  return hash;
+  return hashed;
 }
 
-static hans_hash scm_to_hans_hash(common::StringManager& strings, SCM value) {
+static hash scm_to_hans_hash(StringManager& strings, SCM value) {
   auto str = scm_to_locale_string(value);
-  auto hash = strings.intern(str);
+  auto hashed = strings.intern(str);
   std::free(str);
-  return hash;
+  return hashed;
 }
 
-static common::DataWriter* scm_to_writer(SCM writer) {
+static DataWriter* scm_to_writer(SCM writer) {
   scm_assert_smob_type(data_writer_tag, writer);
-  return reinterpret_cast<common::DataWriter*>(SCM_SMOB_DATA(writer));
+  return reinterpret_cast<DataWriter*>(SCM_SMOB_DATA(writer));
 }
 
 template <typename T>
-static SCM write_list(SCM writer, hans_blob_type type, std::vector<T> lst) {
+static SCM write_list(SCM writer, DataFile::Types type, std::vector<T> lst) {
   auto size = sizeof(T) * lst.size();
   auto instance = scm_to_writer(writer);
   instance->stage(type, static_cast<void*>(&lst[0]), size);
   return scm_from_int(size);
 }
 
-static hans_object_type scm_to_hans_obj_type(SCM type) {
+static ObjectDef::Types scm_to_hans_obj_type(SCM type) {
   if (str_eqaul_sym("graphics", type)) {
-    return HANS_OBJECT_GRAPHICS;
+    return ObjectDef::Types::GRAPHICS;
   } else if (str_eqaul_sym("audio", type)) {
-    return HANS_OBJECT_AUDIO;
+    return ObjectDef::Types::AUDIO;
   }
 
   throw std::runtime_error("Unknown object type");
 }
 
-static hans_shader_type scm_to_hans_shader_type(SCM type) {
+static graphics::Shader::Types scm_to_hans_shader_type(SCM type) {
   if (str_eqaul_sym("vertex", type)) {
-    return HANS_SHADER_VERTEX;
+    return graphics::Shader::Types::VERTEX;
   } else if (str_eqaul_sym("fragment", type)) {
-    return HANS_SHADER_FRAGMENT;
+    return graphics::Shader::Types::FRAGMENT;
   }
 
   throw std::runtime_error("Unknown shader type");
@@ -82,7 +86,7 @@ static hans_shader_type scm_to_hans_shader_type(SCM type) {
 
 static SCM write_modulators(SCM writer, SCM lst) {
   auto len = lst_length(lst);
-  std::vector<hans_modulator> result;
+  std::vector<Modulator> result;
   result.reserve(len);
 
   auto zero = scm_from_int(0);
@@ -97,17 +101,17 @@ static SCM write_modulators(SCM writer, SCM lst) {
   for (auto i = 0; i < len; ++i) {
     auto item = scm_list_ref(lst, scm_from_int(i));
 
-    hans_modulator_port source;
+    Modulator::Port source;
     source.object = scm_to_int(scm_list_ref(item, zero));
     source.parameter = scm_to_hans_hash(scm_list_ref(item, one));
     source.component = scm_to_int(scm_list_ref(item, two));
 
-    hans_modulator_port dest;
+    Modulator::Port dest;
     dest.object = scm_to_int(scm_list_ref(item, three));
     dest.parameter = scm_to_hans_hash(scm_list_ref(item, four));
     dest.component = scm_to_int(scm_list_ref(item, five));
 
-    hans_modulator modulator;
+    Modulator modulator;
     modulator.source = source;
     modulator.dest = dest;
     modulator.offset = scm_to_double(scm_list_ref(item, six));
@@ -115,28 +119,28 @@ static SCM write_modulators(SCM writer, SCM lst) {
     result.push_back(modulator);
   }
 
-  return write_list<hans_modulator>(writer, HANS_BLOB_MODULATORS, result);
+  return write_list<Modulator>(writer, DataFile::Types::MODULATORS, result);
 }
 
 static SCM write_libraries(SCM writer, SCM lst) {
   auto len = lst_length(lst);
-  std::vector<hans_library> result;
+  std::vector<Library> result;
   result.reserve(len);
 
   for (auto i = 0; i < len; ++i) {
     auto path = scm_list_ref(lst, scm_from_int(i));
 
-    hans_library library;
+    Library library;
     library.filepath = scm_to_hans_hash(path);
     result.push_back(library);
   }
 
-  return write_list<hans_library>(writer, HANS_BLOB_LIBRARIES, result);
+  return write_list<Library>(writer, DataFile::Types::LIBRARIES, result);
 }
 
 static SCM write_objects(SCM writer, SCM lst) {
   auto len = lst_length(lst);
-  std::vector<hans_object> result;
+  std::vector<ObjectDef> result;
   result.reserve(len);
 
   for (auto i = 0; i < len; ++i) {
@@ -145,18 +149,18 @@ static SCM write_objects(SCM writer, SCM lst) {
     auto name = scm_assq_ref(alist, scm_from_locale_symbol("name"));
     auto type = scm_assq_ref(alist, scm_from_locale_symbol("type"));
 
-    hans_object item;
+    ObjectDef item;
     item.id = scm_to_int(id);
     item.type = scm_to_hans_obj_type(type);
     item.name = scm_to_hans_hash(name);
     item.size = 0;
-    item.make = nullptr;
+    item.create = nullptr;
     item.destroy = nullptr;
     item.instance = nullptr;
     result.push_back(item);
   }
 
-  return write_list<hans_object>(writer, HANS_BLOB_OBJECTS, result);
+  return write_list<ObjectDef>(writer, DataFile::Types::OBJECTS, result);
 }
 
 static SCM write_object_data(SCM writer, SCM lst) {
@@ -169,7 +173,7 @@ static SCM write_object_data(SCM writer, SCM lst) {
     size += SCM_BYTEVECTOR_LENGTH(bv);
   }
 
-  common::LinearAllocator allocator(size);
+  LinearAllocator allocator(size);
 
   for (auto i = 0; i < len; ++i) {
     auto bv = scm_list_ref(lst, scm_from_int(i));
@@ -181,13 +185,13 @@ static SCM write_object_data(SCM writer, SCM lst) {
   }
 
   auto instance = scm_to_writer(writer);
-  instance->stage(HANS_BLOB_OBJECTS_DATA, allocator.start(), size);
+  instance->stage(DataFile::Types::OBJECTS_DATA, allocator.start(), size);
   return scm_from_int(size);
 }
 
 static SCM write_parameters(SCM writer, SCM lst) {
   auto len = lst_length(lst);
-  std::vector<hans_parameter> result;
+  std::vector<Parameter> result;
   result.reserve(len);
 
   for (auto i = 0; i < len; ++i) {
@@ -197,7 +201,7 @@ static SCM write_parameters(SCM writer, SCM lst) {
     auto size = scm_assq_ref(alist, scm_from_locale_symbol("size"));
     auto offset = scm_assq_ref(alist, scm_from_locale_symbol("value"));
 
-    hans_parameter item;
+    Parameter item;
     item.object = scm_to_int(instance);
     item.name = scm_to_hans_hash(name);
     item.size = scm_to_int(size);
@@ -205,12 +209,12 @@ static SCM write_parameters(SCM writer, SCM lst) {
     result.push_back(item);
   }
 
-  return write_list<hans_parameter>(writer, HANS_BLOB_PARAMETERS, result);
+  return write_list<Parameter>(writer, DataFile::Types::PARAMETERS, result);
 }
 
 static SCM write_parameter_values(SCM writer, SCM lst) {
   auto len = lst_length(lst);
-  std::vector<hans_parameter_value> result;
+  std::vector<Parameter::Value> result;
   result.reserve(len);
 
   for (auto i = 0; i < len; ++i) {
@@ -218,13 +222,13 @@ static SCM write_parameter_values(SCM writer, SCM lst) {
     result.push_back(scm_to_double(item));
   }
 
-  return write_list<hans_parameter_value>(writer, HANS_BLOB_PARAMETER_VALUES,
-                                          result);
+  return write_list<Parameter::Value>(writer, DataFile::Types::PARAMETER_VALUES,
+                                      result);
 }
 
 static SCM write_programs(SCM writer, SCM lst, SCM nodata) {
   auto len = lst_length(lst);
-  std::vector<hans_program> result;
+  std::vector<Program> result;
   result.reserve(len);
 
   auto nodata_value = scm_to_int(nodata);
@@ -243,7 +247,7 @@ static SCM write_programs(SCM writer, SCM lst, SCM nodata) {
     auto audio = scm_assq_ref(alist, sym_audio);
     auto graphics = scm_assq_ref(alist, sym_graphics);
 
-    hans_program item;
+    Program item;
     item.name = scm_to_hans_hash(name);
 
     item.audio.id = 0;
@@ -269,7 +273,7 @@ static SCM write_programs(SCM writer, SCM lst, SCM nodata) {
     result.push_back(item);
   }
 
-  return write_list<hans_program>(writer, HANS_BLOB_PROGRAMS, result);
+  return write_list<Program>(writer, DataFile::Types::PROGRAMS, result);
 }
 
 static SCM write_graphs(SCM writer, SCM lst) {
@@ -282,12 +286,12 @@ static SCM write_graphs(SCM writer, SCM lst) {
     result.push_back(scm_to_int(item));
   }
 
-  return write_list<size_t>(writer, HANS_BLOB_CHAINS, result);
+  return write_list<size_t>(writer, DataFile::Types::CHAINS, result);
 }
 
 static SCM write_registers(SCM writer, SCM lst) {
   auto len = lst_length(lst);
-  std::vector<hans_register> result;
+  std::vector<Register> result;
   result.reserve(len);
 
   auto zero = scm_from_int(0);
@@ -299,7 +303,7 @@ static SCM write_registers(SCM writer, SCM lst) {
 
   for (auto i = 0; i < len; ++i) {
     auto item = scm_list_ref(lst, scm_from_int(i));
-    hans_register reg;
+    Register reg;
     reg.object = scm_to_int(scm_list_ref(item, zero));
     reg.type = scm_to_hans_obj_type(scm_list_ref(item, one));
     reg.graph = scm_to_int(scm_list_ref(item, two));
@@ -309,7 +313,7 @@ static SCM write_registers(SCM writer, SCM lst) {
     result.push_back(reg);
   }
 
-  return write_list<hans_register>(writer, HANS_BLOB_REGISTERS, result);
+  return write_list<Register>(writer, DataFile::Types::REGISTERS, result);
 }
 
 static SCM write_strings(SCM writer, SCM lst) {
@@ -321,7 +325,7 @@ static SCM write_strings(SCM writer, SCM lst) {
   std::vector<size_t> offsets;
   offsets.reserve(len);
 
-  std::vector<hans_hash> hashes;
+  std::vector<hash> hashes;
   hashes.reserve(len);
 
   auto sum = 0;
@@ -336,7 +340,7 @@ static SCM write_strings(SCM writer, SCM lst) {
     sum += length;
   }
 
-  common::LinearAllocator allocator(sum);
+  LinearAllocator allocator(sum);
 
   for (auto i = 0; i < len; ++i) {
     auto str = scm_list_ref(lst, scm_from_int(i));
@@ -347,21 +351,21 @@ static SCM write_strings(SCM writer, SCM lst) {
     std::free(src);
   }
 
-  auto hashes_size = sizeof(hans_hash) * len;
+  auto hashes_size = sizeof(hash) * len;
   auto offsets_size = sizeof(size_t) * len;
 
   auto instance = scm_to_writer(writer);
-  instance->stage(HANS_BLOB_STRING_HASHES, static_cast<void*>(&hashes[0]),
-                  hashes_size);
-  instance->stage(HANS_BLOB_STRING_OFFSETS, static_cast<void*>(&offsets[0]),
-                  offsets_size);
-  instance->stage(HANS_BLOB_STRINGS, allocator.start(), sum);
+  instance->stage(DataFile::Types::STRING_HASHES,
+                  static_cast<void*>(&hashes[0]), hashes_size);
+  instance->stage(DataFile::Types::STRING_OFFSETS,
+                  static_cast<void*>(&offsets[0]), offsets_size);
+  instance->stage(DataFile::Types::STRINGS, allocator.start(), sum);
   return scm_from_int(sum + hashes_size + offsets_size);
 }
 
 static SCM write_shaders(SCM writer, SCM lst) {
   auto len = lst_length(lst);
-  std::vector<hans_shader> result;
+  std::vector<graphics::Shader> result;
   result.reserve(len);
 
   auto sym_type = scm_from_locale_symbol("type");
@@ -374,19 +378,19 @@ static SCM write_shaders(SCM writer, SCM lst) {
     auto name = scm_assq_ref(alist, sym_name);
     auto code = scm_assq_ref(alist, sym_code);
 
-    hans_shader item;
+    graphics::Shader item;
     item.type = scm_to_hans_shader_type(type);
     item.name = scm_to_hans_hash(name);
     item.code = scm_to_hans_hash(code);
     result.push_back(item);
   }
 
-  return write_list<hans_shader>(writer, HANS_BLOB_SHADERS, result);
+  return write_list<graphics::Shader>(writer, DataFile::Types::SHADERS, result);
 }
 
 static SCM write_fbos(SCM writer, SCM lst) {
   auto len = lst_length(lst);
-  std::vector<hans_fbo> result;
+  std::vector<graphics::FBO> result;
   result.reserve(len);
 
   auto sym_stencil_buffer = scm_from_locale_symbol("stencil-buffer");
@@ -399,7 +403,7 @@ static SCM write_fbos(SCM writer, SCM lst) {
     auto stencil = scm_assq_ref(alist, sym_stencil_buffer);
     auto attachments = scm_assq_ref(alist, sym_attachments);
 
-    hans_fbo item;
+    graphics::FBO item;
     item.object = scm_to_int(id);
     item.stencil_buffer = scm_to_bool(stencil);
     item.start = scm_to_int(scm_list_ref(attachments, scm_from_int(0)));
@@ -407,16 +411,16 @@ static SCM write_fbos(SCM writer, SCM lst) {
     result.push_back(item);
   }
 
-  return write_list<hans_fbo>(writer, HANS_BLOB_FBOS, result);
+  return write_list<graphics::FBO>(writer, DataFile::Types::FBOS, result);
 }
 
-static hans_fbo_attachment_type scm_to_fbo_attachment_type(SCM type) {
+static graphics::FBO::Attachment::Types scm_to_fbo_attachment_type(SCM type) {
   if (str_eqaul_sym("color", type)) {
-    return HANS_COLOR_ATTACHMENT;
+    return graphics::FBO::Attachment::Types::COLOR;
   } else if (str_eqaul_sym("depth", type)) {
-    return HANS_DEPTH_ATTACHMENT;
+    return graphics::FBO::Attachment::Types::DEPTH;
   } else if (str_eqaul_sym("stencil", type)) {
-    return HANS_STENCIL_ATTACHMENT;
+    return graphics::FBO::Attachment::Types::STENCIL;
   }
 
   throw std::runtime_error("Unknown fbo attachment type");
@@ -424,7 +428,7 @@ static hans_fbo_attachment_type scm_to_fbo_attachment_type(SCM type) {
 
 static SCM write_fbo_attachments(SCM writer, SCM lst) {
   auto len = lst_length(lst);
-  std::vector<hans_fbo_attachment> result;
+  std::vector<graphics::FBO::Attachment> result;
   result.reserve(len);
 
   for (auto i = 0; i < len; ++i) {
@@ -434,7 +438,7 @@ static SCM write_fbo_attachments(SCM writer, SCM lst) {
     auto height = scm_assq_ref(alist, scm_from_locale_symbol("height"));
     auto components = scm_assq_ref(alist, scm_from_locale_symbol("components"));
 
-    hans_fbo_attachment item;
+    graphics::FBO::Attachment item;
     item.type = scm_to_fbo_attachment_type(type);
     item.width = scm_to_int(width);
     item.height = scm_to_int(height);
@@ -442,13 +446,13 @@ static SCM write_fbo_attachments(SCM writer, SCM lst) {
     result.push_back(item);
   }
 
-  return write_list<hans_fbo_attachment>(writer, HANS_BLOB_FBO_ATTACHMENTS,
-                                         result);
+  return write_list<graphics::FBO::Attachment>(
+      writer, DataFile::Types::FBO_ATTACHMENTS, result);
 }
 
 static SCM write_audio_buffers(SCM writer, SCM lst) {
   auto len = lst_length(lst);
-  std::vector<hans_audio_buffer> result;
+  std::vector<audio::Buffer> result;
   result.reserve(len);
 
   auto sym_instance_id = scm_from_locale_symbol("instance-id");
@@ -463,7 +467,7 @@ static SCM write_audio_buffers(SCM writer, SCM lst) {
     auto channels = scm_assq_ref(alist, sym_channels);
     auto size = scm_assq_ref(alist, sym_size);
 
-    hans_audio_buffer item;
+    audio::Buffer item;
     item.object = scm_to_int(id);
     item.name = scm_to_hans_hash(name);
     item.channels = scm_to_int(channels);
@@ -472,12 +476,13 @@ static SCM write_audio_buffers(SCM writer, SCM lst) {
     result.push_back(item);
   }
 
-  return write_list<hans_audio_buffer>(writer, HANS_BLOB_AUDIO_BUFFERS, result);
+  return write_list<audio::Buffer>(writer, DataFile::Types::AUDIO_BUFFERS,
+                                   result);
 }
 
 static SCM write_ring_buffers(SCM writer, SCM lst) {
   auto len = lst_length(lst);
-  std::vector<hans_ring_buffer> result;
+  std::vector<RingBuffer> result;
   result.reserve(len);
 
   auto sym_instance_id = scm_from_locale_symbol("instance-id");
@@ -488,7 +493,7 @@ static SCM write_ring_buffers(SCM writer, SCM lst) {
     auto id = scm_assq_ref(alist, sym_instance_id);
     auto name = scm_assq_ref(alist, sym_name);
 
-    hans_ring_buffer item;
+    RingBuffer item;
     item.producer = scm_to_int(id);
     item.name = scm_to_hans_hash(name);
     item.offset = 0;
@@ -496,61 +501,61 @@ static SCM write_ring_buffers(SCM writer, SCM lst) {
     result.push_back(item);
   }
 
-  return write_list<hans_ring_buffer>(writer, HANS_BLOB_RING_BUFFERS, result);
+  return write_list<RingBuffer>(writer, DataFile::Types::RING_BUFFERS, result);
 }
 
 static SCM make_hans_file_writer(SCM size) {
-  void* place = scm_gc_malloc(sizeof(common::DataWriter), "hans-file-writer");
-  auto writer = new (place) common::DataWriter(scm_to_int(size));
+  void* place = scm_gc_malloc(sizeof(DataWriter), "hans-file-writer");
+  auto writer = new (place) DataWriter(scm_to_int(size));
   return scm_new_smob(data_writer_tag, (scm_t_bits)writer);
 }
 
 static SCM hans_file_write(SCM writer, SCM dest) {
   scm_assert_smob_type(data_writer_tag, writer);
-  auto instance = reinterpret_cast<common::DataWriter*>(SCM_SMOB_DATA(writer));
+  auto instance = reinterpret_cast<DataWriter*>(SCM_SMOB_DATA(writer));
   auto str = scm_to_locale_string(dest);
   instance->write(str);
   std::free(str);
   return SCM_BOOL_T;
 }
 
-static SCM hans_resource_type_to_scm(hans_resource_type t) {
+static SCM hans_resource_type_to_scm(IPatcher::Resources t) {
   switch (t) {
-  case HANS_PARAMETER:
+  case IPatcher::Resources::PARAMETER:
     return scm_from_locale_symbol("parameter");
-  case HANS_SHADER:
+  case IPatcher::Resources::SHADER:
     return scm_from_locale_symbol("shader");
-  case HANS_AUDIO_BUFFER:
+  case IPatcher::Resources::AUDIO_BUFFER:
     return scm_from_locale_symbol("audio-buffer");
-  case HANS_FRAME_BUFFER:
+  case IPatcher::Resources::FRAME_BUFFER:
     return scm_from_locale_symbol("fbo");
-  case HANS_INLET:
+  case IPatcher::Resources::INLET:
     return scm_from_locale_symbol("inlet");
-  case HANS_OUTLET:
+  case IPatcher::Resources::OUTLET:
     return scm_from_locale_symbol("outlet");
-  case HANS_RING_BUFFER:
+  case IPatcher::Resources::RING_BUFFER:
     return scm_from_locale_symbol("ring-buffer");
   }
 
   throw std::runtime_error("Unknown resource type");
 }
 
-static hans_argument_type scm_to_hans_argument_type(SCM value) {
+static Argument::Types scm_to_hans_argument_type(SCM value) {
   if (scm_to_bool(scm_boolean_p(value)) == 1) {
-    return HANS_BOOL;
+    return Argument::Types::BOOLEAN;
   } else if (scm_to_bool(scm_number_p(value)) == 1) {
-    return HANS_NUMBER;
+    return Argument::Types::NUMBER;
   } else if (scm_to_bool(scm_string_p(value)) == 1) {
-    return HANS_STRING;
+    return Argument::Types::STRING;
   }
 
   throw std::runtime_error("Unknown argument type");
 }
 
 static SCM valid_shaders(SCM lst) {
-  auto strings = common::StringManager(96768);
+  auto strings = StringManager(96768);
   auto len = lst_length(lst);
-  auto shader_vec = std::vector<hans_shader>();
+  auto shader_vec = std::vector<graphics::Shader>();
   shader_vec.reserve(len);
 
   auto sym_type = scm_from_locale_symbol("type");
@@ -563,14 +568,14 @@ static SCM valid_shaders(SCM lst) {
     auto name = scm_assq_ref(alist, sym_name);
     auto code = scm_assq_ref(alist, sym_code);
 
-    hans_shader item;
+    graphics::Shader item;
     item.type = scm_to_hans_shader_type(type);
     item.name = scm_to_hans_hash(strings, name);
     item.code = scm_to_hans_hash(strings, code);
     shader_vec.push_back(item);
   }
 
-  auto shader_list = common::ListView<hans_shader>(&shader_vec[0], len);
+  auto shader_list = ListView<graphics::Shader>(&shader_vec[0], len);
 
   bool res = glfwInit();
   if (res != GL_TRUE) {
@@ -592,7 +597,7 @@ static SCM valid_shaders(SCM lst) {
   auto out = SCM_EOL;
 
   for (const auto& shader : shader_list) {
-    auto message = shader_manager.validate_shader(shader.name);
+    auto message = shader_manager.validate(shader.name);
 
     auto out_valid = SCM_BOOL_T;
     auto out_message = SCM_BOOL_F;
@@ -611,14 +616,14 @@ static SCM valid_shaders(SCM lst) {
   return scm_reverse(out);
 }
 
-static std::vector<hans_library> scm_to_hans_libs(
-    SCM libraries, common::StringManager& strings) {
+static std::vector<Library> scm_to_hans_libs(SCM libraries,
+                                             StringManager& strings) {
   int len = lst_length(libraries);
-  std::vector<hans_library> result;
+  std::vector<Library> result;
   result.reserve(len);
 
   for (int i = 0; i < len; ++i) {
-    hans_library lib;
+    Library lib;
     auto path = scm_to_locale_string(scm_list_ref(libraries, scm_from_int(i)));
     lib.filepath = strings.intern(path);
     std::free(path);
@@ -629,8 +634,8 @@ static std::vector<hans_library> scm_to_hans_libs(
 }
 
 /// Fill in result with num args
-static void scm_to_hans_obj_args(SCM args, common::StringManager& strings,
-                                 hans_argument* out, int len) {
+static void scm_to_hans_obj_args(SCM args, StringManager& strings,
+                                 Argument* out, int len) {
   for (int i = 0; i < len; ++i) {
     auto arg = scm_list_ref(args, scm_from_int(i));
     auto key = scm_car(arg);
@@ -638,18 +643,18 @@ static void scm_to_hans_obj_args(SCM args, common::StringManager& strings,
 
     char* str = scm_to_locale_string(scm_symbol_to_string(key));
 
-    hans_argument hans_arg;
+    Argument hans_arg;
     hans_arg.name = strings.intern(str);
     hans_arg.type = scm_to_hans_argument_type(value);
 
     switch (hans_arg.type) {
-    case HANS_BOOL:
+    case Argument::Types::BOOLEAN:
       hans_arg.boolean = scm_to_bool(value) == 1;
       break;
-    case HANS_NUMBER:
+    case Argument::Types::NUMBER:
       hans_arg.number = scm_to_double(value);
       break;
-    case HANS_STRING:
+    case Argument::Types::STRING:
       hans_arg.string = strings.intern(scm_to_locale_string(value));
       break;
     }
@@ -658,10 +663,10 @@ static void scm_to_hans_obj_args(SCM args, common::StringManager& strings,
   }
 }
 
-static std::vector<hans_object> scm_to_hans_objs(
-    SCM objects, common::StringManager& strings) {
+static std::vector<ObjectDef> scm_to_hans_objs(SCM objects,
+                                               StringManager& strings) {
   int len = lst_length(objects);
-  std::vector<hans_object> result;
+  std::vector<ObjectDef> result;
   result.reserve(len);
 
   auto key_name = scm_from_locale_symbol("name");
@@ -669,9 +674,9 @@ static std::vector<hans_object> scm_to_hans_objs(
   for (int i = 0; i < len; ++i) {
     auto user_object = scm_list_ref(objects, scm_from_int(i));
 
-    hans_object obj;
+    ObjectDef obj;
     obj.size = 0;
-    obj.make = nullptr;
+    obj.create = nullptr;
 
     auto name = scm_to_locale_string(scm_assq_ref(user_object, key_name));
     obj.name = strings.intern(name);
@@ -683,32 +688,31 @@ static std::vector<hans_object> scm_to_hans_objs(
   return result;
 }
 
-class GuileObjectPatcher : public ObjectPatcher {
+class GuilePatcher : public IPatcher {
  public:
-  GuileObjectPatcher(const SCM& objects, common::StringManager& strings);
-  ~GuileObjectPatcher();
-  virtual hans_arguments get_args();
-  virtual void missing_arg(hans_argument_type type, hans_hash name);
-  virtual void request(hans_resource_type type, size_t value);
+  GuilePatcher(const SCM& objects, StringManager& strings);
+  ~GuilePatcher();
+  virtual ListView<Argument> arguments();
+  virtual void missing(Argument::Types type, hash name);
+  virtual void request(IPatcher::Resources type, size_t value);
 
   std::vector<SCM> get_requests();
   void next();
 
  private:
   const SCM& m_objects;
-  common::StringManager& m_strings;
+  StringManager& m_strings;
 
   std::vector<SCM> m_requests;
 
-  hans_argument* m_args;
+  Argument* m_args;
   std::vector<int> m_arg_offsets;
   std::vector<int> m_arg_lengths;
 
   size_t m_current_object;
 };
 
-GuileObjectPatcher::GuileObjectPatcher(const SCM& objects,
-                                       common::StringManager& strings)
+GuilePatcher::GuilePatcher(const SCM& objects, StringManager& strings)
     : m_objects(objects), m_strings(strings) {
   m_current_object = 0;
 
@@ -726,7 +730,7 @@ GuileObjectPatcher::GuileObjectPatcher(const SCM& objects,
     total_num_args += len;
   }
 
-  m_args = new hans_argument[total_num_args];
+  m_args = new Argument[total_num_args];
 
   for (int i = 0; i < lst_length(objects); ++i) {
     auto num_args = m_arg_lengths.at(i);
@@ -742,34 +746,30 @@ GuileObjectPatcher::GuileObjectPatcher(const SCM& objects,
   }
 }
 
-GuileObjectPatcher::~GuileObjectPatcher() {
+GuilePatcher::~GuilePatcher() {
   delete[] m_args;
 }
 
-hans_arguments GuileObjectPatcher::get_args() {
+ListView<Argument> GuilePatcher::arguments() {
   auto offset = m_arg_offsets.at(m_current_object);
   auto length = m_arg_lengths.at(m_current_object);
-
-  hans_arguments out;
-  out.data = &m_args[offset];
-  out.length = length;
-  return out;
+  return ListView<Argument>(&m_args[offset], length);
 }
 
-void GuileObjectPatcher::missing_arg(hans_argument_type type, hans_hash name) {
+void GuilePatcher::missing(Argument::Types type, hash name) {
   // TODO: Currently unused
 }
 
-void GuileObjectPatcher::request(hans_resource_type type, size_t value) {
+void GuilePatcher::request(IPatcher::Resources type, size_t value) {
   SCM req;
 
   switch (type) {
-  case HANS_INLET:
-  case HANS_OUTLET: {
+  case IPatcher::Resources::INLET:
+  case IPatcher::Resources::OUTLET: {
     req = scm_cons(hans_resource_type_to_scm(type), scm_from_int(value));
     break;
   }
-  case HANS_RING_BUFFER: {
+  case IPatcher::Resources::RING_BUFFER: {
     auto name = m_strings.lookup(value);
     auto str = scm_from_locale_string(name);
     req = scm_cons(hans_resource_type_to_scm(type), str);
@@ -782,44 +782,44 @@ void GuileObjectPatcher::request(hans_resource_type type, size_t value) {
   m_requests.push_back(req);
 }
 
-std::vector<SCM> GuileObjectPatcher::get_requests() {
+std::vector<SCM> GuilePatcher::get_requests() {
   return m_requests;
 }
 
-void GuileObjectPatcher::next() {
+void GuilePatcher::next() {
   m_requests.clear();
   m_current_object += 1;
 }
 
 /// Returns an alist for each object instance describing its runtime resources
 static SCM get_object_info(SCM libraries, SCM objects) {
-  common::StringManager strings(16384 /* 16kb */);
+  StringManager strings(16384 /* 16kb */);
 
-  std::vector<hans_library> libs = scm_to_hans_libs(libraries, strings);
-  std::vector<hans_object> objs = scm_to_hans_objs(objects, strings);
+  std::vector<Library> libs = scm_to_hans_libs(libraries, strings);
+  std::vector<ObjectDef> objs = scm_to_hans_objs(objects, strings);
 
-  auto patcher = GuileObjectPatcher(objects, strings);
+  auto patcher = GuilePatcher(objects, strings);
 
-  auto object_list = common::ListView<hans_object>(&objs[0], objs.size());
-  auto library_list = common::ListView<hans_library>(&libs[0], libs.size());
+  auto object_list = ListView<ObjectDef>(&objs[0], objs.size());
+  auto library_list = ListView<Library>(&libs[0], libs.size());
   engine::LibraryManager library_manager(strings, object_list);
   library_manager.load(library_list);
 
   auto total_objects_bytes = 0;
   for (auto& obj : objs) {
-    assert(obj.make != nullptr);
+    assert(obj.create != nullptr);
     assert(obj.size != 0);
     total_objects_bytes += obj.size;
   }
 
-  common::LinearAllocator allocator(total_objects_bytes);
+  LinearAllocator allocator(total_objects_bytes);
 
   SCM out = SCM_EOL;
 
   for (auto& obj : objs) {
     auto buff = static_cast<char*>(allocator.allocate(obj.size));
 
-    Object* instance = static_cast<Object*>(obj.make(0, buff));
+    Object* instance = static_cast<Object*>(obj.create(0, buff));
     instance->create(patcher);
 
     SCM lst = SCM_EOL;
@@ -845,7 +845,7 @@ extern "C" {
 void scm_init_hans_compiler_module() {
   scm_c_define_gsubr("make-hans-file-writer", 1, 0, 0,
                      (scm_t_subr)make_hans_file_writer);
-  auto data_writer_size = sizeof(common::DataWriter);
+  auto data_writer_size = sizeof(DataWriter);
   data_writer_tag = scm_make_smob_type("hans-file-writer", data_writer_size);
   scm_c_define_gsubr("hans-file-write", 2, 0, 0, (scm_t_subr)hans_file_write);
 

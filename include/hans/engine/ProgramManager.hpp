@@ -11,17 +11,18 @@ namespace engine {
 
 class ProgramManager {
  public:
-  ProgramManager(hans_object_api& api);
+  ProgramManager(Engine& engine);
   /// Use a given set of data to work
-  void use(common::ListView<hans_object>& objects,
-           common::ListView<hans_program>& programs,
-           common::ListView<size_t>& chains, hans_blob init_object_data);
+  void use(common::ListView<ObjectDef>& objects,
+           common::ListView<Program>& programs,
+           common::ListView<size_t>& chains,
+           common::DataFile::Blob init_object_data);
   /// Initialize objects for all programs
   void setup_all();
   /// Destroys all objects for all programs
   void close_all();
   /// Switch to a different program
-  void switch_to(hans_hash name);
+  void switch_to(hash name);
   /// Tick the active programs graphics graph
   void tick_graphics(float delta);
   /// Tick the active programs audio graph
@@ -29,13 +30,13 @@ class ProgramManager {
 
  private:
   size_t* m_chains = nullptr;
-  hans_object* m_objects = nullptr;
-  hans_program* m_programs = nullptr;
-  hans_object_api& m_api;
+  ObjectDef* m_objects = nullptr;
+  Program* m_programs = nullptr;
+  Engine& m_engine;
   size_t m_active = 0;
   size_t m_num_objects = 0;
   common::LinearAllocator m_allocator;
-  hans_blob m_init_object_data;
+  common::DataFile::Blob m_init_object_data;
 };
 
 } // namespace engine

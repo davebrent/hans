@@ -21,14 +21,14 @@ class AudioStream {
   };
 
   // FIXME: audioDevices should be marked as const
-  explicit AudioStream(const hans_config& config,
-                       hans::audio::AudioDevices& audio_devices,
-                       hans::audio::AudioBusManager& audio_bus_manager,
-                       hans::engine::ProgramManager& program_manager);
+  explicit AudioStream(const common::Config& config,
+                       AudioDevices& audio_devices,
+                       AudioBusManager& audio_bus_manager,
+                       engine::ProgramManager& program_manager);
   ~AudioStream();
 
-  void set_input_device(const hans_audio_device& device);
-  void set_output_device(const hans_audio_device& device);
+  void set_input_device(const Device& device);
+  void set_output_device(const Device& device);
 
   bool open();
   bool start();
@@ -37,18 +37,18 @@ class AudioStream {
 
   /// Audio callback, processes non-interleaved audio data. Audio data may
   /// come from the soundcard, another application etc.
-  void callback(const hans_audio_sample** input, hans_audio_sample** output);
+  void callback(const sample** input, sample** output);
 
  private:
   AudioStream::state m_state;
-  hans::audio::AudioDevices& m_audio_devices;
-  hans::audio::AudioBusManager& m_audio_bus_manager;
-  hans::engine::ProgramManager& m_program_manager;
-  const hans_config& m_config;
+  AudioDevices& m_audio_devices;
+  AudioBusManager& m_audio_bus_manager;
+  engine::ProgramManager& m_program_manager;
+  const common::Config& m_config;
 
-  hans_audio_bus_handle m_bus;
-  hans_audio_device_id m_input_device;
-  hans_audio_device_id m_output_device;
+  bus_handle m_bus;
+  Device::ID m_input_device;
+  Device::ID m_output_device;
   PaStream* m_stream;
 };
 

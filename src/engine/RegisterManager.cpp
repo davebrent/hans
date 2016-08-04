@@ -4,16 +4,18 @@
 #include <stdexcept>
 
 using namespace hans;
+using namespace hans::common;
+using namespace hans::engine;
 
 // If an object has empty connection, point all reads & writes to an empty bin
 static uint16_t EMPTY_BIN = 65535;
 
-engine::RegisterManager::RegisterManager(const hans_config& config) {
-  m_audio_reg_size = sizeof(hans_audio_sample) * config.blocksize;
+RegisterManager::RegisterManager(const Config& config) {
+  m_audio_reg_size = sizeof(audio::sample) * config.blocksize;
   m_graphics_reg_size = sizeof(uint32_t);
 }
 
-void engine::RegisterManager::use(common::ListView<hans_register>& registers) {
+void RegisterManager::use(ListView<Register>& registers) {
   m_registers = &registers[0];
   m_length = registers.size();
 
@@ -27,12 +29,12 @@ void engine::RegisterManager::use(common::ListView<hans_register>& registers) {
     }
 
     switch (reg.type) {
-    case HANS_OBJECT_AUDIO:
+    case ObjectDef::Types::AUDIO:
       if (reg.bin > m_num_audio_bins) {
         m_num_audio_bins = reg.bin;
       }
       break;
-    case HANS_OBJECT_GRAPHICS:
+    case ObjectDef::Types::GRAPHICS:
       if (reg.bin > m_num_graphics_bins) {
         m_num_graphics_bins = reg.bin;
       }
@@ -59,13 +61,9 @@ void engine::RegisterManager::use(common::ListView<hans_register>& registers) {
   m_empty_bin_base = static_cast<char*>(m_allocator.allocate(e_bin_size));
 }
 
-hans_register engine::RegisterManager::make(hans_instance_id object,
-                                            hans_resource_type type,
-                                            uint16_t index) {
-  auto readonly = true;
-  if (type == HANS_OUTLET) {
-    readonly = false;
-  }
+Register RegisterManager::make(ObjectDef::ID object, Register::Types type,
+                               uint16_t index) {
+  auto readonly = type != Register::Types::OUTLET;
 
   auto registers = m_registers;
   for (auto i = 0; i < m_length; ++i) {
@@ -77,12 +75,12 @@ hans_register engine::RegisterManager::make(hans_instance_id object,
   }
 
   // Or the empty register
-  hans_register reg;
+  Register reg;
   reg.bin = EMPTY_BIN;
   return reg;
 }
 
-void* engine::RegisterManager::read(const hans_register& reg) const {
+void* RegisterManager::read(const Register& reg) const {
   if (reg.bin == EMPTY_BIN) {
     return static_cast<void*>(m_empty_bin_base);
   }
@@ -92,11 +90,11 @@ void* engine::RegisterManager::read(const hans_register& reg) const {
   size_t bin_size = 0;
 
   switch (reg.type) {
-  case HANS_OBJECT_AUDIO:
+  case ObjectDef::Types::AUDIO:
     base = m_audio_bin_base;
     bin_size = m_audio_reg_size;
     break;
-  case HANS_OBJECT_GRAPHICS:
+  case ObjectDef::Types::GRAPHICS:
     base = m_graphics_bin_base;
     bin_size = m_graphics_reg_size;
     break;
@@ -105,8 +103,7 @@ void* engine::RegisterManager::read(const hans_register& reg) const {
   return static_cast<void*>(base + (bin_size * reg.bin));
 }
 
-bool engine::RegisterManager::write(const hans_register& reg,
-                                    const void* data) {
+bool RegisterManager::write(const Register& reg, const void* data) {
   if (reg.bin == EMPTY_BIN) {
     return false;
   }
@@ -116,12 +113,12 @@ bool engine::RegisterManager::write(const hans_register& reg,
   size_t bin_size = 0;
 
   switch (reg.type) {
-  case HANS_OBJECT_AUDIO:
+  case ObjectDef::Types::AUDIO:
     base = m_audio_bin_base;
     bin_size = m_audio_reg_size;
     assert(reg.bin < m_num_audio_bins);
     break;
-  case HANS_OBJECT_GRAPHICS:
+  case ObjectDef::Types::GRAPHICS:
     base = m_graphics_bin_base;
     bin_size = m_graphics_reg_size;
     assert(reg.bin < m_num_graphics_bins);

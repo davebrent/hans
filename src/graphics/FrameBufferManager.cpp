@@ -3,10 +3,12 @@
 #include "hans/graphics/gl.h"
 
 using namespace hans;
+using namespace hans::common;
+using namespace hans::graphics;
+using namespace hans::engine;
 
-graphics::FrameBufferManager::FrameBufferManager(
-    common::ListView<hans_fbo>& fbos,
-    common::ListView<hans_fbo_attachment>& attachments) {
+FrameBufferManager::FrameBufferManager(ListView<FBO>& fbos,
+                                       ListView<FBO::Attachment>& attachments) {
   m_fbos = &fbos[0];
   m_fbos_length = fbos.size();
   m_attachments = &attachments[0];
@@ -39,7 +41,7 @@ graphics::FrameBufferManager::FrameBufferManager(
       auto texture = m_gl_attachments[i];
 
       switch (attachment_config.type) {
-      case HANS_COLOR_ATTACHMENT:
+      case FBO::Attachment::Types::COLOR:
         glBindTexture(GL_TEXTURE_2D, texture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, 0);
@@ -51,7 +53,7 @@ graphics::FrameBufferManager::FrameBufferManager(
         num_color_attachments++;
         break;
 
-      case HANS_DEPTH_ATTACHMENT:
+      case FBO::Attachment::Types::DEPTH:
         glBindTexture(GL_TEXTURE_2D, texture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0,
                      GL_DEPTH_COMPONENT, GL_FLOAT, 0);
@@ -60,7 +62,7 @@ graphics::FrameBufferManager::FrameBufferManager(
         glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, texture, 0);
         break;
 
-      case HANS_STENCIL_ATTACHMENT:
+      case FBO::Attachment::Types::STENCIL:
         glBindTexture(GL_TEXTURE_2D, texture);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, 0);
@@ -82,14 +84,14 @@ graphics::FrameBufferManager::FrameBufferManager(
   }
 }
 
-graphics::FrameBufferManager::~FrameBufferManager() {
+FrameBufferManager::~FrameBufferManager() {
   glDeleteFramebuffers(m_fbos_length, m_gl_fbos);
   glDeleteTextures(m_attachments_len, m_gl_attachments);
   delete[] m_gl_fbos;
   delete[] m_gl_attachments;
 }
 
-hans_fbo graphics::FrameBufferManager::make(hans_instance_id object) {
+FBO FrameBufferManager::make(ObjectDef::ID object) {
   auto fbos = m_fbos;
   for (auto i = 0; i < m_fbos_length; ++i) {
     auto fbo = fbos[i];
@@ -100,11 +102,11 @@ hans_fbo graphics::FrameBufferManager::make(hans_instance_id object) {
   throw std::runtime_error("Unable to find object");
 }
 
-void graphics::FrameBufferManager::release_fbo() const {
+void FrameBufferManager::release_fbo() const {
   glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void graphics::FrameBufferManager::bind_fbo(const hans_fbo& fbo) const {
+void FrameBufferManager::bind_fbo(const FBO& fbo) const {
   auto fbos = m_fbos;
   for (auto i = 0; i < m_fbos_length; ++i) {
     if (fbos[i].object == fbo.object) {
@@ -114,12 +116,12 @@ void graphics::FrameBufferManager::bind_fbo(const hans_fbo& fbo) const {
   }
 }
 
-uint32_t graphics::FrameBufferManager::get_color_attachment(
-    const hans_fbo& fbo, uint16_t index) const {
+uint32_t FrameBufferManager::get_color_attachment(const FBO& fbo,
+                                                  uint16_t index) const {
   auto seen = 0;
   for (auto i = fbo.start; i < fbo.end; ++i) {
     auto& attachment = m_attachments[i];
-    if (attachment.type == HANS_COLOR_ATTACHMENT) {
+    if (attachment.type == FBO::Attachment::Types::COLOR) {
       if (seen == index) {
         return m_gl_attachments[i];
       }
@@ -129,39 +131,35 @@ uint32_t graphics::FrameBufferManager::get_color_attachment(
   return 0;
 }
 
-uint32_t graphics::FrameBufferManager::get_depth_attachment(
-    const hans_fbo& fbo) const {
+uint32_t FrameBufferManager::get_depth_attachment(const FBO& fbo) const {
   for (auto i = fbo.start; i < fbo.end; ++i) {
     auto& attachment = m_attachments[i];
-    if (attachment.type == HANS_DEPTH_ATTACHMENT) {
+    if (attachment.type == FBO::Attachment::Types::DEPTH) {
       return m_gl_attachments[i];
     }
   }
   return 0;
 }
 
-uint32_t graphics::FrameBufferManager::get_stencil_attachment(
-    const hans_fbo& fbo) const {
+uint32_t FrameBufferManager::get_stencil_attachment(const FBO& fbo) const {
   for (auto i = fbo.start; i < fbo.end; ++i) {
     auto& attachment = m_attachments[i];
-    if (attachment.type == HANS_STENCIL_ATTACHMENT) {
+    if (attachment.type == FBO::Attachment::Types::STENCIL) {
       return m_gl_attachments[i];
     }
   }
   return 0;
 }
 
-void graphics::FrameBufferManager::bind_color_attachment(const hans_fbo& fbo,
-                                                         uint16_t index) const {
+void FrameBufferManager::bind_color_attachment(const FBO& fbo,
+                                               uint16_t index) const {
   glBindTexture(GL_TEXTURE_2D, get_color_attachment(fbo, index));
 }
 
-void graphics::FrameBufferManager::bind_depth_attachment(
-    const hans_fbo& fbo) const {
+void FrameBufferManager::bind_depth_attachment(const FBO& fbo) const {
   glBindTexture(GL_TEXTURE_2D, get_depth_attachment(fbo));
 }
 
-void graphics::FrameBufferManager::bind_stencil_attachment(
-    const hans_fbo& fbo) const {
+void FrameBufferManager::bind_stencil_attachment(const FBO& fbo) const {
   glBindTexture(GL_TEXTURE_2D, get_stencil_attachment(fbo));
 }

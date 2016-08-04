@@ -56,7 +56,7 @@ class IMRenderer {
 
  private:
   NVGcontext* m_nvg;
-  ScriptState* m_script;
+  ScriptState* m_script = nullptr;
 
   float m_width;
   float m_height;

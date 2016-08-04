@@ -11,61 +11,60 @@
 #define AUDIO_BUFFER 0x635d6522b5c8c630    /* snd/osc/buffer */
 
 using namespace hans;
+using namespace hans::engine;
 
 struct OscState {
   unsigned samplerate;
   uint8_t channels;
   unsigned phase;
-  hans_parameter frequency;
-  hans_parameter waveform;
-  hans_audio_buffer buffer;
-  hans_register outlets[SND_OSC_MAX_CHANNELS];
+  Parameter frequency;
+  Parameter waveform;
+  audio::Buffer buffer;
+  Register outlets[SND_OSC_MAX_CHANNELS];
 };
 
 class OscObject : protected AudioObject {
-  friend class hans::engine::LibraryManager;
+  friend class LibraryManager;
 
  public:
   using AudioObject::AudioObject;
-  virtual void create(ObjectPatcher& patcher) override;
-  virtual void setup(hans_object_api& api) override;
-  virtual void callback(hans_object_api& api) override;
+  virtual void create(IPatcher& patcher) override;
+  virtual void setup(Engine& engine) override;
+  virtual void callback(Engine& engine) override;
 
  private:
   OscState state;
 };
 
-void OscObject::create(ObjectPatcher& patcher) {
+void OscObject::create(IPatcher& patcher) {
   state.phase = 0;
   state.channels = 1;
 
-  auto args = patcher.get_args();
-  for (auto i = 0; i < args.length; ++i) {
-    const auto& arg = args.data[i];
-    if (arg.name == ARG_CHANNELS && arg.type == HANS_NUMBER) {
+  for (const auto& arg : patcher.arguments()) {
+    if (arg.name == ARG_CHANNELS && arg.type == Argument::Types::NUMBER) {
       state.channels = arg.number;
-    } else if (arg.name == ARG_PHASE && arg.type == HANS_NUMBER) {
+    } else if (arg.name == ARG_PHASE && arg.type == Argument::Types::NUMBER) {
       state.phase = arg.number;
     }
   }
 
-  patcher.request(HANS_OUTLET, state.channels);
+  patcher.request(IPatcher::Resources::OUTLET, state.channels);
 }
 
-void OscObject::setup(hans_object_api& api) {
-  state.samplerate = api.config->samplerate;
-  state.waveform = api.parameters->make(id, PARAM_WAVEFORM);
-  state.frequency = api.parameters->make(id, PARAM_FREQUENCY);
-  state.buffer = api.audio_buffers->make(id, AUDIO_BUFFER);
+void OscObject::setup(Engine& engine) {
+  state.samplerate = engine.config->samplerate;
+  state.waveform = engine.parameters->make(id, PARAM_WAVEFORM);
+  state.frequency = engine.parameters->make(id, PARAM_FREQUENCY);
+  state.buffer = engine.audio_buffers->make(id, AUDIO_BUFFER);
 
   for (auto i = 0; i < state.channels; ++i) {
-    state.outlets[i] = api.registers->make(id, HANS_OUTLET, i);
+    state.outlets[i] = engine.registers->make(id, Register::Types::OUTLET, i);
   }
 }
 
-static void sine_callback(OscState& state, hans_object_api& api) {
-  auto output = api.audio_buffers->get(state.buffer, 0);
-  auto frequency = api.parameters->get(state.frequency, 0);
+static void sine_callback(OscState& state, Engine& engine) {
+  auto output = engine.audio_buffers->get(state.buffer, 0);
+  auto frequency = engine.parameters->get(state.frequency, 0);
 
   for (int i = 0; i < state.buffer.size; ++i) {
     state.phase += 512.f / (state.samplerate / frequency);
@@ -81,8 +80,8 @@ static void sine_callback(OscState& state, hans_object_api& api) {
   }
 }
 
-static void noise_callback(OscState& state, hans_object_api& api) {
-  auto output = api.audio_buffers->get(state.buffer, 0);
+static void noise_callback(OscState& state, Engine& engine) {
+  auto output = engine.audio_buffers->get(state.buffer, 0);
   for (int i = 0; i < state.buffer.size; ++i) {
     auto noise = rand() / (float)RAND_MAX;
     noise = noise * 2 - 1;
@@ -90,22 +89,22 @@ static void noise_callback(OscState& state, hans_object_api& api) {
   }
 }
 
-void OscObject::callback(hans_object_api& api) {
-  if (api.parameters->get(state.waveform, 0) > 0.5) {
-    noise_callback(state, api);
+void OscObject::callback(Engine& engine) {
+  if (engine.parameters->get(state.waveform, 0) > 0.5) {
+    noise_callback(state, engine);
   } else {
-    sine_callback(state, api);
+    sine_callback(state, engine);
   }
 
-  auto samples = api.audio_buffers->get(state.buffer, 0);
+  auto samples = engine.audio_buffers->get(state.buffer, 0);
   for (auto i = 0; i < state.channels; ++i) {
     auto& outlet = state.outlets[i];
-    api.registers->write(outlet, samples);
+    engine.registers->write(outlet, samples);
   }
 }
 
 extern "C" {
-void setup(engine::LibraryManager* library) {
+void setup(LibraryManager* library) {
   library->add_object<OscState, OscObject>("snd-oscillator");
 }
 }

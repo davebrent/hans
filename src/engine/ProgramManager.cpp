@@ -3,15 +3,16 @@
 #include <cstring>
 
 using namespace hans;
+using namespace hans::common;
+using namespace hans::engine;
 
-engine::ProgramManager::ProgramManager(hans_object_api& api)
-    : m_api(api), m_allocator(0) {
+ProgramManager::ProgramManager(Engine& engine)
+    : m_engine(engine), m_allocator(0) {
 }
 
-void engine::ProgramManager::use(common::ListView<hans_object>& objects,
-                                 common::ListView<hans_program>& programs,
-                                 common::ListView<size_t>& chains,
-                                 hans_blob init_object_data) {
+void ProgramManager::use(ListView<ObjectDef>& objects,
+                         ListView<Program>& programs, ListView<size_t>& chains,
+                         DataFile::Blob init_object_data) {
   m_objects = &objects[0];
   m_chains = &chains[0];
   m_num_objects = objects.size();
@@ -19,7 +20,7 @@ void engine::ProgramManager::use(common::ListView<hans_object>& objects,
   m_init_object_data = init_object_data;
 }
 
-void engine::ProgramManager::switch_to(hans_hash name) {
+void ProgramManager::switch_to(hash name) {
   m_active = 0;
 
   if (name == 0) {
@@ -31,7 +32,7 @@ void engine::ProgramManager::switch_to(hans_hash name) {
   }
 }
 
-void engine::ProgramManager::setup_all() {
+void ProgramManager::setup_all() {
   auto objects = m_objects;
   size_t internal_data_size = 0;
 
@@ -51,15 +52,16 @@ void engine::ProgramManager::setup_all() {
   auto internal_base = static_cast<char*>(m_allocator.start());
   for (auto i = 0; i < m_num_objects; ++i) {
     auto& object = objects[i];
-    auto instance = static_cast<Object*>(object.make(object.id, internal_base));
-    instance->setup(m_api);
+    auto instance =
+        static_cast<Object*>(object.create(object.id, internal_base));
+    instance->setup(m_engine);
 
     object.instance = instance;
     internal_base += object.size;
   }
 }
 
-void engine::ProgramManager::close_all() {
+void ProgramManager::close_all() {
   auto objects = m_objects;
   for (auto i = 0; i < m_num_objects; ++i) {
     auto& object = objects[i];
@@ -67,14 +69,14 @@ void engine::ProgramManager::close_all() {
   }
 }
 
-void engine::ProgramManager::tick_graphics(float delta) {
+void ProgramManager::tick_graphics(float delta) {
   auto program = m_programs[m_active];
   auto chain = program.graphics;
   auto objects = m_objects;
   auto chains = m_chains;
   auto num_objects = m_num_objects;
 
-  m_api.modulators->begin();
+  m_engine.modulators->begin();
 
   for (auto i = chain.start; i < chain.end; ++i) {
     auto instance_id = chains[i];
@@ -82,7 +84,7 @@ void engine::ProgramManager::tick_graphics(float delta) {
       auto& object = objects[k];
       if (object.id == instance_id) {
         auto instance = static_cast<GraphicsObject*>(object.instance);
-        instance->update(m_api);
+        instance->update(m_engine);
         break;
       }
     }
@@ -94,16 +96,16 @@ void engine::ProgramManager::tick_graphics(float delta) {
       auto& object = objects[k];
       if (object.id == instance_id) {
         auto instance = static_cast<GraphicsObject*>(object.instance);
-        instance->draw(m_api);
+        instance->draw(m_engine);
         break;
       }
     }
   }
 
-  m_api.modulators->end();
+  m_engine.modulators->end();
 }
 
-void engine::ProgramManager::tick_audio() {
+void ProgramManager::tick_audio() {
   auto program = m_programs[m_active];
   auto chain = program.audio;
   auto objects = m_objects;
@@ -116,7 +118,7 @@ void engine::ProgramManager::tick_audio() {
       auto& object = objects[k];
       if (object.id == instance_id) {
         auto instance = static_cast<AudioObject*>(object.instance);
-        instance->callback(m_api);
+        instance->callback(m_engine);
         break;
       }
     }

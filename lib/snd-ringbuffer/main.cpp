@@ -3,58 +3,58 @@
 #define RB_ARG_NAME 0xd4c943cba60c270b /* name */
 
 using namespace hans;
+using namespace hans::audio;
+using namespace hans::engine;
 
 struct RingBufferState {
-  hans_hash name;
-  hans_register inlet;
-  hans_register outlet;
-  hans_ring_buffer ringbuffer;
+  hash name;
+  Register inlet;
+  Register outlet;
+  RingBuffer ringbuffer;
 };
 
 class RingBufferObject : protected AudioObject {
-  friend class hans::engine::LibraryManager;
+  friend class LibraryManager;
 
  public:
   using AudioObject::AudioObject;
-  virtual void create(ObjectPatcher& patcher) override;
-  virtual void setup(hans_object_api& api) override;
-  virtual void callback(hans_object_api& api) override;
+  virtual void create(IPatcher& patcher) override;
+  virtual void setup(Engine& engine) override;
+  virtual void callback(Engine& engine) override;
 
  private:
   RingBufferState state;
 };
 
-void RingBufferObject::create(ObjectPatcher& patcher) {
-  auto args = patcher.get_args();
-  for (auto i = 0; i < args.length; ++i) {
-    const auto& arg = args.data[i];
-    if (arg.name == RB_ARG_NAME && arg.type == HANS_STRING) {
+void RingBufferObject::create(IPatcher& patcher) {
+  for (const auto& arg : patcher.arguments()) {
+    if (arg.name == RB_ARG_NAME && arg.type == Argument::Types::STRING) {
       state.name = arg.string;
     }
   }
 
-  patcher.request(HANS_INLET, 1);
-  patcher.request(HANS_OUTLET, 1);
-  patcher.request(HANS_RING_BUFFER, state.name);
+  patcher.request(IPatcher::Resources::INLET, 1);
+  patcher.request(IPatcher::Resources::OUTLET, 1);
+  patcher.request(IPatcher::Resources::RING_BUFFER, state.name);
 }
 
-void RingBufferObject::setup(hans_object_api& api) {
-  state.inlet = api.registers->make(id, HANS_INLET, 0);
-  state.outlet = api.registers->make(id, HANS_OUTLET, 0);
-  state.ringbuffer = api.ring_buffers->make(id, state.name);
+void RingBufferObject::setup(Engine& engine) {
+  state.inlet = engine.registers->make(id, Register::Types::INLET, 0);
+  state.outlet = engine.registers->make(id, Register::Types::OUTLET, 0);
+  state.ringbuffer = engine.ring_buffers->make(id, state.name);
 }
 
-void RingBufferObject::callback(hans_object_api& api) {
+void RingBufferObject::callback(Engine& engine) {
   auto& inlet = state.inlet;
   auto& outlet = state.outlet;
-  auto samples = static_cast<hans_audio_sample*>(api.registers->read(inlet));
+  auto samples = static_cast<audio::sample*>(engine.registers->read(inlet));
 
-  api.ring_buffers->write(state.ringbuffer, samples);
-  api.registers->write(outlet, samples);
+  engine.ring_buffers->write(state.ringbuffer, samples);
+  engine.registers->write(outlet, samples);
 }
 
 extern "C" {
-void setup(engine::LibraryManager* library) {
+void setup(LibraryManager* library) {
   library->add_object<RingBufferState, RingBufferObject>("snd-ringbuffer");
 }
 }

@@ -12,18 +12,17 @@ namespace common {
 class StringManager {
  public:
   explicit StringManager(size_t size);
-  StringManager(hans::common::ListView<hans_hash> hashes,
-                hans::common::ListView<size_t> offsets,
-                hans::common::ListView<const char> data);
+  StringManager(ListView<hash> hashes, ListView<size_t> offsets,
+                ListView<const char> data);
 
   /// Intern a string and retrieve its hash
-  hans_hash intern(const char* string);
+  hash intern(const char* string);
   /// Return the original string for a given hash
-  const char* lookup(const hans_hash& hash) const;
+  const char* lookup(hash hashed) const;
 
  private:
-  common::LinearAllocator m_allocator;
-  std::vector<hans_hash> m_hashes;
+  LinearAllocator m_allocator;
+  std::vector<hash> m_hashes;
   std::vector<const char*> m_strings;
 };
 

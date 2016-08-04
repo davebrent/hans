@@ -7,6 +7,7 @@
 #define ARG_PATH 0xae70259f6415b584
 
 using namespace hans;
+using namespace hans::engine;
 
 static SCM size(SCM w, SCM h) {
   auto& renderer = IMRenderer::get_instance();
@@ -157,16 +158,16 @@ static SCM script_draw(SCM proc) {
 }
 
 class ScriptObject : protected GraphicsObject {
-  friend class engine::LibraryManager;
+  friend class LibraryManager;
 
  public:
   using GraphicsObject::GraphicsObject;
   ~ScriptObject();
-  virtual void create(ObjectPatcher& patcher) override;
-  virtual void setup(hans_object_api& api) override;
-  virtual void update(hans_object_api& api) override {
+  virtual void create(IPatcher& patcher) override;
+  virtual void setup(Engine& engine) override;
+  virtual void update(Engine& engine) override {
   }
-  virtual void draw(hans_object_api& api) override;
+  virtual void draw(Engine& engine) const override;
 
  private:
   ScriptState state;
@@ -177,25 +178,23 @@ ScriptObject::~ScriptObject() {
   // IMRenderer::get_instance().destroy();
 }
 
-void ScriptObject::create(ObjectPatcher& patcher) {
-  patcher.request(HANS_INLET, 1);
-  patcher.request(HANS_OUTLET, 1);
+void ScriptObject::create(IPatcher& patcher) {
+  patcher.request(IPatcher::Resources::INLET, 1);
+  patcher.request(IPatcher::Resources::OUTLET, 1);
 
-  auto args = patcher.get_args();
-  for (auto i = 0; i < args.length; ++i) {
-    const auto& arg = args.data[i];
-    if (arg.type == HANS_STRING && arg.name == ARG_PATH) {
+  for (const auto& arg : patcher.arguments()) {
+    if (arg.name == ARG_PATH && arg.type == Argument::Types::STRING) {
       state.path = arg.string;
     }
   }
 }
 
-void ScriptObject::setup(hans_object_api& api) {
-  state.outlet = api.registers->make(id, HANS_OUTLET, 0);
-  state.fbo = api.fbos->make(id);
+void ScriptObject::setup(Engine& engine) {
+  state.outlet = engine.registers->make(id, Register::Types::OUTLET, 0);
+  state.fbo = engine.fbos->make(id);
 
-  auto texture = api.fbos->get_color_attachment(state.fbo, 0);
-  api.registers->write(state.outlet, &texture);
+  auto texture = engine.fbos->get_color_attachment(state.fbo, 0);
+  engine.registers->write(state.outlet, &texture);
 
   scm_c_define_gsubr("size", 2, 0, 0, (scm_t_subr)size);
   scm_c_define_gsubr("save", 0, 0, 0, (scm_t_subr)save);
@@ -224,12 +223,12 @@ void ScriptObject::setup(hans_object_api& api) {
 
   auto& renderer = IMRenderer::get_instance();
   renderer.set_script_state(&state);
-  scm_c_primitive_load(api.strings->lookup(state.path));
+  scm_c_primitive_load(engine.strings->lookup(state.path));
   renderer.set_script_state(nullptr);
 }
 
-void ScriptObject::draw(hans_object_api& api) {
-  api.fbos->bind_fbo(state.fbo);
+void ScriptObject::draw(Engine& engine) const {
+  engine.fbos->bind_fbo(state.fbo);
 
   auto& renderer = IMRenderer::get_instance();
   renderer.size(state.width, state.height);
@@ -239,7 +238,7 @@ void ScriptObject::draw(hans_object_api& api) {
 }
 
 extern "C" {
-void setup(engine::LibraryManager* library) {
+void setup(LibraryManager* library) {
   library->add_object<ScriptState, ScriptObject>("gfx-script");
 }
 }

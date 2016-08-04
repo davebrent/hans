@@ -4,11 +4,12 @@
 #include "hans/common/types.hpp"
 
 using namespace hans;
+using namespace hans::engine;
 
 TEST_CASE("modulation manager", "[modulators]") {
   SECTION("modulating parameters") {
-    hans_parameter_value data[2] = {10, 20};
-    hans_parameter fixture[2];
+    Parameter::Value data[2] = {10, 20};
+    Parameter fixture[2];
 
     fixture[0].object = 1;
     fixture[0].name = 0x10;
@@ -20,7 +21,7 @@ TEST_CASE("modulation manager", "[modulators]") {
     fixture[1].size = 1;
     fixture[1].offset = 1;
 
-    hans_modulator modulator;
+    Modulator modulator;
     modulator.source.object = 1;
     modulator.source.parameter = 0x10;
     modulator.source.component = 0;
@@ -32,9 +33,9 @@ TEST_CASE("modulation manager", "[modulators]") {
     modulator.offset = 3;
     modulator.scale = 1.5;
 
-    auto parameters = common::ListView<hans_parameter>(&fixture[0], 2);
-    auto values = common::ListView<hans_parameter_value>(&data[0], 2);
-    auto modulators = common::ListView<hans_modulator>(&modulator, 1);
+    auto parameters = common::ListView<Parameter>(&fixture[0], 2);
+    auto values = common::ListView<Parameter::Value>(&data[0], 2);
+    auto modulators = common::ListView<Modulator>(&modulator, 1);
 
     auto param_manager = engine::ParameterManager();
     auto mod_manager = engine::ModulationManager(param_manager, modulators);

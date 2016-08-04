@@ -2,28 +2,29 @@
 #include "hans/engine/object.hpp"
 
 using namespace hans;
+using namespace hans::engine;
 
-#define GFX_RB_MAX_FRAMES 30
-#define GFX_RB_ARG_NAME 0xd4c943cba60c270b /* name */
+#define MAX_FRAMES 30
+#define ARG_NAME 0xd4c943cba60c270b /* name */
 
 struct SndTexState {
   GLuint texture;
-  hans_hash name;
-  hans_register outlet;
+  hash name;
+  Register outlet;
   uint32_t texture_value;
-  hans_audio_sample* samples = nullptr;
+  audio::sample* samples = nullptr;
 };
 
 class SndTexObject : protected GraphicsObject {
-  friend class engine::LibraryManager;
+  friend class LibraryManager;
 
  public:
   using GraphicsObject::GraphicsObject;
   ~SndTexObject();
-  virtual void create(ObjectPatcher& patcher) override;
-  virtual void setup(hans_object_api& api) override;
-  virtual void update(hans_object_api& api) override;
-  virtual void draw(hans_object_api& api) override {
+  virtual void create(IPatcher& patcher) override;
+  virtual void setup(Engine& engine) override;
+  virtual void update(Engine& engine) override;
+  virtual void draw(Engine& engine) const override {
   }
 
  private:
@@ -34,39 +35,37 @@ SndTexObject::~SndTexObject() {
   delete[] state.samples;
 }
 
-void SndTexObject::create(ObjectPatcher& patcher) {
-  auto args = patcher.get_args();
-  for (auto i = 0; i < args.length; ++i) {
-    const auto& arg = args.data[i];
-    if (arg.name == GFX_RB_ARG_NAME && arg.type == HANS_STRING) {
+void SndTexObject::create(IPatcher& patcher) {
+  for (const auto& arg : patcher.arguments()) {
+    if (arg.name == ARG_NAME && arg.type == Argument::Types::STRING) {
       state.name = arg.string;
     }
   }
 
-  patcher.request(HANS_OUTLET, 1);
+  patcher.request(IPatcher::Resources::OUTLET, 1);
 }
 
-void SndTexObject::setup(hans_object_api& api) {
-  auto blocksize = api.config->blocksize;
+void SndTexObject::setup(Engine& engine) {
+  auto blocksize = engine.config->blocksize;
 
-  state.outlet = api.registers->make(id, HANS_OUTLET, 0);
-  state.samples = new hans_audio_sample[blocksize * GFX_RB_MAX_FRAMES];
+  state.outlet = engine.registers->make(id, Register::Types::OUTLET, 0);
+  state.samples = new audio::sample[blocksize * MAX_FRAMES];
 
   glGenTextures(1, &state.texture);
-  api.registers->write(state.outlet, &state.texture);
+  engine.registers->write(state.outlet, &state.texture);
 }
 
-void SndTexObject::update(hans_object_api& api) {
-  auto blocksize = api.config->blocksize;
-  auto framesize = blocksize * sizeof(hans_audio_sample);
-  auto available = api.ring_buffers->available(state.name);
+void SndTexObject::update(Engine& engine) {
+  auto blocksize = engine.config->blocksize;
+  auto framesize = blocksize * sizeof(audio::sample);
+  auto available = engine.ring_buffers->available(state.name);
 
-  if (available >= GFX_RB_MAX_FRAMES) {
-    available = GFX_RB_MAX_FRAMES - 1;
+  if (available >= MAX_FRAMES) {
+    available = MAX_FRAMES - 1;
   }
 
   for (auto i = 0; i < available; ++i) {
-    auto buffer = api.ring_buffers->read(state.name, i);
+    auto buffer = engine.ring_buffers->read(state.name, i);
     auto dest = &state.samples[i * blocksize];
     std::memcpy(dest, buffer, framesize);
   }
@@ -79,7 +78,7 @@ void SndTexObject::update(hans_object_api& api) {
 }
 
 extern "C" {
-void setup(engine::LibraryManager* library) {
+void setup(LibraryManager* library) {
   library->add_object<SndTexState, SndTexObject>("gfx-sndtex");
 }
 }

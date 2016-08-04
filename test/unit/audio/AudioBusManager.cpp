@@ -2,18 +2,20 @@
 #include <catch.hpp>
 
 using namespace hans;
+using namespace hans::common;
+using namespace hans::audio;
 
 TEST_CASE("audio bus manager", "[audiobus]") {
   SECTION("writing data to single bus multiple channels") {
-    hans_config config;
+    Config config;
     config.blocksize = 4;
     config.channels = 2;
 
-    auto manager = audio::AudioBusManager(config, 1);
+    auto manager = AudioBusManager(config, 1);
     auto bus = manager.make();
 
-    hans_audio_sample frame1[4] = {13, 14, 15, 16};
-    hans_audio_sample frame2[4] = {23, 24, 25, 26};
+    audio::sample frame1[4] = {13, 14, 15, 16};
+    audio::sample frame2[4] = {23, 24, 25, 26};
 
     manager.write(bus, 0, &frame1[0]);
     manager.write(bus, 1, &frame2[0]);
@@ -33,18 +35,18 @@ TEST_CASE("audio bus manager", "[audiobus]") {
   }
 
   SECTION("writing data to multipe buses & multiple channels") {
-    hans_config config;
+    Config config;
     config.blocksize = 4;
     config.channels = 2;
 
-    auto manager = audio::AudioBusManager(config, 2);
+    auto manager = AudioBusManager(config, 2);
     auto bus1 = manager.make();
     auto bus2 = manager.make();
 
-    hans_audio_sample frame1[4] = {13, 14, 15, 16};
-    hans_audio_sample frame2[4] = {23, 24, 25, 26};
-    hans_audio_sample frame3[4] = {33, 34, 35, 36};
-    hans_audio_sample frame4[4] = {43, 44, 45, 46};
+    audio::sample frame1[4] = {13, 14, 15, 16};
+    audio::sample frame2[4] = {23, 24, 25, 26};
+    audio::sample frame3[4] = {33, 34, 35, 36};
+    audio::sample frame4[4] = {43, 44, 45, 46};
 
     manager.write(bus1, 0, &frame1[0]);
     manager.write(bus1, 1, &frame2[0]);

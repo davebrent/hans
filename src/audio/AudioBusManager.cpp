@@ -3,13 +3,15 @@
 #include <stdexcept>
 
 using namespace hans;
+using namespace hans::audio;
+using namespace hans::common;
 
-audio::AudioBusManager::AudioBusManager(const hans_config& config, size_t num) {
+AudioBusManager::AudioBusManager(const Config& config, size_t num) {
   auto blocksize = config.blocksize;
   auto channels = config.channels;
-  auto bytes = num * channels * blocksize * sizeof(hans_audio_sample);
+  auto bytes = num * channels * blocksize * sizeof(audio::sample);
   m_allocator.reset(bytes);
-  auto data = m_allocator.allocate(bytes, alignof(hans_audio_sample));
+  auto data = m_allocator.allocate(bytes, alignof(audio::sample));
 
   m_base = static_cast<char*>(data);
   m_ids = 0;
@@ -20,20 +22,19 @@ audio::AudioBusManager::AudioBusManager(const hans_config& config, size_t num) {
   m_revisions = new uint64_t[num];
 }
 
-hans_audio_bus_handle audio::AudioBusManager::make() {
+bus_handle AudioBusManager::make() {
   if (m_ids == m_max) {
     throw std::runtime_error("AudioBusManager: Exceeded number of buses");
   }
 
-  hans_audio_bus_handle handle = m_ids;
+  auto handle = m_ids;
   m_ids++;
   return handle;
 }
 
-bool audio::AudioBusManager::write(hans_audio_bus_handle handle,
-                                   uint8_t channel,
-                                   const hans_audio_sample* samples) {
-  auto size = sizeof(hans_audio_sample);
+bool AudioBusManager::write(bus_handle handle, uint8_t channel,
+                            const audio::sample* samples) {
+  auto size = sizeof(audio::sample);
   auto offset = handle * m_blocksize * m_channels * size;
   auto block = m_base + offset + (m_blocksize * channel * size);
   m_revisions[handle]++;
@@ -41,18 +42,17 @@ bool audio::AudioBusManager::write(hans_audio_bus_handle handle,
   return true;
 }
 
-hans_audio_sample* audio::AudioBusManager::read(hans_audio_bus_handle handle,
-                                                uint8_t channel) {
-  auto size = sizeof(hans_audio_sample);
+audio::sample* AudioBusManager::read(bus_handle handle, uint8_t channel) {
+  auto size = sizeof(audio::sample);
   auto offset = handle * m_blocksize * m_channels * size;
   auto block = m_base + offset + (m_blocksize * channel * size);
-  return reinterpret_cast<hans_audio_sample*>(block);
+  return reinterpret_cast<audio::sample*>(block);
 }
 
-bool audio::AudioBusManager::is_dirty(hans_audio_bus_handle handle) {
+bool AudioBusManager::is_dirty(bus_handle handle) {
   return m_revisions[handle] != 0;
 }
 
-void audio::AudioBusManager::set_clean(hans_audio_bus_handle handle) {
+void AudioBusManager::set_clean(bus_handle handle) {
   m_revisions[handle] = 0;
 }

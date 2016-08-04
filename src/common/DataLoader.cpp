@@ -5,21 +5,25 @@
 #include <iostream>
 
 using namespace hans;
+using namespace hans::audio;
+using namespace hans::common;
+using namespace hans::engine;
+using namespace hans::graphics;
 
-common::DataWriter::DataWriter(size_t size) : m_allocator(size) {
+DataWriter::DataWriter(size_t size) : m_allocator(size) {
   m_cleanup = false;
 }
 
-common::DataWriter::~DataWriter() {
+DataWriter::~DataWriter() {
   if (m_cleanup) {
     std::free(m_file.data);
   }
 }
 
-bool common::DataWriter::stage(hans_blob_type type, void* data, size_t size) {
+bool DataWriter::stage(DataFile::Types type, void* data, size_t size) {
   auto len = m_blobs.size();
 
-  hans_blob blob;
+  DataFile::Blob blob;
   blob.type = type;
   blob.data = m_allocator.allocate(size);
   blob.size = size;
@@ -38,7 +42,7 @@ bool common::DataWriter::stage(hans_blob_type type, void* data, size_t size) {
   return true;
 }
 
-bool common::DataWriter::write(const char* uri) {
+bool DataWriter::write(const char* uri) {
   auto size = 0;
   for (const auto& blob : m_blobs) {
     size += blob.size;
@@ -52,9 +56,9 @@ bool common::DataWriter::write(const char* uri) {
   m_file.blobs = &m_blobs[0];
 
   std::ofstream stream(uri, std::ios::binary);
-  stream.write(reinterpret_cast<char*>(&m_file), sizeof(hans_file));
+  stream.write(reinterpret_cast<char*>(&m_file), sizeof(DataFile));
   stream.write(reinterpret_cast<char*>(m_file.blobs),
-               sizeof(hans_blob) * m_file.length);
+               sizeof(DataFile::Blob) * m_file.length);
   stream.write(reinterpret_cast<char*>(m_file.data), m_file.size);
   stream.close();
 
@@ -63,15 +67,15 @@ bool common::DataWriter::write(const char* uri) {
   return true;
 }
 
-common::DataReader::DataReader(const char* uri) {
+DataReader::DataReader(const char* uri) {
   std::ifstream stream(uri, std::ios::binary);
-  stream.read(reinterpret_cast<char*>(&file), sizeof(hans_file));
+  stream.read(reinterpret_cast<char*>(&file), sizeof(DataFile));
 
-  file.blobs = new hans_blob[file.length];
+  file.blobs = new DataFile::Blob[file.length];
   file.data = std::malloc(file.size);
 
   stream.read(reinterpret_cast<char*>(file.blobs),
-              sizeof(hans_blob) * file.length);
+              sizeof(DataFile::Blob) * file.length);
   stream.read(reinterpret_cast<char*>(file.data), file.size);
   stream.close();
 
@@ -81,62 +85,62 @@ common::DataReader::DataReader(const char* uri) {
     blob.data = base + blob.offset;
 
     switch (blob.type) {
-    case HANS_BLOB_STRINGS:
+    case DataFile::Types::STRINGS:
       data.strings = ListView<const char>(blob);
       break;
-    case HANS_BLOB_STRING_OFFSETS:
+    case DataFile::Types::STRING_OFFSETS:
       data.string_offsets = ListView<size_t>(blob);
       break;
-    case HANS_BLOB_STRING_HASHES:
-      data.string_hashes = ListView<hans_hash>(blob);
+    case DataFile::Types::STRING_HASHES:
+      data.string_hashes = ListView<hash>(blob);
       break;
-    case HANS_BLOB_LIBRARIES:
-      data.libraries = ListView<hans_library>(blob);
+    case DataFile::Types::LIBRARIES:
+      data.libraries = ListView<Library>(blob);
       break;
-    case HANS_BLOB_OBJECTS:
-      data.objects = ListView<hans_object>(blob);
+    case DataFile::Types::OBJECTS:
+      data.objects = ListView<ObjectDef>(blob);
       break;
-    case HANS_BLOB_OBJECTS_DATA:
+    case DataFile::Types::OBJECTS_DATA:
       data.object_data = blob;
       break;
-    case HANS_BLOB_PARAMETERS:
-      data.parameters = ListView<hans_parameter>(blob);
+    case DataFile::Types::PARAMETERS:
+      data.parameters = ListView<Parameter>(blob);
       break;
-    case HANS_BLOB_PARAMETER_VALUES:
-      data.parameter_values = ListView<hans_parameter_value>(blob);
+    case DataFile::Types::PARAMETER_VALUES:
+      data.parameter_values = ListView<Parameter::Value>(blob);
       break;
-    case HANS_BLOB_PROGRAMS:
-      data.programs = ListView<hans_program>(blob);
+    case DataFile::Types::PROGRAMS:
+      data.programs = ListView<Program>(blob);
       break;
-    case HANS_BLOB_CHAINS:
+    case DataFile::Types::CHAINS:
       data.chains = ListView<size_t>(blob);
       break;
-    case HANS_BLOB_REGISTERS:
-      data.registers = ListView<hans_register>(blob);
+    case DataFile::Types::REGISTERS:
+      data.registers = ListView<Register>(blob);
       break;
-    case HANS_BLOB_SHADERS:
-      data.shaders = ListView<hans_shader>(blob);
+    case DataFile::Types::SHADERS:
+      data.shaders = ListView<Shader>(blob);
       break;
-    case HANS_BLOB_FBOS:
-      data.fbos = ListView<hans_fbo>(blob);
+    case DataFile::Types::FBOS:
+      data.fbos = ListView<FBO>(blob);
       break;
-    case HANS_BLOB_FBO_ATTACHMENTS:
-      data.fbo_attachments = ListView<hans_fbo_attachment>(blob);
+    case DataFile::Types::FBO_ATTACHMENTS:
+      data.fbo_attachments = ListView<FBO::Attachment>(blob);
       break;
-    case HANS_BLOB_AUDIO_BUFFERS:
-      data.audio_buffers = ListView<hans_audio_buffer>(blob);
+    case DataFile::Types::AUDIO_BUFFERS:
+      data.audio_buffers = ListView<Buffer>(blob);
       break;
-    case HANS_BLOB_RING_BUFFERS:
-      data.ring_buffers = ListView<hans_ring_buffer>(blob);
+    case DataFile::Types::RING_BUFFERS:
+      data.ring_buffers = ListView<RingBuffer>(blob);
       break;
-    case HANS_BLOB_MODULATORS:
-      data.modulators = ListView<hans_modulator>(blob);
+    case DataFile::Types::MODULATORS:
+      data.modulators = ListView<Modulator>(blob);
       break;
     }
   }
 }
 
-common::DataReader::~DataReader() {
+DataReader::~DataReader() {
   delete[] file.blobs;
   std::free(file.data);
 }

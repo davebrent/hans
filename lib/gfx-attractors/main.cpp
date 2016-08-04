@@ -12,18 +12,19 @@
 #define PARAM_NAME_F 0x5647bce94f90d9aa       /* f */
 
 using namespace hans;
+using namespace hans::engine;
 
 struct AttractorsState {
   GLuint vao;
-  hans_fbo fbo;
-  hans_parameter a;
-  hans_parameter b;
-  hans_parameter c;
-  hans_parameter d;
-  hans_parameter e;
-  hans_parameter f;
-  hans_register outlet;
-  hans_shader_program_instance program;
+  graphics::FBO fbo;
+  Parameter a;
+  Parameter b;
+  Parameter c;
+  Parameter d;
+  Parameter e;
+  Parameter f;
+  Register outlet;
+  graphics::ShaderProgram program;
   float* positions;
   size_t buffer_length;
   GLuint position_buffer;
@@ -31,38 +32,38 @@ struct AttractorsState {
 };
 
 class AttractorsObject : protected GraphicsObject {
-  friend class engine::LibraryManager;
+  friend class LibraryManager;
 
  public:
   using GraphicsObject::GraphicsObject;
-  virtual void create(ObjectPatcher& patcher) override;
-  virtual void setup(hans_object_api& api) override;
-  virtual void update(hans_object_api& api) override;
-  virtual void draw(hans_object_api& api) override;
+  virtual void create(IPatcher& patcher) override;
+  virtual void setup(Engine& engine) override;
+  virtual void update(Engine& engine) override;
+  virtual void draw(Engine& engine) const override;
 
  private:
   AttractorsState state;
 };
 
-void AttractorsObject::create(ObjectPatcher& patcher) {
-  patcher.request(HANS_OUTLET, 1);
+void AttractorsObject::create(IPatcher& patcher) {
+  patcher.request(IPatcher::Resources::OUTLET, 1);
 }
 
-void AttractorsObject::setup(hans_object_api& api) {
-  state.a = api.parameters->make(id, PARAM_NAME_A);
-  state.b = api.parameters->make(id, PARAM_NAME_B);
-  state.c = api.parameters->make(id, PARAM_NAME_C);
-  state.d = api.parameters->make(id, PARAM_NAME_D);
-  state.e = api.parameters->make(id, PARAM_NAME_E);
-  state.f = api.parameters->make(id, PARAM_NAME_F);
+void AttractorsObject::setup(Engine& engine) {
+  state.a = engine.parameters->make(id, PARAM_NAME_A);
+  state.b = engine.parameters->make(id, PARAM_NAME_B);
+  state.c = engine.parameters->make(id, PARAM_NAME_C);
+  state.d = engine.parameters->make(id, PARAM_NAME_D);
+  state.e = engine.parameters->make(id, PARAM_NAME_E);
+  state.f = engine.parameters->make(id, PARAM_NAME_F);
 
-  state.outlet = api.registers->make(id, HANS_OUTLET, 0);
-  state.fbo = api.fbos->make(id);
+  state.outlet = engine.registers->make(id, Register::Types::OUTLET, 0);
+  state.fbo = engine.fbos->make(id);
   state.buffer_length = NUM_PARTICLES * 2;
   state.positions = new float[state.buffer_length];
 
-  auto texture = api.fbos->get_color_attachment(state.fbo, 0);
-  api.registers->write(state.outlet, &texture);
+  auto texture = engine.fbos->get_color_attachment(state.fbo, 0);
+  engine.registers->write(state.outlet, &texture);
 
   glGenVertexArrays(1, &state.vao);
   glBindVertexArray(state.vao);
@@ -85,9 +86,9 @@ void AttractorsObject::setup(hans_object_api& api) {
   glBindBuffer(GL_ARRAY_BUFFER, state.position_buffer);
   glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_STREAM_DRAW);
 
-  auto vert_shdr = api.shaders->create_shader(GFX_SHDRS_VERTEX);
-  auto frag_shdr = api.shaders->create_shader(GFX_SHDRS_FRAGMENT);
-  state.program = api.shaders->create_program(vert_shdr, frag_shdr);
+  auto vert_shdr = engine.shaders->create(GFX_SHDRS_VERTEX);
+  auto frag_shdr = engine.shaders->create(GFX_SHDRS_FRAGMENT);
+  state.program = engine.shaders->create(vert_shdr, frag_shdr);
   glUseProgram(state.program.handle);
 
   auto pos = 0;
@@ -102,13 +103,13 @@ void AttractorsObject::setup(hans_object_api& api) {
   glEnableVertexAttribArray(pos);
 }
 
-void AttractorsObject::update(hans_object_api& api) {
-  float a = api.parameters->get(state.a, 0);
-  float b = api.parameters->get(state.b, 0);
-  float c = api.parameters->get(state.c, 0);
-  float d = api.parameters->get(state.d, 0);
-  float e = api.parameters->get(state.e, 0);
-  float f = api.parameters->get(state.f, 0);
+void AttractorsObject::update(Engine& engine) {
+  float a = engine.parameters->get(state.a, 0);
+  float b = engine.parameters->get(state.b, 0);
+  float c = engine.parameters->get(state.c, 0);
+  float d = engine.parameters->get(state.d, 0);
+  float e = engine.parameters->get(state.e, 0);
+  float f = engine.parameters->get(state.f, 0);
 
   float xs = 0, ys = 0, zs = 0;
 
@@ -126,10 +127,10 @@ void AttractorsObject::update(hans_object_api& api) {
                   state.positions);
 }
 
-void AttractorsObject::draw(hans_object_api& api) {
+void AttractorsObject::draw(Engine& engine) const {
   glUseProgram(state.program.handle);
 
-  api.fbos->bind_fbo(state.fbo);
+  engine.fbos->bind_fbo(state.fbo);
 
   glEnable(GL_ALPHA_TEST);
   glEnable(GL_DEPTH_TEST);
@@ -146,7 +147,7 @@ void AttractorsObject::draw(hans_object_api& api) {
 }
 
 extern "C" {
-void setup(engine::LibraryManager* library) {
+void setup(LibraryManager* library) {
   library->add_object<AttractorsState, AttractorsObject>("gfx-attractors");
 }
 }

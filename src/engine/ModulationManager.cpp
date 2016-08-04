@@ -1,16 +1,17 @@
 #include "hans/engine/ModulationManager.hpp"
 
+using namespace hans;
 using namespace hans::common;
 using namespace hans::engine;
 
 ModulationManager::ModulationManager(ParameterManager& parameter_manager,
-                                     const ListView<hans_modulator>& modulators)
+                                     const ListView<Modulator>& modulators)
     : m_parameter_manager(parameter_manager), m_mods(modulators) {
   auto num = m_mods.size();
 
-  m_srcs = new hans_parameter[num];
-  m_dests = new hans_parameter[num];
-  m_vals = new hans_parameter_value[num];
+  m_srcs = new Parameter[num];
+  m_dests = new Parameter[num];
+  m_vals = new Parameter::Value[num];
 }
 
 void ModulationManager::setup() {

@@ -4,43 +4,44 @@
 #define LIBQUAD_FRAG_SHADER 0x14702fc4633a84b9
 
 using namespace hans;
+using namespace hans::engine;
 
 static const float VERTICES[] = {-1, 1, -1, -1, 1, -1, 1, 1};
 static const int INDEX[] = {0, 1, 2, 2, 3, 0};
 
 struct QuadState {
-  hans_fbo fbo;
+  graphics::FBO fbo;
   GLuint vao;
   GLuint texture;
-  hans_shader_instance v_shader;
-  hans_shader_instance f_shader;
-  hans_shader_program_instance program;
-  hans_register inlet;
+  graphics::Shader::Instance v_shader;
+  graphics::Shader::Instance f_shader;
+  graphics::ShaderProgram program;
+  Register inlet;
   uint32_t texture_value;
 };
 
 class QuadObject : protected GraphicsObject {
-  friend class hans::engine::LibraryManager;
+  friend class LibraryManager;
 
  public:
   using GraphicsObject::GraphicsObject;
-  virtual void create(ObjectPatcher& patcher) override;
-  virtual void setup(hans_object_api& api) override;
-  virtual void update(hans_object_api& api) override {
+  virtual void create(IPatcher& patcher) override;
+  virtual void setup(Engine& engine) override;
+  virtual void update(Engine& engine) override {
   }
-  virtual void draw(hans_object_api& api) override;
+  virtual void draw(Engine& engine) const override;
 
  private:
   QuadState state;
 };
 
-void QuadObject::create(ObjectPatcher& patcher) {
-  patcher.request(HANS_INLET, 1);
+void QuadObject::create(IPatcher& patcher) {
+  patcher.request(IPatcher::Resources::INLET, 1);
 }
 
-void QuadObject::setup(hans_object_api& api) {
-  state.fbo = api.fbos->make(id);
-  state.inlet = api.registers->make(id, HANS_INLET, 0);
+void QuadObject::setup(Engine& engine) {
+  state.fbo = engine.fbos->make(id);
+  state.inlet = engine.registers->make(id, Register::Types::INLET, 0);
 
   GLuint vbo;
   GLuint ebo;
@@ -60,9 +61,9 @@ void QuadObject::setup(hans_object_api& api) {
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
-  state.v_shader = api.shaders->create_shader(LIBQUAD_VERT_SHADER);
-  state.f_shader = api.shaders->create_shader(LIBQUAD_FRAG_SHADER);
-  state.program = api.shaders->create_program(state.v_shader, state.f_shader);
+  state.v_shader = engine.shaders->create(LIBQUAD_VERT_SHADER);
+  state.f_shader = engine.shaders->create(LIBQUAD_FRAG_SHADER);
+  state.program = engine.shaders->create(state.v_shader, state.f_shader);
   glUseProgram(state.program.handle);
 
   state.texture = glGetUniformLocation(state.program.handle, "u_texture");
@@ -71,24 +72,24 @@ void QuadObject::setup(hans_object_api& api) {
   glVertexAttribPointer(pos_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(pos_attrib);
 
-  auto register_value = api.registers->read(state.inlet);
+  auto register_value = engine.registers->read(state.inlet);
   state.texture_value = *static_cast<uint32_t*>(register_value);
 }
 
-void QuadObject::draw(hans_object_api& api) {
+void QuadObject::draw(Engine& engine) const {
   glUseProgram(state.program.handle);
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, state.texture_value);
   glUniform1i(state.texture, 0);
 
-  api.fbos->release_fbo();
+  engine.fbos->release_fbo();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glBindVertexArray(state.vao);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
 extern "C" {
-void setup(hans::engine::LibraryManager* library) {
+void setup(LibraryManager* library) {
   library->add_object<QuadState, QuadObject>("gfx-quad");
 }
 }

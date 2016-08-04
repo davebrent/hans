@@ -8,7 +8,10 @@
 #include "hans/common/types.hpp"
 
 using namespace hans;
+using namespace hans::audio;
 using namespace hans::common;
+using namespace hans::engine;
+using namespace hans::graphics;
 
 class Dumper {
  public:
@@ -17,7 +20,7 @@ class Dumper {
   explicit Dumper(const StringManager& strings) : m_strings(strings) {
   }
 
-  void print(const char* label, const ListView<hans_library>& libraries) {
+  void print(const char* label, const ListView<Library>& libraries) {
     const auto& s = m_strings;
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Values:" << std::endl;
@@ -26,7 +29,7 @@ class Dumper {
     }
   }
 
-  void print(const char* label, const ListView<hans_object>& objects) {
+  void print(const char* label, const ListView<ObjectDef>& objects) {
     const auto& s = m_strings;
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Values:" << std::endl;
@@ -34,10 +37,10 @@ class Dumper {
       std::cout << "  - ID: " << object.id << std::endl;
 
       switch (object.type) {
-      case HANS_OBJECT_AUDIO:
+      case ObjectDef::Types::AUDIO:
         std::cout << "    Type: Audio" << std::endl;
         break;
-      case HANS_OBJECT_GRAPHICS:
+      case ObjectDef::Types::GRAPHICS:
         std::cout << "    Type: Graphics" << std::endl;
         break;
       }
@@ -46,7 +49,7 @@ class Dumper {
     }
   }
 
-  void print(const char* label, const ListView<hans_parameter>& parameters) {
+  void print(const char* label, const ListView<Parameter>& parameters) {
     const auto& s = m_strings;
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Values:" << std::endl;
@@ -58,7 +61,7 @@ class Dumper {
     }
   }
 
-  void print(const char* label, const ListView<hans_parameter_value>& values) {
+  void print(const char* label, const ListView<Parameter::Value>& values) {
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Values: ";
     for (const auto& value : values) {
@@ -67,7 +70,7 @@ class Dumper {
     std::cout << std::endl;
   }
 
-  void print(const char* label, const ListView<hans_program>& programs) {
+  void print(const char* label, const ListView<Program>& programs) {
     const auto& s = m_strings;
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Values: " << std::endl;
@@ -93,7 +96,7 @@ class Dumper {
   //   std::cout << std::endl;
   // }
 
-  void print(const char* label, const ListView<hans_fbo>& fbos) {
+  void print(const char* label, const ListView<graphics::FBO>& fbos) {
     std::cout << "- Type: FBOS" << std::endl;
     std::cout << "  Values: " << std::endl;
     for (const auto& fbo : fbos) {
@@ -105,18 +108,18 @@ class Dumper {
   }
 
   void print(const char* label,
-             const ListView<hans_fbo_attachment>& attachments) {
+             const ListView<graphics::FBO::Attachment>& attachments) {
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Values: " << std::endl;
     for (const auto& attachment : attachments) {
       switch (attachment.type) {
-      case HANS_COLOR_ATTACHMENT:
+      case graphics::FBO::Attachment::Types::COLOR:
         std::cout << "  - Type: Color" << std::endl;
         break;
-      case HANS_DEPTH_ATTACHMENT:
+      case graphics::FBO::Attachment::Types::DEPTH:
         std::cout << "  - Type: Depth" << std::endl;
         break;
-      case HANS_STENCIL_ATTACHMENT:
+      case graphics::FBO::Attachment::Types::STENCIL:
         std::cout << "  - Type: Stencil" << std::endl;
         break;
       }
@@ -127,16 +130,16 @@ class Dumper {
     }
   }
 
-  void print(const char* label, const ListView<hans_shader>& shaders) {
+  void print(const char* label, const ListView<graphics::Shader>& shaders) {
     const auto& s = m_strings;
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Values: " << std::endl;
     for (const auto& shader : shaders) {
       switch (shader.type) {
-      case HANS_SHADER_VERTEX:
+      case graphics::Shader::Types::VERTEX:
         std::cout << "  - Type: Vertex" << std::endl;
         break;
-      case HANS_SHADER_FRAGMENT:
+      case graphics::Shader::Types::FRAGMENT:
         std::cout << "  - Type: Fragment" << std::endl;
         break;
       }
@@ -146,7 +149,7 @@ class Dumper {
     }
   }
 
-  void print(const char* label, const ListView<hans_audio_buffer>& buffers) {
+  void print(const char* label, const ListView<audio::Buffer>& buffers) {
     const auto& s = m_strings;
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Values: " << std::endl;
@@ -158,7 +161,7 @@ class Dumper {
     }
   }
 
-  void print(const char* label, const ListView<hans_ring_buffer>& buffers) {
+  void print(const char* label, const ListView<RingBuffer>& buffers) {
     const auto& s = m_strings;
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Values: " << std::endl;
@@ -168,7 +171,7 @@ class Dumper {
     }
   }
 
-  void print(const char* label, const ListView<hans_modulator>& modulators) {
+  void print(const char* label, const ListView<Modulator>& modulators) {
     const auto& s = m_strings;
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Values: " << std::endl;
@@ -190,17 +193,17 @@ class Dumper {
     }
   }
 
-  void print(const char* label, const ListView<hans_register>& registers) {
+  void print(const char* label, const ListView<Register>& registers) {
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Values: " << std::endl;
     for (const auto& reg : registers) {
       std::cout << "  - Object: " << reg.object << std::endl;
 
       switch (reg.type) {
-      case HANS_OBJECT_GRAPHICS:
+      case ObjectDef::Types::GRAPHICS:
         std::cout << "    Type: Graphics" << std::endl;
         break;
-      case HANS_OBJECT_AUDIO:
+      case ObjectDef::Types::AUDIO:
         std::cout << "    Type: Audio" << std::endl;
         break;
       }
@@ -216,11 +219,11 @@ class Dumper {
     }
   }
 
-  void print(const char* label, const ListView<hans_hash>& hashes) {
+  void print(const char* label, const ListView<hash>& hashes) {
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Values: " << std::endl;
-    for (const auto& hash : hashes) {
-      std::cout << "  - Value: " << hash << std::endl;
+    for (const auto& hashed : hashes) {
+      std::cout << "  - Value: " << hashed << std::endl;
     }
   }
 
@@ -230,7 +233,7 @@ class Dumper {
     std::cout << std::string(&data[0], data.size()) << std::endl;
   }
 
-  void print(const char* label, const hans_blob& blob) {
+  void print(const char* label, const DataFile::Blob& blob) {
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Size: " << blob.size << std::endl;
     std::cout << "  Offset: " << blob.offset << std::endl;

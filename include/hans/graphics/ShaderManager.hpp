@@ -5,29 +5,30 @@
 #include "hans/common/ListView.hpp"
 #include "hans/common/StringManager.hpp"
 #include "hans/common/types.hpp"
+#include "hans/engine/types.hpp"
 #include "hans/graphics/gl.h"
+#include "hans/graphics/types.hpp"
 
 namespace hans {
 namespace graphics {
 
 class ShaderManager {
  public:
-  ShaderManager(const hans::common::StringManager& string_manager,
-                const hans::common::ListView<hans_shader>& shaders);
+  ShaderManager(const common::StringManager& string_manager,
+                const common::ListView<Shader>& shaders);
   ~ShaderManager();
 
   /// Returns nullptr if the shader is valid, other wise an error string that
   /// must be freed by the caller
-  const char* validate_shader(const hans_hash uri);
+  const char* validate(const hash uri);
 
-  hans_shader_instance create_shader(const hans_hash uri);
-  hans_shader_program_instance create_program(
-      const hans_shader_instance& vertex_shader,
-      const hans_shader_instance& fragment_shader);
+  Shader::Instance create(const hash uri);
+  ShaderProgram create(const Shader::Instance& vertex,
+                       const Shader::Instance& fragment);
 
  private:
-  const hans::common::StringManager& m_string_manager;
-  const hans_shader* m_shaders;
+  const common::StringManager& m_string_manager;
+  const Shader* m_shaders;
   size_t m_length;
 
   std::vector<GLuint> m_shader_handles;

@@ -4,12 +4,13 @@
 #include <iostream>
 
 using namespace hans;
+using namespace hans::graphics;
 
 static void error_callback(int error, const char* description) {
   std::cout << "Window Error: " << error << " " << description << std::endl;
 }
 
-graphics::Window::Window(const char* title, unsigned width, unsigned height) {
+Window::Window(const char* title, unsigned width, unsigned height) {
   m_window = nullptr;
 
   glfwSetErrorCallback(error_callback);
@@ -32,16 +33,16 @@ graphics::Window::Window(const char* title, unsigned width, unsigned height) {
   glClearColor(0, 0, 0, 1);
 }
 
-graphics::Window::~Window() {
+Window::~Window() {
   glfwDestroyWindow(m_window);
   glfwTerminate();
 }
 
-bool graphics::Window::should_close() {
+bool Window::should_close() {
   return glfwWindowShouldClose(m_window);
 }
 
-void graphics::Window::update() {
+void Window::update() {
   glfwSwapBuffers(m_window);
   glfwPollEvents();
 }

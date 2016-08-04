@@ -7,19 +7,20 @@
 
 using namespace hans;
 using namespace hans::audio;
+using namespace hans::common;
+using namespace hans::engine;
 
-RingBufferManager::RingBufferManager(
-    const hans_config& config,
-    hans::common::ListView<hans_ring_buffer>& ring_buffers) {
+RingBufferManager::RingBufferManager(const Config& config,
+                                     ListView<RingBuffer>& ring_buffers) {
   m_ring_buffers = &ring_buffers[0];
   m_ring_buffers_len = ring_buffers.size();
 
-  m_frame_size = sizeof(hans_audio_sample) * config.blocksize;
+  m_frame_size = sizeof(sample) * config.blocksize;
 
   auto single = m_frame_size * RB_FRAMES;
   auto bytes = m_ring_buffers_len * single;
 
-  auto alignment = alignof(hans_audio_sample);
+  auto alignment = alignof(sample);
   m_allocator.reset(bytes);
   m_base = static_cast<char*>(m_allocator.allocate(bytes, alignment));
 
@@ -43,8 +44,7 @@ RingBufferManager::RingBufferManager(
   }
 }
 
-hans_ring_buffer RingBufferManager::make(hans_instance_id producer,
-                                         hans_hash name) {
+RingBuffer RingBufferManager::make(ObjectDef::ID producer, hash name) {
   for (auto i = 0; i < m_ring_buffers_len; ++i) {
     auto& ring = m_ring_buffers[i];
     if (ring.producer == producer && ring.name == name) {
@@ -54,7 +54,7 @@ hans_ring_buffer RingBufferManager::make(hans_instance_id producer,
   throw std::runtime_error("RingBufferManager: Unknown ring buffer");
 }
 
-hans_ring_buffer RingBufferManager::find(hans_hash name) {
+RingBuffer RingBufferManager::find(hash name) {
   for (auto i = 0; i < m_ring_buffers_len; ++i) {
     auto& ring = m_ring_buffers[i];
     if (ring.name == name) {
@@ -64,8 +64,7 @@ hans_ring_buffer RingBufferManager::find(hans_hash name) {
   throw std::runtime_error("RingBufferManager: Unknown ring buffer");
 }
 
-bool RingBufferManager::write(hans_ring_buffer ring,
-                              const hans_audio_sample* samples) {
+bool RingBufferManager::write(RingBuffer ring, const sample* samples) {
   auto head = m_heads[ring.index];
   auto dest = m_base + ring.offset + (m_frame_size * head);
 
@@ -76,15 +75,15 @@ bool RingBufferManager::write(hans_ring_buffer ring,
   return m_available[ring.index] < RB_FRAMES;
 }
 
-hans_audio_sample* RingBufferManager::read(hans_hash name, uint8_t frame) {
+sample* RingBufferManager::read(hash name, uint8_t frame) {
   auto ring = find(name);
   auto tail = m_tails[ring.index];
   auto samples =
       m_base + ring.offset + (m_frame_size * ((tail + frame) % RB_FRAMES));
-  return reinterpret_cast<hans_audio_sample*>(samples);
+  return reinterpret_cast<sample*>(samples);
 }
 
-uint8_t RingBufferManager::available(hans_hash name) {
+uint8_t RingBufferManager::available(hash name) {
   auto ring = find(name);
   return m_available[ring.index];
 }

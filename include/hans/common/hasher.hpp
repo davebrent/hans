@@ -6,7 +6,7 @@
 namespace hans {
 namespace common {
 
-hans_hash hasher(const char* str);
+hash hasher(const char* str);
 
 } // namespace common
 } // namespace hans

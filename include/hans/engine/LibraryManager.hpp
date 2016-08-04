@@ -6,22 +6,23 @@
 #include <vector>
 #include "hans/common/StringManager.hpp"
 #include "hans/common/types.hpp"
+#include "hans/engine/types.hpp"
 
 namespace hans {
 namespace engine {
 
 class LibraryManager {
  public:
-  LibraryManager(hans::common::StringManager& string_manager,
-                 hans::common::ListView<hans_object>& objects);
+  LibraryManager(common::StringManager& string_manager,
+                 common::ListView<ObjectDef>& objects);
   ~LibraryManager();
-  void load(const common::ListView<hans_library>& libraries);
+  void load(const common::ListView<Library>& libraries);
 
   template <typename State, typename Object>
   bool add_object(const char* name) {
     auto size = sizeof(State);
 
-    auto make = [](hans_instance_id id, void* state) {
+    auto create = [](ObjectDef::ID id, void* state) {
       auto instance = new Object(id);
       instance->state = *reinterpret_cast<State*>(state);
       return instance;
@@ -44,7 +45,7 @@ class LibraryManager {
       auto& object = objects[i];
       if (object.name == hash) {
         object.size = size;
-        object.make = make;
+        object.create = create;
         object.serialize = serialize;
         object.destroy = destroy;
         found = true;
@@ -55,9 +56,9 @@ class LibraryManager {
   }
 
  private:
-  hans::common::StringManager& m_string_manager;
+  common::StringManager& m_string_manager;
   std::vector<void*> m_handles;
-  hans_object* m_objects;
+  ObjectDef* m_objects;
   size_t m_length;
 };
 

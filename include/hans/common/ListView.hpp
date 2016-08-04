@@ -10,7 +10,7 @@ namespace common {
 template <typename T>
 class ListView {
  public:
-  explicit ListView(const hans_blob& blob) {
+  explicit ListView(const DataFile::Blob& blob) {
     m_length = blob.size / sizeof(T);
     m_ptr = static_cast<T*>(blob.data);
   }

@@ -3,9 +3,11 @@
 #include <stdexcept>
 
 using namespace hans;
+using namespace hans::audio;
+using namespace hans::common;
+using namespace hans::engine;
 
-audio::AudioBufferManager::AudioBufferManager(
-    common::ListView<hans_audio_buffer>& buffers) {
+AudioBufferManager::AudioBufferManager(ListView<Buffer>& buffers) {
   m_buffers = &buffers[0];
   m_buffers_len = buffers.size();
 
@@ -13,18 +15,17 @@ audio::AudioBufferManager::AudioBufferManager(
 
   for (auto& buffer : buffers) {
     auto samples = buffer.size * buffer.channels;
-    auto bytes = sizeof(hans_audio_sample) * samples;
+    auto bytes = sizeof(audio::sample) * samples;
     buffer.offset = total;
     total += bytes;
   }
 
   m_allocator.reset(total);
-  auto data = m_allocator.allocate(total, alignof(hans_audio_sample));
+  auto data = m_allocator.allocate(total, alignof(audio::sample));
   m_base = static_cast<char*>(data);
 }
 
-hans_audio_buffer audio::AudioBufferManager::make(hans_instance_id id,
-                                                  hans_hash name) {
+Buffer AudioBufferManager::make(ObjectDef::ID id, hash name) {
   auto& buffers = m_buffers;
   for (auto i = 0; i < m_buffers_len; ++i) {
     auto& buffer = buffers[i];
@@ -35,9 +36,8 @@ hans_audio_buffer audio::AudioBufferManager::make(hans_instance_id id,
   throw std::runtime_error("Unknown audio buffer");
 }
 
-hans_audio_sample* audio::AudioBufferManager::get(const hans_audio_buffer& buff,
-                                                  uint8_t channel) const {
+sample* AudioBufferManager::get(const Buffer& buff, uint8_t channel) const {
   char* base = m_base + buff.offset;
-  return reinterpret_cast<hans_audio_sample*>(
-      base + (sizeof(hans_audio_sample) * buff.size * channel));
+  return reinterpret_cast<audio::sample*>(
+      base + (sizeof(audio::sample) * buff.size * channel));
 }

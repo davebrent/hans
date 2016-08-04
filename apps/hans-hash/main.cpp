@@ -36,11 +36,11 @@ int main(int argc, char* argv[]) {
   auto hex = options["hex"].as<bool>();
 
   for (auto& arg : args) {
-    auto hash = common::hasher(arg.c_str());
+    auto hashed = common::hasher(arg.c_str());
     if (hex) {
-      std::cout << "0x" << std::hex << hash << std::endl;
+      std::cout << "0x" << std::hex << hashed << std::endl;
     } else {
-      std::cout << hash << std::endl;
+      std::cout << hashed << std::endl;
     }
   }
 

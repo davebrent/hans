@@ -2,9 +2,12 @@
 #define HANS_COMMON_DATALOADER_H_
 
 #include <vector>
+#include "hans/audio/types.hpp"
 #include "hans/common/LinearAllocator.hpp"
 #include "hans/common/ListView.hpp"
 #include "hans/common/types.hpp"
+#include "hans/engine/types.hpp"
+#include "hans/graphics/types.hpp"
 
 namespace hans {
 namespace common {
@@ -14,43 +17,43 @@ class DataWriter {
   explicit DataWriter(size_t size);
   ~DataWriter();
   /// Stage some data for writing
-  bool stage(hans_blob_type type, void* data, size_t size);
+  bool stage(DataFile::Types type, void* data, size_t size);
   /// Write staged data to disk
   bool write(const char* uri);
 
  private:
-  hans_file m_file;
-  std::vector<hans_blob> m_blobs;
-  hans::common::LinearAllocator m_allocator;
+  DataFile m_file;
+  std::vector<DataFile::Blob> m_blobs;
+  LinearAllocator m_allocator;
   bool m_cleanup;
 };
 
 class DataReader {
  public:
-  typedef struct {
+  struct Inflated {
     ListView<const char> strings;
-    ListView<hans_hash> string_hashes;
+    ListView<hash> string_hashes;
     ListView<size_t> string_offsets;
-    ListView<hans_library> libraries;
-    ListView<hans_object> objects;
-    hans_blob object_data;
-    ListView<hans_parameter> parameters;
-    ListView<hans_parameter_value> parameter_values;
-    ListView<hans_program> programs;
+    ListView<engine::Library> libraries;
+    ListView<engine::ObjectDef> objects;
+    DataFile::Blob object_data;
+    ListView<engine::Parameter> parameters;
+    ListView<engine::Parameter::Value> parameter_values;
+    ListView<engine::Program> programs;
     ListView<size_t> chains;
-    ListView<hans_register> registers;
-    ListView<hans_shader> shaders;
-    ListView<hans_fbo> fbos;
-    ListView<hans_fbo_attachment> fbo_attachments;
-    ListView<hans_audio_buffer> audio_buffers;
-    ListView<hans_ring_buffer> ring_buffers;
-    ListView<hans_modulator> modulators;
-  } file_data;
+    ListView<engine::Register> registers;
+    ListView<graphics::Shader> shaders;
+    ListView<graphics::FBO> fbos;
+    ListView<graphics::FBO::Attachment> fbo_attachments;
+    ListView<audio::Buffer> audio_buffers;
+    ListView<audio::RingBuffer> ring_buffers;
+    ListView<engine::Modulator> modulators;
+  };
 
   explicit DataReader(const char* uri);
   ~DataReader();
-  hans_file file;
-  file_data data;
+  DataFile file;
+  Inflated data;
 };
 
 } // namespace common

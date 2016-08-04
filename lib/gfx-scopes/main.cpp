@@ -2,6 +2,7 @@
 #include "hans/engine/object.hpp"
 
 using namespace hans;
+using namespace hans::engine;
 
 #define MAX_FRAMES 30
 #define ARG_LEFT 0xe7add5f891f566b       /* left */
@@ -12,81 +13,78 @@ using namespace hans;
 
 struct ScopeState {
   GLuint vao;
-  hans_fbo fbo;
-  hans_hash vertex_shader_name;
-  hans_hash left;
-  hans_hash right;
-  hans_register outlet;
-  hans_shader_program_instance program;
-  hans_audio_sample* samples;
+  graphics::FBO fbo;
+  hash vertex_shader_name;
+  hash left;
+  hash right;
+  Register outlet;
+  graphics::ShaderProgram program;
+  audio::sample* samples;
   float buffer_length;
   GLuint audio_buffer_object;
   GLuint buffer_length_loc;
 };
 
 class OscScopeObject : protected GraphicsObject {
-  friend class engine::LibraryManager;
+  friend class LibraryManager;
 
  public:
   using GraphicsObject::GraphicsObject;
-  virtual void create(ObjectPatcher& patcher) override;
-  virtual void setup(hans_object_api& api) override;
-  virtual void update(hans_object_api& api) override;
-  virtual void draw(hans_object_api& api) override;
+  virtual void create(IPatcher& patcher) override;
+  virtual void setup(Engine& engine) override;
+  virtual void update(Engine& engine) override;
+  virtual void draw(Engine& engine) const override;
 
  private:
   ScopeState state;
 };
 
 class PhaseScopeObject : protected GraphicsObject {
-  friend class engine::LibraryManager;
+  friend class LibraryManager;
 
  public:
   using GraphicsObject::GraphicsObject;
-  virtual void create(ObjectPatcher& patcher) override;
-  virtual void setup(hans_object_api& api) override;
-  virtual void update(hans_object_api& api) override;
-  virtual void draw(hans_object_api& api) override;
+  virtual void create(IPatcher& patcher) override;
+  virtual void setup(Engine& engine) override;
+  virtual void update(Engine& engine) override;
+  virtual void draw(Engine& engine) const override;
 
  private:
   ScopeState state;
 };
 
-static void parse_args(ObjectPatcher& patcher, ScopeState& state) {
-  auto args = patcher.get_args();
-
-  for (int i = 0; i < args.length; ++i) {
-    const auto& arg = args.data[i];
-    if (arg.name == ARG_LEFT && arg.type == HANS_STRING) {
+static void parse_args(IPatcher& patcher, ScopeState& state) {
+  for (const auto& arg : patcher.arguments()) {
+    if (arg.name == ARG_LEFT && arg.type == Argument::Types::STRING) {
       state.left = arg.string;
-    } else if (arg.name == ARG_RIGHT && arg.type == HANS_STRING) {
+    } else if (arg.name == ARG_RIGHT && arg.type == Argument::Types::STRING) {
       state.right = arg.string;
     }
   }
 }
 
-void OscScopeObject::create(ObjectPatcher& patcher) {
+void OscScopeObject::create(IPatcher& patcher) {
   state.left = 0;
   state.right = 0;
   state.buffer_length = 0;
   state.vertex_shader_name = SHADERS_OSC;
   parse_args(patcher, state);
-  patcher.request(HANS_OUTLET, 1);
+  patcher.request(IPatcher::Resources::OUTLET, 1);
 }
 
-void OscScopeObject::setup(hans_object_api& api) {
-  auto blocksize = api.config->blocksize;
+void OscScopeObject::setup(Engine& engine) {
+  auto blocksize = engine.config->blocksize;
   auto channels = 2;
   auto max_channel_samples = blocksize * MAX_FRAMES;
   auto max_points = max_channel_samples * channels;
 
-  state.outlet = api.registers->make(id, HANS_OUTLET, 0);
-  state.fbo = api.fbos->make(id);
-  state.samples = new hans_audio_sample[max_points];
+  state.outlet = engine.registers->make(id, Register::Types::OUTLET, 0);
+  state.fbo = engine.fbos->make(id);
+  state.samples = new audio::sample[max_points];
   state.buffer_length = max_points;
 
-  auto texture = api.fbos->get_color_attachment(state.fbo, 0);
-  api.registers->write(state.outlet, &texture);
+  auto texture = engine.fbos->get_color_attachment(state.fbo, 0);
+  engine.registers->write(state.outlet, &texture);
 
   glGenVertexArrays(1, &state.vao);
   glBindVertexArray(state.vao);
@@ -122,9 +120,9 @@ void OscScopeObject::setup(hans_object_api& api) {
   glBindBuffer(GL_ARRAY_BUFFER, state.audio_buffer_object);
   glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_STREAM_DRAW);
 
-  auto vert_shdr = api.shaders->create_shader(state.vertex_shader_name);
-  auto frag_shdr = api.shaders->create_shader(SHADERS_FRAG);
-  state.program = api.shaders->create_program(vert_shdr, frag_shdr);
+  auto vert_shdr = engine.shaders->create(state.vertex_shader_name);
+  auto frag_shdr = engine.shaders->create(SHADERS_FRAG);
+  state.program = engine.shaders->create(vert_shdr, frag_shdr);
   glUseProgram(state.program.handle);
 
   auto pos = 0;
@@ -147,18 +145,18 @@ void OscScopeObject::setup(hans_object_api& api) {
       glGetUniformLocation(state.program.handle, "audio_buffer_length");
 }
 
-static uint8_t read_ring_buffer(ScopeState& state, hans_object_api& api,
-                                hans_hash rb_name, size_t offset) {
-  auto blocksize = api.config->blocksize;
-  auto framesize = blocksize * sizeof(hans_audio_sample);
-  auto available = api.ring_buffers->available(rb_name);
+static uint8_t read_ring_buffer(ScopeState& state, Engine& engine, hash rb_name,
+                                size_t offset) {
+  auto blocksize = engine.config->blocksize;
+  auto framesize = blocksize * sizeof(audio::sample);
+  auto available = engine.ring_buffers->available(rb_name);
 
   if (available >= MAX_FRAMES) {
     available = MAX_FRAMES - 1;
   }
 
   for (auto i = 0; i < available; ++i) {
-    auto buffer = api.ring_buffers->read(rb_name, i);
+    auto buffer = engine.ring_buffers->read(rb_name, i);
     auto dest = &state.samples[(i * blocksize) + offset];
     std::memcpy(dest, buffer, framesize);
   }
@@ -166,25 +164,25 @@ static uint8_t read_ring_buffer(ScopeState& state, hans_object_api& api,
   return available;
 }
 
-void OscScopeObject::update(hans_object_api& api) {
-  auto blocksize = api.config->blocksize;
+void OscScopeObject::update(Engine& engine) {
+  auto blocksize = engine.config->blocksize;
 
   auto read = 0;
-  read += read_ring_buffer(state, api, state.right, 0);
-  read += read_ring_buffer(state, api, state.left, read * blocksize);
+  read += read_ring_buffer(state, engine, state.right, 0);
+  read += read_ring_buffer(state, engine, state.left, read * blocksize);
 
   state.buffer_length = read * blocksize;
 
-  auto size = sizeof(hans_audio_sample) * state.buffer_length;
+  auto size = sizeof(audio::sample) * state.buffer_length;
   glBindBuffer(GL_ARRAY_BUFFER, state.audio_buffer_object);
   glBufferSubData(GL_ARRAY_BUFFER, 0, size, state.samples);
 }
 
-void OscScopeObject::draw(hans_object_api& api) {
+void OscScopeObject::draw(Engine& engine) const {
   glUseProgram(state.program.handle);
   glUniform1f(state.buffer_length_loc, state.buffer_length);
 
-  api.fbos->bind_fbo(state.fbo);
+  engine.fbos->bind_fbo(state.fbo);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glBindVertexArray(state.vao);
@@ -192,28 +190,28 @@ void OscScopeObject::draw(hans_object_api& api) {
   glDrawArrays(GL_POINTS, 0, state.buffer_length);
 }
 
-void PhaseScopeObject::create(ObjectPatcher& patcher) {
+void PhaseScopeObject::create(IPatcher& patcher) {
   state.left = 0;
   state.right = 0;
   state.buffer_length = 0;
   state.vertex_shader_name = SHADERS_PHASE;
   parse_args(patcher, state);
-  patcher.request(HANS_OUTLET, 1);
+  patcher.request(IPatcher::Resources::OUTLET, 1);
 }
 
-void PhaseScopeObject::setup(hans_object_api& api) {
-  auto blocksize = api.config->blocksize;
+void PhaseScopeObject::setup(Engine& engine) {
+  auto blocksize = engine.config->blocksize;
   auto channels = 2;
 
   auto max_points = blocksize * MAX_FRAMES * channels;
 
-  state.outlet = api.registers->make(id, HANS_OUTLET, 0);
-  state.fbo = api.fbos->make(id);
-  state.samples = new hans_audio_sample[max_points];
+  state.outlet = engine.registers->make(id, Register::Types::OUTLET, 0);
+  state.fbo = engine.fbos->make(id);
+  state.samples = new audio::sample[max_points];
   state.buffer_length = max_points / channels;
 
-  auto texture = api.fbos->get_color_attachment(state.fbo, 0);
-  api.registers->write(state.outlet, &texture);
+  auto texture = engine.fbos->get_color_attachment(state.fbo, 0);
+  engine.registers->write(state.outlet, &texture);
 
   glGenVertexArrays(1, &state.vao);
   glBindVertexArray(state.vao);
@@ -223,9 +221,9 @@ void PhaseScopeObject::setup(hans_object_api& api) {
   glBindBuffer(GL_ARRAY_BUFFER, state.audio_buffer_object);
   glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_STREAM_DRAW);
 
-  auto vert_shdr = api.shaders->create_shader(state.vertex_shader_name);
-  auto frag_shdr = api.shaders->create_shader(SHADERS_FRAG);
-  state.program = api.shaders->create_program(vert_shdr, frag_shdr);
+  auto vert_shdr = engine.shaders->create(state.vertex_shader_name);
+  auto frag_shdr = engine.shaders->create(SHADERS_FRAG);
+  state.program = engine.shaders->create(vert_shdr, frag_shdr);
   glUseProgram(state.program.handle);
 
   auto pos = 0;
@@ -238,17 +236,17 @@ void PhaseScopeObject::setup(hans_object_api& api) {
       glGetUniformLocation(state.program.handle, "audio_buffer_length");
 }
 
-void PhaseScopeObject::update(hans_object_api& api) {
-  auto blocksize = api.config->blocksize;
-  auto available = api.ring_buffers->available(state.left);
+void PhaseScopeObject::update(Engine& engine) {
+  auto blocksize = engine.config->blocksize;
+  auto available = engine.ring_buffers->available(state.left);
 
   if (available >= MAX_FRAMES) {
     available = MAX_FRAMES - 1;
   }
 
   for (auto i = 0; i < available; ++i) {
-    auto left = api.ring_buffers->read(state.left, i);
-    auto right = api.ring_buffers->read(state.right, i);
+    auto left = engine.ring_buffers->read(state.left, i);
+    auto right = engine.ring_buffers->read(state.right, i);
     auto block = (i * blocksize);
     auto j = 0;
 
@@ -261,16 +259,16 @@ void PhaseScopeObject::update(hans_object_api& api) {
 
   state.buffer_length = available * blocksize;
 
-  auto size = sizeof(hans_audio_sample) * (available + available) * blocksize;
+  auto size = sizeof(audio::sample) * (available + available) * blocksize;
   glBindBuffer(GL_ARRAY_BUFFER, state.audio_buffer_object);
   glBufferSubData(GL_ARRAY_BUFFER, 0, size, state.samples);
 }
 
-void PhaseScopeObject::draw(hans_object_api& api) {
+void PhaseScopeObject::draw(Engine& engine) const {
   glUseProgram(state.program.handle);
   glUniform1f(state.buffer_length_loc, state.buffer_length);
 
-  api.fbos->bind_fbo(state.fbo);
+  engine.fbos->bind_fbo(state.fbo);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glBindVertexArray(state.vao);
@@ -279,7 +277,7 @@ void PhaseScopeObject::draw(hans_object_api& api) {
 }
 
 extern "C" {
-void setup(engine::LibraryManager* library) {
+void setup(LibraryManager* library) {
   library->add_object<ScopeState, OscScopeObject>("gfx-oscilloscope");
   library->add_object<ScopeState, PhaseScopeObject>("gfx-phasescope");
 }

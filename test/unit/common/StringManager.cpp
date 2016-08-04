@@ -23,7 +23,7 @@ SCENARIO("Interning strings", "[strings]") {
 
     WHEN("looking up") {
       const char* str1 = "hello";
-      hans_hash symbol = string_manager.intern(str1);
+      auto symbol = string_manager.intern(str1);
       const char* str2 = string_manager.lookup(symbol);
 
       THEN("the strings hash should be returned") {
@@ -38,8 +38,8 @@ SCENARIO("Interning strings", "[strings]") {
     WHEN("Null terminating strings") {
       const char* str1 = "hello";
       const char* str2 = "world";
-      hans_hash symbol1 = string_manager.intern(str1);
-      hans_hash symbol2 = string_manager.intern(str2);
+      auto symbol1 = string_manager.intern(str1);
+      auto symbol2 = string_manager.intern(str2);
       const char* str3 = string_manager.lookup(symbol1);
 
       THEN("the strings hash should be returned") {
