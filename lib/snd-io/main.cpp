@@ -94,9 +94,7 @@ void OutObject::callback(Engine& engine) {
   }
 }
 
-extern "C" {
-void setup(LibraryManager* library) {
+HANS_PLUGIN_INIT(LibraryManager* library) {
   library->add_object<IOState, InObject>("snd-in");
   library->add_object<IOState, OutObject>("snd-out");
-}
 }

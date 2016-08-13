@@ -237,8 +237,6 @@ void ScriptObject::draw(Engine& engine) const {
   renderer.end_frame();
 }
 
-extern "C" {
-void setup(LibraryManager* library) {
+HANS_PLUGIN_INIT(LibraryManager* library) {
   library->add_object<ScriptState, ScriptObject>("gfx-script");
-}
 }

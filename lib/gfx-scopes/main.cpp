@@ -276,9 +276,7 @@ void PhaseScopeObject::draw(Engine& engine) const {
   glDrawArrays(GL_POINTS, 0, state.buffer_length);
 }
 
-extern "C" {
-void setup(LibraryManager* library) {
+HANS_PLUGIN_INIT(LibraryManager* library) {
   library->add_object<ScopeState, OscScopeObject>("gfx-oscilloscope");
   library->add_object<ScopeState, PhaseScopeObject>("gfx-phasescope");
-}
 }

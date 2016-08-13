@@ -136,8 +136,6 @@ void FilterObject::draw(Engine& engine) const {
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
-extern "C" {
-void setup(LibraryManager* library) {
+HANS_PLUGIN_INIT(LibraryManager* library) {
   library->add_object<FilterState, FilterObject>("gfx-filter");
-}
 }

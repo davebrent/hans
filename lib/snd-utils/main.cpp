@@ -42,8 +42,6 @@ void GainObject::callback(Engine& engine) {
   // TODO: Implement
 }
 
-extern "C" {
-void setup(LibraryManager* library) {
+HANS_PLUGIN_INIT(LibraryManager* library) {
   library->add_object<GainState, GainObject>("snd-gain");
-}
 }

@@ -103,8 +103,6 @@ void OscObject::callback(Engine& engine) {
   }
 }
 
-extern "C" {
-void setup(LibraryManager* library) {
+HANS_PLUGIN_INIT(LibraryManager* library) {
   library->add_object<OscState, OscObject>("snd-oscillator");
-}
 }

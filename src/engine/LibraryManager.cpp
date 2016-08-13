@@ -29,7 +29,7 @@ void LibraryManager::load(const ListView<Library>& libraries) {
 
     if (handle != nullptr) {
       m_handles.push_back(handle);
-      auto symbol = dlsym(handle, "setup");
+      auto symbol = dlsym(handle, "__hans_plugin_init");
       if (symbol != nullptr) {
         ((setup)symbol)(this);
       }

@@ -77,8 +77,6 @@ void SndTexObject::update(Engine& engine) {
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 }
 
-extern "C" {
-void setup(LibraryManager* library) {
+HANS_PLUGIN_INIT(LibraryManager* library) {
   library->add_object<SndTexState, SndTexObject>("gfx-sndtex");
-}
 }
