@@ -11,7 +11,7 @@ struct GainState {
 };
 
 class GainObject : protected AudioObject {
-  friend class LibraryManager;
+  friend class hans::engine::LibraryManager;
 
  public:
   using AudioObject::AudioObject;

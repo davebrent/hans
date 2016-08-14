@@ -26,7 +26,7 @@ struct ScopeState {
 };
 
 class OscScopeObject : protected GraphicsObject {
-  friend class LibraryManager;
+  friend class hans::engine::LibraryManager;
 
  public:
   using GraphicsObject::GraphicsObject;
@@ -40,7 +40,7 @@ class OscScopeObject : protected GraphicsObject {
 };
 
 class PhaseScopeObject : protected GraphicsObject {
-  friend class LibraryManager;
+  friend class hans::engine::LibraryManager;
 
  public:
   using GraphicsObject::GraphicsObject;

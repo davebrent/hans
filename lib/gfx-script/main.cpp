@@ -158,7 +158,7 @@ static SCM script_draw(SCM proc) {
 }
 
 class ScriptObject : protected GraphicsObject {
-  friend class LibraryManager;
+  friend class hans::engine::LibraryManager;
 
  public:
   using GraphicsObject::GraphicsObject;

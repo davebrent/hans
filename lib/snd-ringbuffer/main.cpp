@@ -14,7 +14,7 @@ struct RingBufferState {
 };
 
 class RingBufferObject : protected AudioObject {
-  friend class LibraryManager;
+  friend class hans::engine::LibraryManager;
 
  public:
   using AudioObject::AudioObject;

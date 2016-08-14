@@ -21,7 +21,7 @@ struct QuadState {
 };
 
 class QuadObject : protected GraphicsObject {
-  friend class LibraryManager;
+  friend class hans::engine::LibraryManager;
 
  public:
   using GraphicsObject::GraphicsObject;

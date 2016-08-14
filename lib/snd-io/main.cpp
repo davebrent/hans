@@ -15,7 +15,7 @@ struct IOState {
 };
 
 class InObject : protected AudioObject {
-  friend class LibraryManager;
+  friend class hans::engine::LibraryManager;
 
  public:
   using AudioObject::AudioObject;
@@ -28,7 +28,7 @@ class InObject : protected AudioObject {
 };
 
 class OutObject : protected AudioObject {
-  friend class LibraryManager;
+  friend class hans::engine::LibraryManager;
 
  public:
   using AudioObject::AudioObject;

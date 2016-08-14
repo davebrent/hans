@@ -24,7 +24,7 @@ struct OscState {
 };
 
 class OscObject : protected AudioObject {
-  friend class LibraryManager;
+  friend class hans::engine::LibraryManager;
 
  public:
   using AudioObject::AudioObject;
