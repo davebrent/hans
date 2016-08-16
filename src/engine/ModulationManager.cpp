@@ -5,8 +5,8 @@ using namespace hans::common;
 using namespace hans::engine;
 
 ModulationManager::ModulationManager(ParameterManager& parameter_manager,
-                                     const ListView<Modulator>& modulators)
-    : m_parameter_manager(parameter_manager), m_mods(modulators) {
+                                     const ListView<Modulator> modulators)
+    : m_mods(modulators), m_parameter_manager(parameter_manager) {
   auto num = m_mods.size();
 
   m_srcs = new Parameter[num];

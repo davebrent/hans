@@ -11,13 +11,13 @@ namespace engine {
 class ModulationManager {
  public:
   ModulationManager(ParameterManager& parameter_manager,
-                    const common::ListView<Modulator>& modulators);
+                    const common::ListView<Modulator> modulators);
   void setup();
   void begin();
   void end();
 
  private:
-  const common::ListView<Modulator>& m_mods;
+  const common::ListView<Modulator> m_mods;
   ParameterManager& m_parameter_manager;
   Parameter* m_srcs;
   Parameter* m_dests;
