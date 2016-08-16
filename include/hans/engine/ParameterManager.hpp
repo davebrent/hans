@@ -27,10 +27,8 @@ class ParameterManager {
            const Parameter::Value& value);
 
  private:
-  Parameter* m_parameters = nullptr;
-  Parameter::Value* m_values = nullptr;
-  size_t m_parameters_len = 0;
-  size_t m_values_len = 0;
+  common::ListView<Parameter> m_parameters;
+  common::ListView<Parameter::Value> m_values;
 };
 
 } // namespace engine
