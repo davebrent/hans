@@ -14,7 +14,7 @@ namespace audio {
 class RingBufferManager {
  public:
   RingBufferManager(const common::Config& config,
-                    common::ListView<RingBuffer>& ring_buffers);
+                    common::ListView<RingBuffer> ring_buffers);
 
   RingBuffer make(engine::ObjectDef::ID producer, hash name);
 
@@ -34,8 +34,7 @@ class RingBufferManager {
   RingBuffer find(hash name);
 
   common::LinearAllocator m_allocator;
-  RingBuffer* m_ring_buffers;
-  size_t m_ring_buffers_len;
+  common::ListView<RingBuffer> m_ring_buffers;
   size_t m_frame_size;
   char* m_base = nullptr;
   uint8_t* m_available;

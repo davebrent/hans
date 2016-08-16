@@ -11,27 +11,26 @@ using namespace hans::common;
 using namespace hans::engine;
 
 RingBufferManager::RingBufferManager(const Config& config,
-                                     ListView<RingBuffer>& ring_buffers) {
-  m_ring_buffers = &ring_buffers[0];
-  m_ring_buffers_len = ring_buffers.size();
-
+                                     ListView<RingBuffer> ring_buffers)
+    : m_ring_buffers(ring_buffers) {
+  auto num_ring_buffers = m_ring_buffers.size();
   m_frame_size = sizeof(sample) * config.blocksize;
 
   auto single = m_frame_size * RB_FRAMES;
-  auto bytes = m_ring_buffers_len * single;
+  auto bytes = num_ring_buffers * single;
 
   auto alignment = alignof(sample);
   m_allocator.reset(bytes);
   m_base = static_cast<char*>(m_allocator.allocate(bytes, alignment));
 
-  m_available = new uint8_t[m_ring_buffers_len];
-  m_heads = new uint8_t[m_ring_buffers_len];
-  m_tails = new uint8_t[m_ring_buffers_len];
+  m_available = new uint8_t[num_ring_buffers];
+  m_heads = new uint8_t[num_ring_buffers];
+  m_tails = new uint8_t[num_ring_buffers];
 
   auto offset = 0;
   auto index = 0;
 
-  for (auto& ring_buffer : ring_buffers) {
+  for (auto& ring_buffer : m_ring_buffers) {
     ring_buffer.offset = offset;
     ring_buffer.index = index;
 
@@ -45,8 +44,7 @@ RingBufferManager::RingBufferManager(const Config& config,
 }
 
 RingBuffer RingBufferManager::make(ObjectDef::ID producer, hash name) {
-  for (auto i = 0; i < m_ring_buffers_len; ++i) {
-    auto& ring = m_ring_buffers[i];
+  for (const auto& ring : m_ring_buffers) {
     if (ring.producer == producer && ring.name == name) {
       return ring;
     }
@@ -55,8 +53,7 @@ RingBuffer RingBufferManager::make(ObjectDef::ID producer, hash name) {
 }
 
 RingBuffer RingBufferManager::find(hash name) {
-  for (auto i = 0; i < m_ring_buffers_len; ++i) {
-    auto& ring = m_ring_buffers[i];
+  for (const auto& ring : m_ring_buffers) {
     if (ring.name == name) {
       return ring;
     }
@@ -89,7 +86,7 @@ uint8_t RingBufferManager::available(hash name) {
 }
 
 void RingBufferManager::advance_all() {
-  for (auto i = 0; i < m_ring_buffers_len; ++i) {
+  for (auto i = 0; i < m_ring_buffers.size(); ++i) {
     auto available = m_available[i];
     m_tails[i] = (m_tails[i] + available) % RB_FRAMES;
     m_available[i] -= available;
