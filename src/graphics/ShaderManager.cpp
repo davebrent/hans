@@ -7,10 +7,8 @@ using namespace hans::common;
 using namespace hans::graphics;
 
 ShaderManager::ShaderManager(const StringManager& string_manager,
-                             const ListView<Shader>& shaders)
-    : m_string_manager(string_manager) {
-  m_shaders = &shaders[0];
-  m_length = shaders.size();
+                             const ListView<Shader> shaders)
+    : m_string_manager(string_manager), m_shaders(shaders) {
 }
 
 ShaderManager::~ShaderManager() {
@@ -46,11 +44,9 @@ Shader::Instance ShaderManager::create(const hash name) {
   Shader::Instance instance;
   instance.name = name;
 
-  auto shaders = m_shaders;
   auto found = false;
 
-  for (auto i = 0; i < m_length; ++i) {
-    auto& shader = shaders[i];
+  for (const auto& shader : m_shaders) {
     if (shader.name != name) {
       continue;
     }

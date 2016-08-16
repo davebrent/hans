@@ -15,7 +15,7 @@ namespace graphics {
 class ShaderManager {
  public:
   ShaderManager(const common::StringManager& string_manager,
-                const common::ListView<Shader>& shaders);
+                const common::ListView<Shader> shaders);
   ~ShaderManager();
 
   /// Returns nullptr if the shader is valid, other wise an error string that
@@ -28,8 +28,7 @@ class ShaderManager {
 
  private:
   const common::StringManager& m_string_manager;
-  const Shader* m_shaders;
-  size_t m_length;
+  const common::ListView<Shader> m_shaders;
 
   std::vector<GLuint> m_shader_handles;
   std::vector<GLuint> m_program_handles;
