@@ -11,13 +11,12 @@ namespace audio {
 
 class AudioBufferManager {
  public:
-  explicit AudioBufferManager(common::ListView<Buffer>& buffers);
+  explicit AudioBufferManager(common::ListView<Buffer> buffers);
   Buffer make(engine::ObjectDef::ID id, hash name);
   sample* get(const Buffer& buff, uint8_t channel) const;
 
  private:
-  Buffer* m_buffers = nullptr;
-  size_t m_buffers_len = 0;
+  common::ListView<Buffer> m_buffers;
   char* m_base = nullptr;
   hans::common::LinearAllocator m_allocator;
 };

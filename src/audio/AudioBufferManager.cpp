@@ -7,10 +7,8 @@ using namespace hans::audio;
 using namespace hans::common;
 using namespace hans::engine;
 
-AudioBufferManager::AudioBufferManager(ListView<Buffer>& buffers) {
-  m_buffers = &buffers[0];
-  m_buffers_len = buffers.size();
-
+AudioBufferManager::AudioBufferManager(ListView<Buffer> buffers)
+    : m_buffers(buffers) {
   size_t total = 0;
 
   for (auto& buffer : buffers) {
@@ -26,9 +24,7 @@ AudioBufferManager::AudioBufferManager(ListView<Buffer>& buffers) {
 }
 
 Buffer AudioBufferManager::make(ObjectDef::ID id, hash name) {
-  auto& buffers = m_buffers;
-  for (auto i = 0; i < m_buffers_len; ++i) {
-    auto& buffer = buffers[i];
+  for (const auto& buffer : m_buffers) {
     if (buffer.object == id && buffer.name == name) {
       return buffer;
     }
