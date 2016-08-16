@@ -13,10 +13,9 @@ class ProgramManager {
  public:
   ProgramManager(Engine& engine);
   /// Use a given set of data to work
-  void use(common::ListView<ObjectDef>& objects,
-           common::ListView<Program>& programs,
-           common::ListView<size_t>& chains,
-           common::DataFile::Blob init_object_data);
+  void use(common::ListView<ObjectDef> objects,
+           common::ListView<Program> programs, common::ListView<size_t> chains,
+           common::DataFile::Blob state);
   /// Initialize objects for all programs
   void setup_all();
   /// Destroys all objects for all programs
@@ -29,14 +28,12 @@ class ProgramManager {
   void tick_audio();
 
  private:
-  size_t* m_chains = nullptr;
-  ObjectDef* m_objects = nullptr;
-  Program* m_programs = nullptr;
   Engine& m_engine;
+  common::ListView<ObjectDef> m_objects;
+  common::ListView<Program> m_programs;
+  common::ListView<size_t> m_chains;
+  common::DataFile::Blob m_default_state;
   size_t m_active = 0;
-  size_t m_num_objects = 0;
-  common::LinearAllocator m_allocator;
-  common::DataFile::Blob m_init_object_data;
 };
 
 } // namespace engine
