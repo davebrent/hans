@@ -16,9 +16,9 @@ namespace engine {
 class LibraryManager {
  public:
   LibraryManager(common::StringManager& string_manager,
-                 common::ListView<ObjectDef>& objects);
+                 common::ListView<ObjectDef> objects);
   ~LibraryManager();
-  void load(const common::ListView<Library>& libraries);
+  void load(const common::ListView<Library> libraries);
 
   template <typename State, typename Object>
   bool add_object(const char* name) {
@@ -41,10 +41,8 @@ class LibraryManager {
 
     auto found = false;
     auto hash = m_string_manager.intern(name);
-    auto objects = m_objects;
 
-    for (int i = 0; i < m_length; ++i) {
-      auto& object = objects[i];
+    for (auto& object : m_objects) {
       if (object.name == hash) {
         object.size = size;
         object.create = create;
@@ -60,8 +58,7 @@ class LibraryManager {
  private:
   common::StringManager& m_string_manager;
   std::vector<void*> m_handles;
-  ObjectDef* m_objects;
-  size_t m_length;
+  common::ListView<ObjectDef> m_objects;
 };
 
 } // namespace engine
