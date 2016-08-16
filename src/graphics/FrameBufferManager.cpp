@@ -7,18 +7,14 @@ using namespace hans::common;
 using namespace hans::graphics;
 using namespace hans::engine;
 
-FrameBufferManager::FrameBufferManager(ListView<FBO>& fbos,
-                                       ListView<FBO::Attachment>& attachments) {
-  m_fbos = &fbos[0];
-  m_fbos_length = fbos.size();
-  m_attachments = &attachments[0];
-  m_attachments_len = attachments.size();
+FrameBufferManager::FrameBufferManager(ListView<FBO> fbos,
+                                       ListView<FBO::Attachment> attachments)
+    : m_fbos(fbos), m_attachments(attachments) {
+  m_gl_fbos = new uint32_t[m_fbos.size()];
+  m_gl_attachments = new uint32_t[m_attachments.size()];
 
-  m_gl_fbos = new uint32_t[m_fbos_length];
-  m_gl_attachments = new uint32_t[m_attachments_len];
-
-  glGenFramebuffers(m_fbos_length, m_gl_fbos);
-  glGenTextures(m_attachments_len, m_gl_attachments);
+  glGenFramebuffers(m_fbos.size(), m_gl_fbos);
+  glGenTextures(m_attachments.size(), m_gl_attachments);
 
   GLenum color_attachments[8] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1,
                                  GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3,
@@ -85,16 +81,14 @@ FrameBufferManager::FrameBufferManager(ListView<FBO>& fbos,
 }
 
 FrameBufferManager::~FrameBufferManager() {
-  glDeleteFramebuffers(m_fbos_length, m_gl_fbos);
-  glDeleteTextures(m_attachments_len, m_gl_attachments);
+  glDeleteFramebuffers(m_fbos.size(), m_gl_fbos);
+  glDeleteTextures(m_attachments.size(), m_gl_attachments);
   delete[] m_gl_fbos;
   delete[] m_gl_attachments;
 }
 
 FBO FrameBufferManager::make(ObjectDef::ID object) {
-  auto fbos = m_fbos;
-  for (auto i = 0; i < m_fbos_length; ++i) {
-    auto fbo = fbos[i];
+  for (const auto& fbo : m_fbos) {
     if (fbo.object == object) {
       return fbo;
     }
@@ -107,12 +101,13 @@ void FrameBufferManager::release_fbo() const {
 }
 
 void FrameBufferManager::bind_fbo(const FBO& fbo) const {
-  auto fbos = m_fbos;
-  for (auto i = 0; i < m_fbos_length; ++i) {
-    if (fbos[i].object == fbo.object) {
+  auto i = 0;
+  for (const auto& f : m_fbos) {
+    if (f.object == fbo.object) {
       glBindFramebuffer(GL_FRAMEBUFFER, m_gl_fbos[i]);
       return;
     }
+    i++;
   }
 }
 

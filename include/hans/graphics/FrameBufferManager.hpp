@@ -12,8 +12,8 @@ namespace graphics {
 
 class FrameBufferManager {
  public:
-  FrameBufferManager(common::ListView<FBO>& fbos,
-                     common::ListView<FBO::Attachment>& attachments);
+  FrameBufferManager(common::ListView<FBO> fbos,
+                     common::ListView<FBO::Attachment> attachments);
   ~FrameBufferManager();
 
   /// Create an objects frame buffer and corresponding attachments
@@ -36,10 +36,8 @@ class FrameBufferManager {
   void bind_stencil_attachment(const FBO& handle) const;
 
  private:
-  FBO* m_fbos;
-  FBO::Attachment* m_attachments;
-  size_t m_fbos_length;
-  size_t m_attachments_len;
+  common::ListView<FBO> m_fbos;
+  common::ListView<FBO::Attachment> m_attachments;
   uint32_t* m_gl_fbos;
   uint32_t* m_gl_attachments;
 };
