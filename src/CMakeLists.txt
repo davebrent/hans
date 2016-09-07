@@ -1,5 +1,6 @@
 add_subdirectory(control)
 add_subdirectory(compiler)
+add_subdirectory(sequencer)
 
 add_library(hansmodule SHARED
   audio/AudioBufferManager.cpp

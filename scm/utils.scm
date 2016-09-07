@@ -6,7 +6,10 @@
            rstrip
            slurp-file
            exit-with-error
-           record->alist))
+           record->alist
+           rotate-left
+           rotate-right
+           shuffle))
 
 (define (print . args)
   (define i 0)
@@ -41,3 +44,29 @@
     (map (lambda (prop)
         (cons prop (get-value ((record-accessor rtd prop) rec))))
       (record-type-fields rtd))))
+
+(define (rotate-left lst n)
+  ;; Rotate a list to the left by N items
+  ;; >>> (rotate-left (5 3 2) 1)
+  ;; 3 2 5
+  (if (eq? n 0)
+    lst
+    (rotate-left (append (cdr lst) (list (car lst)))
+                 (- n 1))))
+
+(define (rotate-right lst n)
+  ;; Rotate a list to the right by N items
+  ;; >>> (rotate-right (5 3 2) 1)
+  ;; 2 5 3
+  (if (eq? n 0)
+    lst
+    (rotate-right (append `(,(last lst)) (reverse (cdr (reverse lst))))
+                  (- n 1))))
+
+(define (shuffle lst)
+  ;; Shuffle a list
+  (map cdr (sort (map (lambda (x)
+                        (cons (random 100) x))
+                      lst)
+                 (lambda (a b)
+                   (< (car a) (car b))))))
