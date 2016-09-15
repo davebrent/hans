@@ -1,5 +1,4 @@
 add_subdirectory(control)
-add_subdirectory(sequencer)
 add_subdirectory(compiler)
 
 add_library(hansmodule SHARED

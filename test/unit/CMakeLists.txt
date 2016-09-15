@@ -7,7 +7,6 @@ add_executable(hans-unittest
   engine/ParameterManager.cpp
   engine/ModulationManager.cpp
   engine/RegisterManager.cpp
-  sequencer/Device.cpp
   main.cpp)
 
 target_link_libraries(hans-unittest
