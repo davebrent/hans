@@ -1,11 +1,11 @@
-#include "hans/graphics/FrameBufferManager.hpp"
+#include "hans/engine/FrameBufferManager.hpp"
 #include <stdexcept>
-#include "hans/graphics/gl.h"
+#include "hans/engine/gl.h"
 
 using namespace hans;
 using namespace hans::common;
-using namespace hans::graphics;
 using namespace hans::engine;
+using namespace hans::engine::graphics;
 
 FrameBufferManager::FrameBufferManager(ListView<FBO> fbos,
                                        ListView<FBO::Attachment> attachments)

@@ -1,10 +1,11 @@
-#include "hans/audio/AudioDevices.hpp"
+#include "hans/engine/AudioDevices.hpp"
 #include <portaudio.h>
 #include <stdexcept>
 #include <vector>
 
 using namespace hans;
-using namespace hans::audio;
+using namespace hans::engine;
+using namespace hans::engine::audio;
 
 AudioDevices::AudioDevices() {
   PaError error = Pa_Initialize();

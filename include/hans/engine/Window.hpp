@@ -1,12 +1,12 @@
-#ifndef HANS_GRAPHICS_WINDOW_H_
-#define HANS_GRAPHICS_WINDOW_H_
+#ifndef HANS_ENGINE_WINDOW_H_
+#define HANS_ENGINE_WINDOW_H_
 
-#include "hans/graphics/gl.h"
+#include "hans/engine/gl.h"
 
 struct GLFWwindow;
 
 namespace hans {
-namespace graphics {
+namespace engine {
 
 class Window {
  public:
@@ -20,7 +20,7 @@ class Window {
   GLFWwindow* m_window;
 };
 
-} // namespace graphics
+} // namespace engine
 } // namespace hans
 
-#endif // HANS_GRAPHICS_WINDOW_H_
+#endif // HANS_ENGINE_WINDOW_H_

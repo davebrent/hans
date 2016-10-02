@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <vector>
 // clang-format off
-#include "hans/graphics/gl.h"
+#include "hans/engine/gl.h"
 #include <GLFW/glfw3.h>
 // clang-format on
 #include "hans/common/DataLoader.hpp"
@@ -16,13 +16,13 @@
 #include "hans/common/types.hpp"
 #include "hans/engine/object.hpp"
 #include "hans/engine/LibraryManager.hpp"
-#include "hans/graphics/ShaderManager.hpp"
+#include "hans/engine/ShaderManager.hpp"
 
 using namespace hans;
-using namespace hans::audio;
 using namespace hans::common;
 using namespace hans::engine;
-using namespace hans::graphics;
+using namespace hans::engine::audio;
+using namespace hans::engine::graphics;
 
 static scm_t_bits data_writer_tag;
 
@@ -74,11 +74,11 @@ static ObjectDef::Types scm_to_hans_obj_type(SCM type) {
   throw std::runtime_error("Unknown object type");
 }
 
-static graphics::Shader::Types scm_to_hans_shader_type(SCM type) {
+static Shader::Types scm_to_hans_shader_type(SCM type) {
   if (str_eqaul_sym("vertex", type)) {
-    return graphics::Shader::Types::VERTEX;
+    return Shader::Types::VERTEX;
   } else if (str_eqaul_sym("fragment", type)) {
-    return graphics::Shader::Types::FRAGMENT;
+    return Shader::Types::FRAGMENT;
   }
 
   throw std::runtime_error("Unknown shader type");
@@ -365,7 +365,7 @@ static SCM write_strings(SCM writer, SCM lst) {
 
 static SCM write_shaders(SCM writer, SCM lst) {
   auto len = lst_length(lst);
-  std::vector<graphics::Shader> result;
+  std::vector<Shader> result;
   result.reserve(len);
 
   auto sym_type = scm_from_locale_symbol("type");
@@ -378,19 +378,19 @@ static SCM write_shaders(SCM writer, SCM lst) {
     auto name = scm_assq_ref(alist, sym_name);
     auto code = scm_assq_ref(alist, sym_code);
 
-    graphics::Shader item;
+    Shader item;
     item.type = scm_to_hans_shader_type(type);
     item.name = scm_to_hans_hash(name);
     item.code = scm_to_hans_hash(code);
     result.push_back(item);
   }
 
-  return write_list<graphics::Shader>(writer, DataFile::Types::SHADERS, result);
+  return write_list<Shader>(writer, DataFile::Types::SHADERS, result);
 }
 
 static SCM write_fbos(SCM writer, SCM lst) {
   auto len = lst_length(lst);
-  std::vector<graphics::FBO> result;
+  std::vector<FBO> result;
   result.reserve(len);
 
   auto sym_stencil_buffer = scm_from_locale_symbol("stencil-buffer");
@@ -403,7 +403,7 @@ static SCM write_fbos(SCM writer, SCM lst) {
     auto stencil = scm_assq_ref(alist, sym_stencil_buffer);
     auto attachments = scm_assq_ref(alist, sym_attachments);
 
-    graphics::FBO item;
+    FBO item;
     item.object = scm_to_int(id);
     item.stencil_buffer = scm_to_bool(stencil);
     item.start = scm_to_int(scm_list_ref(attachments, scm_from_int(0)));
@@ -411,16 +411,16 @@ static SCM write_fbos(SCM writer, SCM lst) {
     result.push_back(item);
   }
 
-  return write_list<graphics::FBO>(writer, DataFile::Types::FBOS, result);
+  return write_list<FBO>(writer, DataFile::Types::FBOS, result);
 }
 
-static graphics::FBO::Attachment::Types scm_to_fbo_attachment_type(SCM type) {
+static FBO::Attachment::Types scm_to_fbo_attachment_type(SCM type) {
   if (str_eqaul_sym("color", type)) {
-    return graphics::FBO::Attachment::Types::COLOR;
+    return FBO::Attachment::Types::COLOR;
   } else if (str_eqaul_sym("depth", type)) {
-    return graphics::FBO::Attachment::Types::DEPTH;
+    return FBO::Attachment::Types::DEPTH;
   } else if (str_eqaul_sym("stencil", type)) {
-    return graphics::FBO::Attachment::Types::STENCIL;
+    return FBO::Attachment::Types::STENCIL;
   }
 
   throw std::runtime_error("Unknown fbo attachment type");
@@ -428,7 +428,7 @@ static graphics::FBO::Attachment::Types scm_to_fbo_attachment_type(SCM type) {
 
 static SCM write_fbo_attachments(SCM writer, SCM lst) {
   auto len = lst_length(lst);
-  std::vector<graphics::FBO::Attachment> result;
+  std::vector<FBO::Attachment> result;
   result.reserve(len);
 
   for (auto i = 0; i < len; ++i) {
@@ -438,7 +438,7 @@ static SCM write_fbo_attachments(SCM writer, SCM lst) {
     auto height = scm_assq_ref(alist, scm_from_locale_symbol("height"));
     auto components = scm_assq_ref(alist, scm_from_locale_symbol("components"));
 
-    graphics::FBO::Attachment item;
+    FBO::Attachment item;
     item.type = scm_to_fbo_attachment_type(type);
     item.width = scm_to_int(width);
     item.height = scm_to_int(height);
@@ -446,13 +446,13 @@ static SCM write_fbo_attachments(SCM writer, SCM lst) {
     result.push_back(item);
   }
 
-  return write_list<graphics::FBO::Attachment>(
-      writer, DataFile::Types::FBO_ATTACHMENTS, result);
+  return write_list<FBO::Attachment>(writer, DataFile::Types::FBO_ATTACHMENTS,
+                                     result);
 }
 
 static SCM write_audio_buffers(SCM writer, SCM lst) {
   auto len = lst_length(lst);
-  std::vector<audio::Buffer> result;
+  std::vector<Buffer> result;
   result.reserve(len);
 
   auto sym_instance_id = scm_from_locale_symbol("instance-id");
@@ -467,7 +467,7 @@ static SCM write_audio_buffers(SCM writer, SCM lst) {
     auto channels = scm_assq_ref(alist, sym_channels);
     auto size = scm_assq_ref(alist, sym_size);
 
-    audio::Buffer item;
+    Buffer item;
     item.object = scm_to_int(id);
     item.name = scm_to_hans_hash(name);
     item.channels = scm_to_int(channels);
@@ -476,8 +476,7 @@ static SCM write_audio_buffers(SCM writer, SCM lst) {
     result.push_back(item);
   }
 
-  return write_list<audio::Buffer>(writer, DataFile::Types::AUDIO_BUFFERS,
-                                   result);
+  return write_list<Buffer>(writer, DataFile::Types::AUDIO_BUFFERS, result);
 }
 
 static SCM write_ring_buffers(SCM writer, SCM lst) {
@@ -555,7 +554,7 @@ static Argument::Types scm_to_hans_argument_type(SCM value) {
 static SCM valid_shaders(SCM lst) {
   auto strings = StringManager(96768);
   auto len = lst_length(lst);
-  auto shader_vec = std::vector<graphics::Shader>();
+  auto shader_vec = std::vector<Shader>();
   shader_vec.reserve(len);
 
   auto sym_type = scm_from_locale_symbol("type");
@@ -568,14 +567,14 @@ static SCM valid_shaders(SCM lst) {
     auto name = scm_assq_ref(alist, sym_name);
     auto code = scm_assq_ref(alist, sym_code);
 
-    graphics::Shader item;
+    Shader item;
     item.type = scm_to_hans_shader_type(type);
     item.name = scm_to_hans_hash(strings, name);
     item.code = scm_to_hans_hash(strings, code);
     shader_vec.push_back(item);
   }
 
-  auto shader_list = ListView<graphics::Shader>(&shader_vec[0], len);
+  auto shader_list = ListView<Shader>(&shader_vec[0], len);
 
   bool res = glfwInit();
   if (res != GL_TRUE) {
@@ -593,7 +592,7 @@ static SCM valid_shaders(SCM lst) {
   auto window = glfwCreateWindow(480, 320, "Shaders", nullptr, nullptr);
   glfwMakeContextCurrent(window);
 
-  auto shader_manager = graphics::ShaderManager(strings, shader_list);
+  auto shader_manager = ShaderManager(strings, shader_list);
   auto out = SCM_EOL;
 
   for (const auto& shader : shader_list) {

@@ -1,7 +1,6 @@
 #ifndef HANS_ENGINE_REGISTERMANAGER_H_
 #define HANS_ENGINE_REGISTERMANAGER_H_
 
-#include "hans/audio/types.hpp"
 #include "hans/common/LinearAllocator.hpp"
 #include "hans/common/ListView.hpp"
 #include "hans/common/types.hpp"

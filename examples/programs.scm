@@ -118,11 +118,11 @@
   (os-path-join (dirname (current-filename)) filename))
 
 (hans-compile
-  (hans-file (list (make-pgm-feature "feature" "centroid")
-                   (make-pgm-fft "fft" "rb-buff")
+  (hans-file (list (make-pgm-scope "oscilloscope" "rb-foobar-2")
                    (make-pgm-attractors "attractors")
+                   (make-pgm-feature "feature" "centroid")
+                   (make-pgm-fft "fft" "rb-buff")
                    (make-pgm-script "script" (base "sketches/concentric.scm"))
-                   (make-pgm-scope "oscilloscope" "rb-foobar-2")
                    (make-pgm-fx "cga" "filter/shader/cgadisplay")
                    (make-pgm-fx "dotscreen" "filter/shader/dotscreen")
                    (make-pgm-fx "greyscale" "filter/shader/greyscale")

@@ -1,9 +1,9 @@
-#include "hans/graphics/Window.hpp"
+#include "hans/engine/Window.hpp"
 #include <GLFW/glfw3.h>
 #include <iostream>
 
 using namespace hans;
-using namespace hans::graphics;
+using namespace hans::engine;
 
 static void error_callback(int error, const char* description) {
   std::cout << "Window Error: " << error << " " << description << std::endl;

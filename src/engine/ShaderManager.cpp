@@ -1,10 +1,11 @@
-#include "hans/graphics/ShaderManager.hpp"
+#include "hans/engine/ShaderManager.hpp"
 #include <iostream>
 #include <stdexcept>
 
 using namespace hans;
 using namespace hans::common;
-using namespace hans::graphics;
+using namespace hans::engine;
+using namespace hans::engine::graphics;
 
 ShaderManager::ShaderManager(const StringManager& string_manager,
                              const ListView<Shader> shaders)

@@ -2,12 +2,10 @@
 #define HANS_COMMON_DATALOADER_H_
 
 #include <vector>
-#include "hans/audio/types.hpp"
 #include "hans/common/LinearAllocator.hpp"
 #include "hans/common/ListView.hpp"
 #include "hans/common/types.hpp"
 #include "hans/engine/types.hpp"
-#include "hans/graphics/types.hpp"
 
 namespace hans {
 namespace common {
@@ -42,11 +40,11 @@ class DataReader {
     ListView<engine::Program> programs;
     ListView<size_t> chains;
     ListView<engine::Register> registers;
-    ListView<graphics::Shader> shaders;
-    ListView<graphics::FBO> fbos;
-    ListView<graphics::FBO::Attachment> fbo_attachments;
-    ListView<audio::Buffer> audio_buffers;
-    ListView<audio::RingBuffer> ring_buffers;
+    ListView<engine::graphics::Shader> shaders;
+    ListView<engine::graphics::FBO> fbos;
+    ListView<engine::graphics::FBO::Attachment> fbo_attachments;
+    ListView<engine::audio::Buffer> audio_buffers;
+    ListView<engine::RingBuffer> ring_buffers;
     ListView<engine::Modulator> modulators;
   };
 

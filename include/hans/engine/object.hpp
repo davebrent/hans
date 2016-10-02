@@ -1,13 +1,11 @@
 #ifndef HANS_ENGINE_OBJECT_H
 #define HANS_ENGINE_OBJECT_H
 
-#include "hans/audio/types.hpp"
 #include "hans/common/types.hpp"
 #include "hans/engine/Engine.hpp"
 #include "hans/engine/Patcher.hpp"
+#include "hans/engine/gl.h"
 #include "hans/engine/types.hpp"
-#include "hans/graphics/gl.h"
-#include "hans/graphics/types.hpp"
 
 namespace hans {
 namespace engine {

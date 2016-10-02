@@ -5,10 +5,8 @@
 #include <iostream>
 
 using namespace hans;
-using namespace hans::audio;
 using namespace hans::common;
 using namespace hans::engine;
-using namespace hans::graphics;
 
 DataWriter::DataWriter(size_t size) : m_allocator(size) {
   m_cleanup = false;
@@ -119,16 +117,16 @@ DataReader::DataReader(const char* uri) {
       data.registers = ListView<Register>(blob);
       break;
     case DataFile::Types::SHADERS:
-      data.shaders = ListView<Shader>(blob);
+      data.shaders = ListView<graphics::Shader>(blob);
       break;
     case DataFile::Types::FBOS:
-      data.fbos = ListView<FBO>(blob);
+      data.fbos = ListView<graphics::FBO>(blob);
       break;
     case DataFile::Types::FBO_ATTACHMENTS:
-      data.fbo_attachments = ListView<FBO::Attachment>(blob);
+      data.fbo_attachments = ListView<graphics::FBO::Attachment>(blob);
       break;
     case DataFile::Types::AUDIO_BUFFERS:
-      data.audio_buffers = ListView<Buffer>(blob);
+      data.audio_buffers = ListView<audio::Buffer>(blob);
       break;
     case DataFile::Types::RING_BUFFERS:
       data.ring_buffers = ListView<RingBuffer>(blob);

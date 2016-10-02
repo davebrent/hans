@@ -1,15 +1,13 @@
-#ifndef HANS_AUDIO_RINGBUFFERMANAGER_H_
-#define HANS_AUDIO_RINGBUFFERMANAGER_H_
+#ifndef HANS_ENGINE_RINGBUFFERMANAGER_H_
+#define HANS_ENGINE_RINGBUFFERMANAGER_H_
 
-#include "hans/audio/RingBufferManager.hpp"
-#include "hans/audio/types.hpp"
 #include "hans/common/LinearAllocator.hpp"
 #include "hans/common/ListView.hpp"
 #include "hans/common/types.hpp"
 #include "hans/engine/types.hpp"
 
 namespace hans {
-namespace audio {
+namespace engine {
 
 class RingBufferManager {
  public:
@@ -19,7 +17,7 @@ class RingBufferManager {
   RingBuffer make(engine::ObjectDef::ID producer, hash name);
 
   /// Write samples to a ring buffer, samples must be length of blocksize
-  bool write(RingBuffer ring, const sample* samples);
+  bool write(RingBuffer ring, const audio::sample* samples);
 
   /// Advance all ring buffers
   void advance_all();
@@ -28,7 +26,7 @@ class RingBufferManager {
   uint8_t available(hash name);
 
   /// Read the Nth available frame for a named buffer
-  sample* read(hash name, uint8_t frame);
+  audio::sample* read(hash name, uint8_t frame);
 
  private:
   RingBuffer find(hash name);
@@ -42,7 +40,7 @@ class RingBufferManager {
   uint8_t* m_tails;
 };
 
-} // namespace audio
+} // namespace engine
 } // namespace hans
 
-#endif // HANS_AUDIO_RINGBUFFERMANAGER_H_
+#endif // HANS_ENGINE_RINGBUFFERMANAGER_H_

@@ -4,13 +4,13 @@ add_subdirectory(engine)
 add_subdirectory(sequencer)
 
 add_library(hansmodule SHARED
-  audio/AudioBufferManager.cpp
-  audio/AudioBusManager.cpp
-  audio/RingBufferManager.cpp
+  engine/AudioBufferManager.cpp
+  engine/AudioBusManager.cpp
+  engine/RingBufferManager.cpp
   engine/RegisterManager.cpp
   engine/ParameterManager.cpp
-  graphics/ShaderManager.cpp
-  graphics/FrameBufferManager.cpp
+  engine/ShaderManager.cpp
+  engine/FrameBufferManager.cpp
   common/hasher.cpp
   common/StringManager.cpp
   common/LinearAllocator.cpp)

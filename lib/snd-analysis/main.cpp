@@ -9,7 +9,6 @@
 #define METHOD_ROLLOFF 0x7e13c94680db0c7f  /* rolloff */
 
 using namespace hans;
-using namespace hans::audio;
 using namespace hans::engine;
 
 struct FFTState {
@@ -75,7 +74,7 @@ void FFTObject::setup(Engine& engine) {
 
 void FFTObject::callback(Engine& engine) {
   const auto input = engine.registers.read(state.inlet);
-  const auto samples = static_cast<sample*>(input);
+  const auto samples = static_cast<audio::sample*>(input);
 
   auto original = state.in->data;
   state.in->data = samples;
@@ -98,8 +97,8 @@ void FFTObject::callback(Engine& engine) {
   engine.registers.write(state.outlet_imag, imag_buff);
 }
 
-static void realimag_to_compspec(size_t winsize, sample* real, sample* imag,
-                                 fvec_t* compspec) {
+static void realimag_to_compspec(size_t winsize, audio::sample* real,
+                                 audio::sample* imag, fvec_t* compspec) {
   auto fftsize = winsize / 2 + 1;
   compspec->data[0] = real[0];
   compspec->data[winsize - 1] = imag[winsize - 1];
@@ -162,8 +161,10 @@ void IFFTObject::setup(Engine& engine) {
 }
 
 void IFFTObject::callback(Engine& engine) {
-  const auto real = static_cast<sample*>(engine.registers.read(state.real));
-  const auto imag = static_cast<sample*>(engine.registers.read(state.imag));
+  const auto real =
+      static_cast<audio::sample*>(engine.registers.read(state.real));
+  const auto imag =
+      static_cast<audio::sample*>(engine.registers.read(state.imag));
 
   realimag_to_compspec(engine.config.blocksize, real, imag, state.compspec);
   aubio_fft_rdo_complex(state.fft, state.compspec, state.out);
@@ -232,7 +233,8 @@ void FeatureObject::setup(Engine& engine) {
 }
 
 void FeatureObject::callback(Engine& engine) {
-  const auto sig = static_cast<sample*>(engine.registers.read(state.signal));
+  const auto sig =
+      static_cast<audio::sample*>(engine.registers.read(state.signal));
 
   auto in = state.in->data;
   state.in->data = sig;

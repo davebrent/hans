@@ -1,4 +1,4 @@
-#include "hans/audio/RingBufferManager.hpp"
+#include "hans/engine/RingBufferManager.hpp"
 #include <cstring>
 #include <stdexcept>
 
@@ -6,7 +6,6 @@
 #define RB_FRAMES 30
 
 using namespace hans;
-using namespace hans::audio;
 using namespace hans::common;
 using namespace hans::engine;
 
@@ -14,12 +13,12 @@ RingBufferManager::RingBufferManager(const Config& config,
                                      ListView<RingBuffer> ring_buffers)
     : m_ring_buffers(ring_buffers) {
   auto num_ring_buffers = m_ring_buffers.size();
-  m_frame_size = sizeof(sample) * config.blocksize;
+  m_frame_size = sizeof(audio::sample) * config.blocksize;
 
   auto single = m_frame_size * RB_FRAMES;
   auto bytes = num_ring_buffers * single;
 
-  auto alignment = alignof(sample);
+  auto alignment = alignof(audio::sample);
   m_allocator.reset(bytes);
   m_base = static_cast<char*>(m_allocator.allocate(bytes, alignment));
 
@@ -61,7 +60,7 @@ RingBuffer RingBufferManager::find(hash name) {
   throw std::runtime_error("RingBufferManager: Unknown ring buffer");
 }
 
-bool RingBufferManager::write(RingBuffer ring, const sample* samples) {
+bool RingBufferManager::write(RingBuffer ring, const audio::sample* samples) {
   auto head = m_heads[ring.index];
   auto dest = m_base + ring.offset + (m_frame_size * head);
 
@@ -72,12 +71,12 @@ bool RingBufferManager::write(RingBuffer ring, const sample* samples) {
   return m_available[ring.index] < RB_FRAMES;
 }
 
-sample* RingBufferManager::read(hash name, uint8_t frame) {
+audio::sample* RingBufferManager::read(hash name, uint8_t frame) {
   auto ring = find(name);
   auto tail = m_tails[ring.index];
   auto samples =
       m_base + ring.offset + (m_frame_size * ((tail + frame) % RB_FRAMES));
-  return reinterpret_cast<sample*>(samples);
+  return reinterpret_cast<audio::sample*>(samples);
 }
 
 uint8_t RingBufferManager::available(hash name) {

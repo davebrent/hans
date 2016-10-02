@@ -1,10 +1,9 @@
-#include "hans/audio/AudioStream.hpp"
+#include "hans/engine/AudioStream.hpp"
 #include <portaudio.h>
 #include <chrono>
 #include <thread>
 
 using namespace hans;
-using namespace hans::audio;
 using namespace hans::common;
 using namespace hans::engine;
 
@@ -13,8 +12,8 @@ static int audio_callback(const void* input, void* output,
                           const PaStreamCallbackTimeInfo* time_info,
                           PaStreamCallbackFlags status_flags, void* user_data) {
   AudioStream* stream = static_cast<AudioStream*>(user_data);
-  stream->callback(static_cast<const sample**>(const_cast<void*>(input)),
-                   static_cast<sample**>(output));
+  stream->callback(static_cast<const audio::sample**>(const_cast<void*>(input)),
+                   static_cast<audio::sample**>(output));
   return paContinue;
 }
 
@@ -45,11 +44,11 @@ AudioStream::~AudioStream() {
   }
 }
 
-void AudioStream::set_input_device(const Device& device) {
+void AudioStream::set_input_device(const audio::Device& device) {
   m_input_device = device.id;
 }
 
-void AudioStream::set_output_device(const Device& device) {
+void AudioStream::set_output_device(const audio::Device& device) {
   m_output_device = device.id;
 }
 
@@ -80,7 +79,8 @@ bool AudioStream::open() {
   return false;
 }
 
-void AudioStream::callback(const sample** input, sample** output) {
+void AudioStream::callback(const audio::sample** input,
+                           audio::sample** output) {
   if (m_state == HANS_AUDIO_PENDING) {
     m_state = HANS_AUDIO_STARTED;
   }

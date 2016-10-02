@@ -5,7 +5,7 @@ add_library(hanscompiler SHARED
   ../common/StringManager.cpp
   ../common/hasher.cpp
   ../engine/LibraryManager.cpp
-  ../graphics/ShaderManager.cpp)
+  ../engine/ShaderManager.cpp)
 
 target_link_libraries(hanscompiler
   ${GUILE_LIBRARIES}

@@ -4,11 +4,10 @@
 #include <libguile.h>
 #include "hans/common/types.hpp"
 #include "hans/engine/types.hpp"
-#include "hans/graphics/types.hpp"
 
 struct ScriptState {
   hans::hash path;
-  hans::graphics::FBO fbo;
+  hans::engine::graphics::FBO fbo;
   hans::engine::Register outlet;
   float width;
   float height;

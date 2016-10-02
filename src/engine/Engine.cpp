@@ -1,27 +1,25 @@
 #include "hans/engine/Engine.hpp"
 #include <GLFW/glfw3.h>
 #include <libguile.h>
-#include "hans/audio/AudioBufferManager.hpp"
-#include "hans/audio/AudioBusManager.hpp"
-#include "hans/audio/AudioDevices.hpp"
-#include "hans/audio/AudioStream.hpp"
-#include "hans/audio/RingBufferManager.hpp"
 #include "hans/common/DataLoader.hpp"
 #include "hans/common/ListView.hpp"
 #include "hans/common/StringManager.hpp"
 #include "hans/common/hasher.hpp"
+#include "hans/engine/AudioBufferManager.hpp"
+#include "hans/engine/AudioBusManager.hpp"
+#include "hans/engine/AudioDevices.hpp"
+#include "hans/engine/AudioStream.hpp"
 #include "hans/engine/LibraryManager.hpp"
 #include "hans/engine/ParameterManager.hpp"
 #include "hans/engine/RegisterManager.hpp"
+#include "hans/engine/RingBufferManager.hpp"
+#include "hans/engine/Window.hpp"
+#include "hans/engine/gl.h"
 #include "hans/engine/object.hpp"
-#include "hans/graphics/Window.hpp"
-#include "hans/graphics/gl.h"
 
 using namespace hans;
-using namespace hans::audio;
 using namespace hans::common;
 using namespace hans::engine;
-using namespace hans::graphics;
 
 static void error_callback(int error, const char* description) {
   std::cout << "Window Error: " << error << " " << description << std::endl;

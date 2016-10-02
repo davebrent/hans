@@ -1,40 +1,39 @@
-#ifndef HANS_GRAPHICS_SHADERMANAGER_H_
-#define HANS_GRAPHICS_SHADERMANAGER_H_
+#ifndef HANS_ENGINE_SHADERMANAGER_H_
+#define HANS_ENGINE_SHADERMANAGER_H_
 
 #include <vector>
 #include "hans/common/ListView.hpp"
 #include "hans/common/StringManager.hpp"
 #include "hans/common/types.hpp"
+#include "hans/engine/gl.h"
 #include "hans/engine/types.hpp"
-#include "hans/graphics/gl.h"
-#include "hans/graphics/types.hpp"
 
 namespace hans {
-namespace graphics {
+namespace engine {
 
 class ShaderManager {
  public:
   ShaderManager(const common::StringManager& string_manager,
-                const common::ListView<Shader> shaders);
+                const common::ListView<graphics::Shader> shaders);
   ~ShaderManager();
 
   /// Returns nullptr if the shader is valid, other wise an error string that
   /// must be freed by the caller
   const char* validate(const hash uri);
 
-  Shader::Instance create(const hash uri);
-  ShaderProgram create(const Shader::Instance& vertex,
-                       const Shader::Instance& fragment);
+  graphics::Shader::Instance create(const hash uri);
+  graphics::ShaderProgram create(const graphics::Shader::Instance& vertex,
+                                 const graphics::Shader::Instance& fragment);
 
  private:
   const common::StringManager& m_string_manager;
-  const common::ListView<Shader> m_shaders;
+  const common::ListView<graphics::Shader> m_shaders;
 
   std::vector<GLuint> m_shader_handles;
   std::vector<GLuint> m_program_handles;
 };
 
-} // namespace graphics
+} // namespace engine
 } // namespace hans
 
-#endif // HANS_GRAPHICS_SHADERMANAGER_H_
+#endif // HANS_ENGINE_SHADERMANAGER_H_

@@ -8,10 +8,10 @@
 #include "hans/common/types.hpp"
 
 using namespace hans;
-using namespace hans::audio;
 using namespace hans::common;
 using namespace hans::engine;
-using namespace hans::graphics;
+using namespace hans::engine::graphics;
+using namespace hans::engine::audio;
 
 class Dumper {
  public:
@@ -96,7 +96,7 @@ class Dumper {
   //   std::cout << std::endl;
   // }
 
-  void print(const char* label, const ListView<graphics::FBO>& fbos) {
+  void print(const char* label, const ListView<FBO>& fbos) {
     std::cout << "- Type: FBOS" << std::endl;
     std::cout << "  Values: " << std::endl;
     for (const auto& fbo : fbos) {
@@ -149,7 +149,7 @@ class Dumper {
     }
   }
 
-  void print(const char* label, const ListView<audio::Buffer>& buffers) {
+  void print(const char* label, const ListView<Buffer>& buffers) {
     const auto& s = m_strings;
     std::cout << "- Type: " << label << std::endl;
     std::cout << "  Values: " << std::endl;

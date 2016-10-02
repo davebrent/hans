@@ -1,16 +1,16 @@
 add_library(hansengine SHARED
-  ../audio/AudioDevices.cpp
-  ../audio/AudioStream.cpp
-  ../audio/AudioBufferManager.cpp
-  ../audio/AudioBusManager.cpp
-  ../audio/RingBufferManager.cpp
   ../common/DataLoader.cpp
   ../common/hasher.cpp
   ../common/StringManager.cpp
   ../common/LinearAllocator.cpp
-  ../graphics/Window.cpp
-  ../graphics/ShaderManager.cpp
-  ../graphics/FrameBufferManager.cpp
+  AudioDevices.cpp
+  AudioStream.cpp
+  AudioBufferManager.cpp
+  AudioBusManager.cpp
+  RingBufferManager.cpp
+  Window.cpp
+  ShaderManager.cpp
+  FrameBufferManager.cpp
   LibraryManager.cpp
   ModulationManager.cpp
   ParameterManager.cpp

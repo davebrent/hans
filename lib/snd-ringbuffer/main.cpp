@@ -3,7 +3,6 @@
 #define RB_ARG_NAME 0xd4c943cba60c270b /* name */
 
 using namespace hans;
-using namespace hans::audio;
 using namespace hans::engine;
 
 struct RingBufferState {
