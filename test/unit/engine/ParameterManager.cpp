@@ -23,8 +23,7 @@ TEST_CASE("parameter manager", "[parameters]") {
 
     auto parameters = ListView<Parameter>(&fixture[0], 2);
     auto values = ListView<Parameter::Value>(&data[0], 2);
-    auto manager = ParameterManager();
-    manager.use(parameters, values);
+    auto manager = ParameterManager(parameters, values);
 
     auto handle1 = manager.make(1, 0x10);
     auto handle2 = manager.make(2, 0x10);

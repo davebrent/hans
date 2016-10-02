@@ -1,9 +1,9 @@
-#include "hans/audio/AudioBusManager.hpp"
+#include "hans/engine/AudioBusManager.hpp"
 #include <catch.hpp>
 
 using namespace hans;
 using namespace hans::common;
-using namespace hans::audio;
+using namespace hans::engine;
 
 TEST_CASE("audio bus manager", "[audiobus]") {
   SECTION("writing data to single bus multiple channels") {

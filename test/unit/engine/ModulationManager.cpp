@@ -37,11 +37,8 @@ TEST_CASE("modulation manager", "[modulators]") {
     auto values = common::ListView<Parameter::Value>(&data[0], 2);
     auto modulators = common::ListView<Modulator>(&modulator, 1);
 
-    auto param_manager = engine::ParameterManager();
+    auto param_manager = engine::ParameterManager(parameters, values);
     auto mod_manager = engine::ModulationManager(param_manager, modulators);
-
-    param_manager.use(parameters, values);
-    mod_manager.setup();
 
     auto handle1 = param_manager.make(1, 0x10);
     auto handle2 = param_manager.make(2, 0x10);

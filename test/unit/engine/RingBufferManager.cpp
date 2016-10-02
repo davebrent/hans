@@ -1,10 +1,10 @@
-#include "hans/audio/RingBufferManager.hpp"
+#include "hans/engine/RingBufferManager.hpp"
 #include <catch.hpp>
 #include "hans/common/ListView.hpp"
 #include "hans/common/types.hpp"
 
 using namespace hans;
-using namespace hans::audio;
+using namespace hans::engine;
 using namespace hans::common;
 
 TEST_CASE("ring buffer manager", "[ringbuffer]") {
