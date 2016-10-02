@@ -46,26 +46,26 @@ void SndTexObject::create(IPatcher& patcher) {
 }
 
 void SndTexObject::setup(Engine& engine) {
-  auto blocksize = engine.config->blocksize;
+  auto blocksize = engine.config.blocksize;
 
-  state.outlet = engine.registers->make(id, Register::Types::OUTLET, 0);
+  state.outlet = engine.registers.make(id, Register::Types::OUTLET, 0);
   state.samples = new audio::sample[blocksize * MAX_FRAMES];
 
   glGenTextures(1, &state.texture);
-  engine.registers->write(state.outlet, &state.texture);
+  engine.registers.write(state.outlet, &state.texture);
 }
 
 void SndTexObject::update(Engine& engine) {
-  auto blocksize = engine.config->blocksize;
+  auto blocksize = engine.config.blocksize;
   auto framesize = blocksize * sizeof(audio::sample);
-  auto available = engine.ring_buffers->available(state.name);
+  auto available = engine.ring_buffers.available(state.name);
 
   if (available >= MAX_FRAMES) {
     available = MAX_FRAMES - 1;
   }
 
   for (auto i = 0; i < available; ++i) {
-    auto buffer = engine.ring_buffers->read(state.name, i);
+    auto buffer = engine.ring_buffers.read(state.name, i);
     auto dest = &state.samples[i * blocksize];
     std::memcpy(dest, buffer, framesize);
   }

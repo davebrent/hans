@@ -58,11 +58,11 @@ void FFTObject::create(IPatcher& patcher) {
 }
 
 void FFTObject::setup(Engine& engine) {
-  state.inlet = engine.registers->make(id, Register::Types::INLET, 0);
-  state.outlet_real = engine.registers->make(id, Register::Types::OUTLET, 0);
-  state.outlet_imag = engine.registers->make(id, Register::Types::OUTLET, 1);
-  state.buffer_real = engine.audio_buffers->make(id, REAL_BUFF_NAME);
-  state.buffer_imag = engine.audio_buffers->make(id, IMAG_BUFF_NAME);
+  state.inlet = engine.registers.make(id, Register::Types::INLET, 0);
+  state.outlet_real = engine.registers.make(id, Register::Types::OUTLET, 0);
+  state.outlet_imag = engine.registers.make(id, Register::Types::OUTLET, 1);
+  state.buffer_real = engine.audio_buffers.make(id, REAL_BUFF_NAME);
+  state.buffer_imag = engine.audio_buffers.make(id, IMAG_BUFF_NAME);
 
   auto winsize = state.buffer_real.size;
   state.fft = new_aubio_fft(winsize);
@@ -74,7 +74,7 @@ void FFTObject::setup(Engine& engine) {
 }
 
 void FFTObject::callback(Engine& engine) {
-  const auto input = engine.registers->read(state.inlet);
+  const auto input = engine.registers.read(state.inlet);
   const auto samples = static_cast<sample*>(input);
 
   auto original = state.in->data;
@@ -86,16 +86,16 @@ void FFTObject::callback(Engine& engine) {
   aubio_fft_get_real(state.spectrum, state.real);
   aubio_fft_get_imag(state.spectrum, state.imag);
 
-  auto real_buff = engine.audio_buffers->get(state.buffer_real, 0);
-  auto imag_buff = engine.audio_buffers->get(state.buffer_imag, 0);
+  auto real_buff = engine.audio_buffers.get(state.buffer_real, 0);
+  auto imag_buff = engine.audio_buffers.get(state.buffer_imag, 0);
 
-  for (auto i = 0; i < engine.config->blocksize; ++i) {
+  for (auto i = 0; i < engine.config.blocksize; ++i) {
     real_buff[i] = state.real->data[i];
     imag_buff[i] = state.imag->data[i];
   }
 
-  engine.registers->write(state.outlet_real, real_buff);
-  engine.registers->write(state.outlet_imag, imag_buff);
+  engine.registers.write(state.outlet_real, real_buff);
+  engine.registers.write(state.outlet_imag, imag_buff);
 }
 
 static void realimag_to_compspec(size_t winsize, sample* real, sample* imag,
@@ -150,10 +150,10 @@ void IFFTObject::create(IPatcher& patcher) {
 }
 
 void IFFTObject::setup(Engine& engine) {
-  state.real = engine.registers->make(id, Register::Types::INLET, 0);
-  state.imag = engine.registers->make(id, Register::Types::INLET, 1);
-  state.outlet = engine.registers->make(id, Register::Types::OUTLET, 0);
-  state.signal = engine.audio_buffers->make(id, SIGN_BUFF_NAME);
+  state.real = engine.registers.make(id, Register::Types::INLET, 0);
+  state.imag = engine.registers.make(id, Register::Types::INLET, 1);
+  state.outlet = engine.registers.make(id, Register::Types::OUTLET, 0);
+  state.signal = engine.audio_buffers.make(id, SIGN_BUFF_NAME);
 
   state.fft = new_aubio_fft(state.signal.size);
   state.fftgrain = new_cvec(state.signal.size);
@@ -162,12 +162,12 @@ void IFFTObject::setup(Engine& engine) {
 }
 
 void IFFTObject::callback(Engine& engine) {
-  const auto real = static_cast<sample*>(engine.registers->read(state.real));
-  const auto imag = static_cast<sample*>(engine.registers->read(state.imag));
+  const auto real = static_cast<sample*>(engine.registers.read(state.real));
+  const auto imag = static_cast<sample*>(engine.registers.read(state.imag));
 
-  realimag_to_compspec(engine.config->blocksize, real, imag, state.compspec);
+  realimag_to_compspec(engine.config.blocksize, real, imag, state.compspec);
   aubio_fft_rdo_complex(state.fft, state.compspec, state.out);
-  engine.registers->write(state.outlet, state.out->data);
+  engine.registers.write(state.outlet, state.out->data);
 }
 
 struct FeatureState {
@@ -217,22 +217,22 @@ void FeatureObject::create(IPatcher& patcher) {
 }
 
 void FeatureObject::setup(Engine& engine) {
-  state.parameter = engine.parameters->make(id, state.method);
-  state.signal = engine.registers->make(id, Register::Types::INLET, 0);
-  state.outlet = engine.registers->make(id, Register::Types::OUTLET, 1);
+  state.parameter = engine.parameters.make(id, state.method);
+  state.signal = engine.registers.make(id, Register::Types::INLET, 0);
+  state.outlet = engine.registers.make(id, Register::Types::OUTLET, 1);
 
-  auto winsize = engine.config->blocksize;
+  auto winsize = engine.config.blocksize;
   state.value = new_fvec(1);
   state.in = new_fvec(winsize);
   state.fftgrain = new_cvec(winsize);
 
-  auto method = engine.strings->lookup(state.method);
+  auto method = engine.strings.lookup(state.method);
   state.desc = new_aubio_specdesc(const_cast<char*>(method), winsize);
   state.pvoc = new_aubio_pvoc(winsize, winsize);
 }
 
 void FeatureObject::callback(Engine& engine) {
-  const auto sig = static_cast<sample*>(engine.registers->read(state.signal));
+  const auto sig = static_cast<sample*>(engine.registers.read(state.signal));
 
   auto in = state.in->data;
   state.in->data = sig;
@@ -241,15 +241,15 @@ void FeatureObject::callback(Engine& engine) {
   aubio_specdesc_do(state.desc, state.fftgrain, state.value);
 
   if (state.method == METHOD_CENTROID || state.method == METHOD_ROLLOFF) {
-    auto winsize = engine.config->blocksize;
-    auto samplerate = engine.config->samplerate;
+    auto winsize = engine.config.blocksize;
+    auto samplerate = engine.config.samplerate;
     auto hz = aubio_bintofreq(state.value->data[0], samplerate, winsize);
-    engine.parameters->set(state.parameter, 0, hz);
+    engine.parameters.set(state.parameter, 0, hz);
   } else {
-    engine.parameters->set(state.parameter, 0, state.value->data[0]);
+    engine.parameters.set(state.parameter, 0, state.value->data[0]);
   }
 
-  engine.registers->write(state.outlet, sig);
+  engine.registers.write(state.outlet, sig);
 }
 
 HANS_PLUGIN_INIT(LibraryManager* library) {

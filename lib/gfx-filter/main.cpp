@@ -66,10 +66,10 @@ void FilterObject::create(IPatcher& patcher) {
 }
 
 void FilterObject::setup(Engine& engine) {
-  state.amount = engine.parameters->make(id, FILTER_AMOUNT);
-  state.inlet_texture = engine.registers->make(id, Register::Types::INLET, 0);
-  state.outlet_texture = engine.registers->make(id, Register::Types::OUTLET, 0);
-  state.fbo = engine.fbos->make(id);
+  state.amount = engine.parameters.make(id, FILTER_AMOUNT);
+  state.inlet_texture = engine.registers.make(id, Register::Types::INLET, 0);
+  state.outlet_texture = engine.registers.make(id, Register::Types::OUTLET, 0);
+  state.fbo = engine.fbos.make(id);
 
   GLuint vbo;
   GLuint ebo;
@@ -89,9 +89,9 @@ void FilterObject::setup(Engine& engine) {
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
-  auto v_shader = engine.shaders->create(FILTER_VERT_SHADER);
-  auto f_shader = engine.shaders->create(state.shader);
-  state.program = engine.shaders->create(v_shader, f_shader);
+  auto v_shader = engine.shaders.create(FILTER_VERT_SHADER);
+  auto f_shader = engine.shaders.create(state.shader);
+  state.program = engine.shaders.create(v_shader, f_shader);
   glUseProgram(state.program.handle);
 
   state.u_resolution_loc =
@@ -104,12 +104,12 @@ void FilterObject::setup(Engine& engine) {
   glVertexAttribPointer(pos_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(pos_attrib);
 
-  auto register_value = engine.registers->read(state.inlet_texture);
+  auto register_value = engine.registers.read(state.inlet_texture);
   state.texture_value = *static_cast<uint32_t*>(register_value);
 
   // Send the textures we will be writing to to the outlet
-  auto out_tex = engine.fbos->get_color_attachment(state.fbo, 0);
-  engine.registers->write(state.outlet_texture, &out_tex);
+  auto out_tex = engine.fbos.get_color_attachment(state.fbo, 0);
+  engine.registers.write(state.outlet_texture, &out_tex);
 }
 
 void FilterObject::draw(Engine& engine) const {
@@ -127,9 +127,9 @@ void FilterObject::draw(Engine& engine) const {
 
   glUniform2f(state.u_resolution_loc, input_width, input_height);
   glUniform2f(state.u_center_loc, input_width / 2.f, input_height / 2.f);
-  glUniform1f(state.u_amount_loc, engine.parameters->get(state.amount, 0));
+  glUniform1f(state.u_amount_loc, engine.parameters.get(state.amount, 0));
 
-  engine.fbos->bind_fbo(state.fbo);
+  engine.fbos.bind_fbo(state.fbo);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glBindVertexArray(state.vao);

@@ -190,11 +190,11 @@ void ScriptObject::create(IPatcher& patcher) {
 }
 
 void ScriptObject::setup(Engine& engine) {
-  state.outlet = engine.registers->make(id, Register::Types::OUTLET, 0);
-  state.fbo = engine.fbos->make(id);
+  state.outlet = engine.registers.make(id, Register::Types::OUTLET, 0);
+  state.fbo = engine.fbos.make(id);
 
-  auto texture = engine.fbos->get_color_attachment(state.fbo, 0);
-  engine.registers->write(state.outlet, &texture);
+  auto texture = engine.fbos.get_color_attachment(state.fbo, 0);
+  engine.registers.write(state.outlet, &texture);
 
   scm_c_define_gsubr("size", 2, 0, 0, (scm_t_subr)size);
   scm_c_define_gsubr("save", 0, 0, 0, (scm_t_subr)save);
@@ -223,12 +223,12 @@ void ScriptObject::setup(Engine& engine) {
 
   auto& renderer = IMRenderer::get_instance();
   renderer.set_script_state(&state);
-  scm_c_primitive_load(engine.strings->lookup(state.path));
+  scm_c_primitive_load(engine.strings.lookup(state.path));
   renderer.set_script_state(nullptr);
 }
 
 void ScriptObject::draw(Engine& engine) const {
-  engine.fbos->bind_fbo(state.fbo);
+  engine.fbos.bind_fbo(state.fbo);
 
   auto& renderer = IMRenderer::get_instance();
   renderer.size(state.width, state.height);

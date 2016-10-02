@@ -40,8 +40,8 @@ void QuadObject::create(IPatcher& patcher) {
 }
 
 void QuadObject::setup(Engine& engine) {
-  state.fbo = engine.fbos->make(id);
-  state.inlet = engine.registers->make(id, Register::Types::INLET, 0);
+  state.fbo = engine.fbos.make(id);
+  state.inlet = engine.registers.make(id, Register::Types::INLET, 0);
 
   GLuint vbo;
   GLuint ebo;
@@ -61,9 +61,9 @@ void QuadObject::setup(Engine& engine) {
   glBindBuffer(GL_ARRAY_BUFFER, vbo);
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
 
-  state.v_shader = engine.shaders->create(LIBQUAD_VERT_SHADER);
-  state.f_shader = engine.shaders->create(LIBQUAD_FRAG_SHADER);
-  state.program = engine.shaders->create(state.v_shader, state.f_shader);
+  state.v_shader = engine.shaders.create(LIBQUAD_VERT_SHADER);
+  state.f_shader = engine.shaders.create(LIBQUAD_FRAG_SHADER);
+  state.program = engine.shaders.create(state.v_shader, state.f_shader);
   glUseProgram(state.program.handle);
 
   state.texture = glGetUniformLocation(state.program.handle, "u_texture");
@@ -72,7 +72,7 @@ void QuadObject::setup(Engine& engine) {
   glVertexAttribPointer(pos_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(pos_attrib);
 
-  auto register_value = engine.registers->read(state.inlet);
+  auto register_value = engine.registers.read(state.inlet);
   state.texture_value = *static_cast<uint32_t*>(register_value);
 }
 
@@ -82,7 +82,7 @@ void QuadObject::draw(Engine& engine) const {
   glBindTexture(GL_TEXTURE_2D, state.texture_value);
   glUniform1i(state.texture, 0);
 
-  engine.fbos->release_fbo();
+  engine.fbos.release_fbo();
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glBindVertexArray(state.vao);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

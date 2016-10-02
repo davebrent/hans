@@ -50,20 +50,20 @@ void AttractorsObject::create(IPatcher& patcher) {
 }
 
 void AttractorsObject::setup(Engine& engine) {
-  state.a = engine.parameters->make(id, PARAM_NAME_A);
-  state.b = engine.parameters->make(id, PARAM_NAME_B);
-  state.c = engine.parameters->make(id, PARAM_NAME_C);
-  state.d = engine.parameters->make(id, PARAM_NAME_D);
-  state.e = engine.parameters->make(id, PARAM_NAME_E);
-  state.f = engine.parameters->make(id, PARAM_NAME_F);
+  state.a = engine.parameters.make(id, PARAM_NAME_A);
+  state.b = engine.parameters.make(id, PARAM_NAME_B);
+  state.c = engine.parameters.make(id, PARAM_NAME_C);
+  state.d = engine.parameters.make(id, PARAM_NAME_D);
+  state.e = engine.parameters.make(id, PARAM_NAME_E);
+  state.f = engine.parameters.make(id, PARAM_NAME_F);
 
-  state.outlet = engine.registers->make(id, Register::Types::OUTLET, 0);
-  state.fbo = engine.fbos->make(id);
+  state.outlet = engine.registers.make(id, Register::Types::OUTLET, 0);
+  state.fbo = engine.fbos.make(id);
   state.buffer_length = NUM_PARTICLES * 2;
   state.positions = new float[state.buffer_length];
 
-  auto texture = engine.fbos->get_color_attachment(state.fbo, 0);
-  engine.registers->write(state.outlet, &texture);
+  auto texture = engine.fbos.get_color_attachment(state.fbo, 0);
+  engine.registers.write(state.outlet, &texture);
 
   glGenVertexArrays(1, &state.vao);
   glBindVertexArray(state.vao);
@@ -86,9 +86,9 @@ void AttractorsObject::setup(Engine& engine) {
   glBindBuffer(GL_ARRAY_BUFFER, state.position_buffer);
   glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_STREAM_DRAW);
 
-  auto vert_shdr = engine.shaders->create(GFX_SHDRS_VERTEX);
-  auto frag_shdr = engine.shaders->create(GFX_SHDRS_FRAGMENT);
-  state.program = engine.shaders->create(vert_shdr, frag_shdr);
+  auto vert_shdr = engine.shaders.create(GFX_SHDRS_VERTEX);
+  auto frag_shdr = engine.shaders.create(GFX_SHDRS_FRAGMENT);
+  state.program = engine.shaders.create(vert_shdr, frag_shdr);
   glUseProgram(state.program.handle);
 
   auto pos = 0;
@@ -104,12 +104,12 @@ void AttractorsObject::setup(Engine& engine) {
 }
 
 void AttractorsObject::update(Engine& engine) {
-  float a = engine.parameters->get(state.a, 0);
-  float b = engine.parameters->get(state.b, 0);
-  float c = engine.parameters->get(state.c, 0);
-  float d = engine.parameters->get(state.d, 0);
-  float e = engine.parameters->get(state.e, 0);
-  float f = engine.parameters->get(state.f, 0);
+  float a = engine.parameters.get(state.a, 0);
+  float b = engine.parameters.get(state.b, 0);
+  float c = engine.parameters.get(state.c, 0);
+  float d = engine.parameters.get(state.d, 0);
+  float e = engine.parameters.get(state.e, 0);
+  float f = engine.parameters.get(state.f, 0);
 
   float xs = 0, ys = 0, zs = 0;
 
@@ -130,7 +130,7 @@ void AttractorsObject::update(Engine& engine) {
 void AttractorsObject::draw(Engine& engine) const {
   glUseProgram(state.program.handle);
 
-  engine.fbos->bind_fbo(state.fbo);
+  engine.fbos.bind_fbo(state.fbo);
 
   glEnable(GL_ALPHA_TEST);
   glEnable(GL_DEPTH_TEST);

@@ -16,9 +16,9 @@ namespace engine {
 class LibraryManager {
  public:
   LibraryManager(common::StringManager& string_manager,
-                 common::ListView<ObjectDef> objects);
+                 common::ListView<ObjectDef> objects,
+                 common::ListView<Library> libraries);
   ~LibraryManager();
-  void load(const common::ListView<Library> libraries);
 
   template <typename State, typename Object>
   bool add_object(const char* name) {

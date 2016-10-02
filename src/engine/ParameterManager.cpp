@@ -6,10 +6,9 @@ using namespace hans;
 using namespace hans::common;
 using namespace hans::engine;
 
-void ParameterManager::use(ListView<Parameter> parameters,
-                           ListView<Parameter::Value> values) {
-  m_parameters = parameters;
-  m_values = values;
+ParameterManager::ParameterManager(ListView<Parameter> parameters,
+                                   ListView<Parameter::Value> values)
+    : m_parameters(parameters), m_values(values) {
 }
 
 Parameter ParameterManager::make(const ObjectDef::ID object,

@@ -52,19 +52,19 @@ void OscObject::create(IPatcher& patcher) {
 }
 
 void OscObject::setup(Engine& engine) {
-  state.samplerate = engine.config->samplerate;
-  state.waveform = engine.parameters->make(id, PARAM_WAVEFORM);
-  state.frequency = engine.parameters->make(id, PARAM_FREQUENCY);
-  state.buffer = engine.audio_buffers->make(id, AUDIO_BUFFER);
+  state.samplerate = engine.config.samplerate;
+  state.waveform = engine.parameters.make(id, PARAM_WAVEFORM);
+  state.frequency = engine.parameters.make(id, PARAM_FREQUENCY);
+  state.buffer = engine.audio_buffers.make(id, AUDIO_BUFFER);
 
   for (auto i = 0; i < state.channels; ++i) {
-    state.outlets[i] = engine.registers->make(id, Register::Types::OUTLET, i);
+    state.outlets[i] = engine.registers.make(id, Register::Types::OUTLET, i);
   }
 }
 
 static void sine_callback(OscState& state, Engine& engine) {
-  auto output = engine.audio_buffers->get(state.buffer, 0);
-  auto frequency = engine.parameters->get(state.frequency, 0);
+  auto output = engine.audio_buffers.get(state.buffer, 0);
+  auto frequency = engine.parameters.get(state.frequency, 0);
 
   for (int i = 0; i < state.buffer.size; ++i) {
     state.phase += 512.f / (state.samplerate / frequency);
@@ -81,7 +81,7 @@ static void sine_callback(OscState& state, Engine& engine) {
 }
 
 static void noise_callback(OscState& state, Engine& engine) {
-  auto output = engine.audio_buffers->get(state.buffer, 0);
+  auto output = engine.audio_buffers.get(state.buffer, 0);
   for (int i = 0; i < state.buffer.size; ++i) {
     auto noise = rand() / (float)RAND_MAX;
     noise = noise * 2 - 1;
@@ -90,16 +90,16 @@ static void noise_callback(OscState& state, Engine& engine) {
 }
 
 void OscObject::callback(Engine& engine) {
-  if (engine.parameters->get(state.waveform, 0) > 0.5) {
+  if (engine.parameters.get(state.waveform, 0) > 0.5) {
     noise_callback(state, engine);
   } else {
     sine_callback(state, engine);
   }
 
-  auto samples = engine.audio_buffers->get(state.buffer, 0);
+  auto samples = engine.audio_buffers.get(state.buffer, 0);
   for (auto i = 0; i < state.channels; ++i) {
     auto& outlet = state.outlets[i];
-    engine.registers->write(outlet, samples);
+    engine.registers.write(outlet, samples);
   }
 }
 

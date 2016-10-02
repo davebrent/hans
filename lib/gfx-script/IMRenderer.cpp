@@ -2,6 +2,7 @@
 #include "hans/graphics/gl.h"
 #define NANOVG_GL3_IMPLEMENTATION 1
 #include <nanovg_gl.h>
+#include <iostream>
 
 IMRenderer::IMRenderer() {
   m_nvg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);

@@ -2,9 +2,9 @@
 #define HANS_AUDIO_AUDIOSTREAM_H_
 
 #include <portaudio.h>
+#include "hans/audio/AudioBusManager.hpp"
 #include "hans/audio/AudioDevices.hpp"
 #include "hans/common/types.hpp"
-#include "hans/engine/ProgramManager.hpp"
 
 namespace hans {
 namespace audio {
@@ -24,7 +24,7 @@ class AudioStream {
   explicit AudioStream(const common::Config& config,
                        AudioDevices& audio_devices,
                        AudioBusManager& audio_bus_manager,
-                       engine::ProgramManager& program_manager);
+                       std::function<void()> callback);
   ~AudioStream();
 
   void set_input_device(const Device& device);
@@ -43,7 +43,7 @@ class AudioStream {
   AudioStream::state m_state;
   AudioDevices& m_audio_devices;
   AudioBusManager& m_audio_bus_manager;
-  engine::ProgramManager& m_program_manager;
+  std::function<void()> m_callback;
   const common::Config& m_config;
 
   bus_handle m_bus;

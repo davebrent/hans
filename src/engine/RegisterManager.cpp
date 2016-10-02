@@ -10,12 +10,11 @@ using namespace hans::engine;
 // If an object has empty connection, point all reads & writes to an empty bin
 static uint16_t EMPTY_BIN = 65535;
 
-RegisterManager::RegisterManager(const Config& config) {
+RegisterManager::RegisterManager(const Config& config,
+                                 ListView<Register>& registers) {
   m_audio_reg_size = sizeof(audio::sample) * config.blocksize;
   m_graphics_reg_size = sizeof(uint32_t);
-}
 
-void RegisterManager::use(ListView<Register>& registers) {
   m_registers = &registers[0];
   m_length = registers.size();
 

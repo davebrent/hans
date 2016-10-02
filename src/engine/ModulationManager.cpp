@@ -12,9 +12,7 @@ ModulationManager::ModulationManager(ParameterManager& parameter_manager,
   m_srcs = new Parameter[num];
   m_dests = new Parameter[num];
   m_vals = new Parameter::Value[num];
-}
 
-void ModulationManager::setup() {
   for (auto i = 0; i < m_mods.size(); ++i) {
     const auto& m = m_mods[i];
     m_srcs[i] = m_parameter_manager.make(m.source.object, m.source.parameter);

@@ -39,18 +39,18 @@ void RingBufferObject::create(IPatcher& patcher) {
 }
 
 void RingBufferObject::setup(Engine& engine) {
-  state.inlet = engine.registers->make(id, Register::Types::INLET, 0);
-  state.outlet = engine.registers->make(id, Register::Types::OUTLET, 0);
-  state.ringbuffer = engine.ring_buffers->make(id, state.name);
+  state.inlet = engine.registers.make(id, Register::Types::INLET, 0);
+  state.outlet = engine.registers.make(id, Register::Types::OUTLET, 0);
+  state.ringbuffer = engine.ring_buffers.make(id, state.name);
 }
 
 void RingBufferObject::callback(Engine& engine) {
   auto& inlet = state.inlet;
   auto& outlet = state.outlet;
-  auto samples = static_cast<audio::sample*>(engine.registers->read(inlet));
+  auto samples = static_cast<audio::sample*>(engine.registers.read(inlet));
 
-  engine.ring_buffers->write(state.ringbuffer, samples);
-  engine.registers->write(outlet, samples);
+  engine.ring_buffers.write(state.ringbuffer, samples);
+  engine.registers.write(outlet, samples);
 }
 
 HANS_PLUGIN_INIT(LibraryManager* library) {

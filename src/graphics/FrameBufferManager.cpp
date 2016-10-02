@@ -10,6 +10,9 @@ using namespace hans::engine;
 FrameBufferManager::FrameBufferManager(ListView<FBO> fbos,
                                        ListView<FBO::Attachment> attachments)
     : m_fbos(fbos), m_attachments(attachments) {
+}
+
+void FrameBufferManager::setup() {
   m_gl_fbos = new uint32_t[m_fbos.size()];
   m_gl_attachments = new uint32_t[m_attachments.size()];
 
@@ -22,7 +25,7 @@ FrameBufferManager::FrameBufferManager(ListView<FBO> fbos,
                                  GL_COLOR_ATTACHMENT6, GL_COLOR_ATTACHMENT7};
 
   auto fbo_index = 0;
-  for (const auto& fbo_config : fbos) {
+  for (const auto& fbo_config : m_fbos) {
     // Setup all the attachments for the FBO
     glBindFramebuffer(GL_FRAMEBUFFER, m_gl_fbos[fbo_index]);
     fbo_index++;
@@ -31,7 +34,7 @@ FrameBufferManager::FrameBufferManager(ListView<FBO> fbos,
 
     // Create the attachments
     for (auto i = fbo_config.start; i < fbo_config.end; ++i) {
-      auto& attachment_config = attachments[i];
+      auto& attachment_config = m_attachments[i];
       auto width = attachment_config.width;
       auto height = attachment_config.height;
       auto texture = m_gl_attachments[i];

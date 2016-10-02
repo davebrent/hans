@@ -9,17 +9,9 @@ using namespace hans::engine;
 typedef void (*setup)(LibraryManager*);
 
 LibraryManager::LibraryManager(StringManager& string_manager,
-                               ListView<ObjectDef> objects)
+                               ListView<ObjectDef> objects,
+                               ListView<Library> libraries)
     : m_string_manager(string_manager), m_objects(objects) {
-}
-
-LibraryManager::~LibraryManager() {
-  for (auto& handle : m_handles) {
-    dlclose(handle);
-  }
-}
-
-void LibraryManager::load(const ListView<Library> libraries) {
   for (auto i = 0; i < libraries.size(); ++i) {
     const auto& library = libraries[i];
     auto filepath = m_string_manager.lookup(library.filepath);
@@ -34,5 +26,11 @@ void LibraryManager::load(const ListView<Library> libraries) {
     } else {
       std::cerr << "Library error: " << dlerror() << std::endl;
     }
+  }
+}
+
+LibraryManager::~LibraryManager() {
+  for (auto& handle : m_handles) {
+    dlclose(handle);
   }
 }

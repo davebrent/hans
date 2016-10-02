@@ -73,18 +73,18 @@ void OscScopeObject::create(IPatcher& patcher) {
 }
 
 void OscScopeObject::setup(Engine& engine) {
-  auto blocksize = engine.config->blocksize;
+  auto blocksize = engine.config.blocksize;
   auto channels = 2;
   auto max_channel_samples = blocksize * MAX_FRAMES;
   auto max_points = max_channel_samples * channels;
 
-  state.outlet = engine.registers->make(id, Register::Types::OUTLET, 0);
-  state.fbo = engine.fbos->make(id);
+  state.outlet = engine.registers.make(id, Register::Types::OUTLET, 0);
+  state.fbo = engine.fbos.make(id);
   state.samples = new audio::sample[max_points];
   state.buffer_length = max_points;
 
-  auto texture = engine.fbos->get_color_attachment(state.fbo, 0);
-  engine.registers->write(state.outlet, &texture);
+  auto texture = engine.fbos.get_color_attachment(state.fbo, 0);
+  engine.registers.write(state.outlet, &texture);
 
   glGenVertexArrays(1, &state.vao);
   glBindVertexArray(state.vao);
@@ -120,9 +120,9 @@ void OscScopeObject::setup(Engine& engine) {
   glBindBuffer(GL_ARRAY_BUFFER, state.audio_buffer_object);
   glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_STREAM_DRAW);
 
-  auto vert_shdr = engine.shaders->create(state.vertex_shader_name);
-  auto frag_shdr = engine.shaders->create(SHADERS_FRAG);
-  state.program = engine.shaders->create(vert_shdr, frag_shdr);
+  auto vert_shdr = engine.shaders.create(state.vertex_shader_name);
+  auto frag_shdr = engine.shaders.create(SHADERS_FRAG);
+  state.program = engine.shaders.create(vert_shdr, frag_shdr);
   glUseProgram(state.program.handle);
 
   auto pos = 0;
@@ -147,16 +147,16 @@ void OscScopeObject::setup(Engine& engine) {
 
 static uint8_t read_ring_buffer(ScopeState& state, Engine& engine, hash rb_name,
                                 size_t offset) {
-  auto blocksize = engine.config->blocksize;
+  auto blocksize = engine.config.blocksize;
   auto framesize = blocksize * sizeof(audio::sample);
-  auto available = engine.ring_buffers->available(rb_name);
+  auto available = engine.ring_buffers.available(rb_name);
 
   if (available >= MAX_FRAMES) {
     available = MAX_FRAMES - 1;
   }
 
   for (auto i = 0; i < available; ++i) {
-    auto buffer = engine.ring_buffers->read(rb_name, i);
+    auto buffer = engine.ring_buffers.read(rb_name, i);
     auto dest = &state.samples[(i * blocksize) + offset];
     std::memcpy(dest, buffer, framesize);
   }
@@ -165,7 +165,7 @@ static uint8_t read_ring_buffer(ScopeState& state, Engine& engine, hash rb_name,
 }
 
 void OscScopeObject::update(Engine& engine) {
-  auto blocksize = engine.config->blocksize;
+  auto blocksize = engine.config.blocksize;
 
   auto read = 0;
   read += read_ring_buffer(state, engine, state.right, 0);
@@ -182,7 +182,7 @@ void OscScopeObject::draw(Engine& engine) const {
   glUseProgram(state.program.handle);
   glUniform1f(state.buffer_length_loc, state.buffer_length);
 
-  engine.fbos->bind_fbo(state.fbo);
+  engine.fbos.bind_fbo(state.fbo);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glBindVertexArray(state.vao);
@@ -200,18 +200,18 @@ void PhaseScopeObject::create(IPatcher& patcher) {
 }
 
 void PhaseScopeObject::setup(Engine& engine) {
-  auto blocksize = engine.config->blocksize;
+  auto blocksize = engine.config.blocksize;
   auto channels = 2;
 
   auto max_points = blocksize * MAX_FRAMES * channels;
 
-  state.outlet = engine.registers->make(id, Register::Types::OUTLET, 0);
-  state.fbo = engine.fbos->make(id);
+  state.outlet = engine.registers.make(id, Register::Types::OUTLET, 0);
+  state.fbo = engine.fbos.make(id);
   state.samples = new audio::sample[max_points];
   state.buffer_length = max_points / channels;
 
-  auto texture = engine.fbos->get_color_attachment(state.fbo, 0);
-  engine.registers->write(state.outlet, &texture);
+  auto texture = engine.fbos.get_color_attachment(state.fbo, 0);
+  engine.registers.write(state.outlet, &texture);
 
   glGenVertexArrays(1, &state.vao);
   glBindVertexArray(state.vao);
@@ -221,9 +221,9 @@ void PhaseScopeObject::setup(Engine& engine) {
   glBindBuffer(GL_ARRAY_BUFFER, state.audio_buffer_object);
   glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_STREAM_DRAW);
 
-  auto vert_shdr = engine.shaders->create(state.vertex_shader_name);
-  auto frag_shdr = engine.shaders->create(SHADERS_FRAG);
-  state.program = engine.shaders->create(vert_shdr, frag_shdr);
+  auto vert_shdr = engine.shaders.create(state.vertex_shader_name);
+  auto frag_shdr = engine.shaders.create(SHADERS_FRAG);
+  state.program = engine.shaders.create(vert_shdr, frag_shdr);
   glUseProgram(state.program.handle);
 
   auto pos = 0;
@@ -237,16 +237,16 @@ void PhaseScopeObject::setup(Engine& engine) {
 }
 
 void PhaseScopeObject::update(Engine& engine) {
-  auto blocksize = engine.config->blocksize;
-  auto available = engine.ring_buffers->available(state.left);
+  auto blocksize = engine.config.blocksize;
+  auto available = engine.ring_buffers.available(state.left);
 
   if (available >= MAX_FRAMES) {
     available = MAX_FRAMES - 1;
   }
 
   for (auto i = 0; i < available; ++i) {
-    auto left = engine.ring_buffers->read(state.left, i);
-    auto right = engine.ring_buffers->read(state.right, i);
+    auto left = engine.ring_buffers.read(state.left, i);
+    auto right = engine.ring_buffers.read(state.right, i);
     auto block = (i * blocksize);
     auto j = 0;
 
@@ -268,7 +268,7 @@ void PhaseScopeObject::draw(Engine& engine) const {
   glUseProgram(state.program.handle);
   glUniform1f(state.buffer_length_loc, state.buffer_length);
 
-  engine.fbos->bind_fbo(state.fbo);
+  engine.fbos.bind_fbo(state.fbo);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glBindVertexArray(state.vao);

@@ -141,16 +141,16 @@ static void update_uniforms(Engine& engine,
   for (const UniformParameter& p : uniforms) {
     switch (p.size) {
     case 1:
-      glUniform1f(p.uniform, engine.parameters->get(p.parameter, 0));
+      glUniform1f(p.uniform, engine.parameters.get(p.parameter, 0));
       break;
     case 2:
-      glUniform2f(p.uniform, engine.parameters->get(p.parameter, 0),
-                  engine.parameters->get(p.parameter, 1));
+      glUniform2f(p.uniform, engine.parameters.get(p.parameter, 0),
+                  engine.parameters.get(p.parameter, 1));
       break;
     case 3:
-      glUniform3f(p.uniform, engine.parameters->get(p.parameter, 0),
-                  engine.parameters->get(p.parameter, 1),
-                  engine.parameters->get(p.parameter, 2));
+      glUniform3f(p.uniform, engine.parameters.get(p.parameter, 0),
+                  engine.parameters.get(p.parameter, 1),
+                  engine.parameters.get(p.parameter, 2));
       break;
     }
   }
@@ -197,8 +197,7 @@ void FormulaObject::setup(Engine& engine) {
   state.rotation = 0;
 
 #define MAKE_UNIFORM_PARAM(SIZE, NAME) \
-  state.uniforms.push_back(            \
-      {.size = SIZE, .name = engine.strings->intern(NAME)});
+  state.uniforms.push_back({.size = SIZE, .name = engine.strings.intern(NAME)});
 
   state.uniforms.reserve(13);
   MAKE_UNIFORM_PARAM(2, "m");
@@ -218,18 +217,18 @@ void FormulaObject::setup(Engine& engine) {
 #undef MAKE_UNIFORM_PARAM
 
   for (auto& uniform : state.uniforms) {
-    uniform.parameter = engine.parameters->make(id, uniform.name);
+    uniform.parameter = engine.parameters.make(id, uniform.name);
   }
 
-  state.rotation_speed = engine.parameters->make(id, PARAM_ROTATION_SPEED);
-  state.rotation_axis = engine.parameters->make(id, PARAM_ROTATION_AXIS);
-  state.translation = engine.parameters->make(id, PARAM_TRANSLATE);
-  state.draw_mode = engine.parameters->make(id, PARAM_DRAW_MODE);
+  state.rotation_speed = engine.parameters.make(id, PARAM_ROTATION_SPEED);
+  state.rotation_axis = engine.parameters.make(id, PARAM_ROTATION_AXIS);
+  state.translation = engine.parameters.make(id, PARAM_TRANSLATE);
+  state.draw_mode = engine.parameters.make(id, PARAM_DRAW_MODE);
 
-  state.outlet_colors = engine.registers->make(id, Register::Types::OUTLET, 0);
-  state.outlet_normals = engine.registers->make(id, Register::Types::OUTLET, 1);
-  state.outlet_depth = engine.registers->make(id, Register::Types::OUTLET, 2);
-  state.fbo = engine.fbos->make(id);
+  state.outlet_colors = engine.registers.make(id, Register::Types::OUTLET, 0);
+  state.outlet_normals = engine.registers.make(id, Register::Types::OUTLET, 1);
+  state.outlet_depth = engine.registers.make(id, Register::Types::OUTLET, 2);
+  state.fbo = engine.fbos.make(id);
 
   // Setup buffers
   SuperFormulaGeometry geometry(state.segments);
@@ -251,9 +250,9 @@ void FormulaObject::setup(Engine& engine) {
                geometry.indices, GL_STATIC_DRAW);
 
   // Setup shaders
-  auto vert_shader = engine.shaders->create(VERT_SHADER);
-  auto frag_shader = engine.shaders->create(FRAG_SHADER);
-  state.program = engine.shaders->create(vert_shader, frag_shader);
+  auto vert_shader = engine.shaders.create(VERT_SHADER);
+  auto frag_shader = engine.shaders.create(FRAG_SHADER);
+  state.program = engine.shaders.create(vert_shader, frag_shader);
   glUseProgram(state.program.handle);
 
   // Setup attributes and frag locations
@@ -267,38 +266,38 @@ void FormulaObject::setup(Engine& engine) {
   state.proj_matrix =
       glGetUniformLocation(state.program.handle, "projection_matrix");
   for (UniformParameter& uparam : state.uniforms) {
-    const char* name = engine.strings->lookup(uparam.name);
+    const char* name = engine.strings.lookup(uparam.name);
     uparam.uniform = glGetUniformLocation(state.program.handle, name);
   }
 
   default_gl_state();
 
   // Send the textures we will be writing to to the output registers
-  auto color_tex = engine.fbos->get_color_attachment(state.fbo, 0);
-  auto normal_tex = engine.fbos->get_color_attachment(state.fbo, 1);
-  auto depth_tex = engine.fbos->get_depth_attachment(state.fbo);
+  auto color_tex = engine.fbos.get_color_attachment(state.fbo, 0);
+  auto normal_tex = engine.fbos.get_color_attachment(state.fbo, 1);
+  auto depth_tex = engine.fbos.get_depth_attachment(state.fbo);
 
-  engine.registers->write(state.outlet_colors, &color_tex);
-  engine.registers->write(state.outlet_normals, &normal_tex);
-  engine.registers->write(state.outlet_depth, &depth_tex);
+  engine.registers.write(state.outlet_colors, &color_tex);
+  engine.registers.write(state.outlet_normals, &normal_tex);
+  engine.registers.write(state.outlet_depth, &depth_tex);
 }
 
 void FormulaObject::update(Engine& engine) {
-  state.rotation += engine.parameters->get(state.rotation_speed, 0);
+  state.rotation += engine.parameters.get(state.rotation_speed, 0);
 }
 
 void FormulaObject::draw(Engine& engine) const {
-  auto translation = glm::vec3(engine.parameters->get(state.translation, 0),
-                               engine.parameters->get(state.translation, 1),
-                               engine.parameters->get(state.translation, 2));
+  auto translation = glm::vec3(engine.parameters.get(state.translation, 0),
+                               engine.parameters.get(state.translation, 1),
+                               engine.parameters.get(state.translation, 2));
 
-  auto axis = glm::vec3(engine.parameters->get(state.rotation_axis, 0),
-                        engine.parameters->get(state.rotation_axis, 1),
-                        engine.parameters->get(state.rotation_axis, 2));
+  auto axis = glm::vec3(engine.parameters.get(state.rotation_axis, 0),
+                        engine.parameters.get(state.rotation_axis, 1),
+                        engine.parameters.get(state.rotation_axis, 2));
 
   auto model_view_matrix = glm::mat4();
 
-  auto aspect = (float)engine.config->width / (float)engine.config->height;
+  auto aspect = (float)engine.config.width / (float)engine.config.height;
   auto projection_matrix = glm::perspective(45.0f, aspect, 0.1f, 100.f);
   model_view_matrix = glm::translate(model_view_matrix, translation);
   model_view_matrix = glm::rotate(model_view_matrix, state.rotation, axis);
@@ -311,9 +310,9 @@ void FormulaObject::draw(Engine& engine) const {
   update_uniforms(engine, state.uniforms);
 
   GLenum mode = to_draw_mode(std::min<float>(
-      std::max<float>(engine.parameters->get(state.draw_mode, 0), 0), 10));
+      std::max<float>(engine.parameters.get(state.draw_mode, 0), 0), 10));
 
-  engine.fbos->bind_fbo(state.fbo);
+  engine.fbos.bind_fbo(state.fbo);
   glClearColor(0.2, 0.2, 0.2, 1);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

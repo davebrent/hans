@@ -12,8 +12,8 @@ namespace engine {
 class ParameterManager {
  public:
   /// Set the manager to read from a given array of values
-  void use(common::ListView<Parameter> parameters,
-           common::ListView<Parameter::Value> values);
+  ParameterManager(common::ListView<Parameter> parameters,
+                   common::ListView<Parameter::Value> values);
 
   /// Make an objects parameter by name
   Parameter make(const ObjectDef::ID object, const hash name) const;

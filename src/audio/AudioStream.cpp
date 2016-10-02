@@ -20,10 +20,10 @@ static int audio_callback(const void* input, void* output,
 
 AudioStream::AudioStream(const Config& config, AudioDevices& audio_devices,
                          AudioBusManager& audio_bus_manager,
-                         ProgramManager& program_manager)
+                         std::function<void()> callback)
     : m_audio_devices(audio_devices),
       m_audio_bus_manager(audio_bus_manager),
-      m_program_manager(program_manager),
+      m_callback(callback),
       m_config(config) {
   m_stream = nullptr;
   m_state = HANS_AUDIO_STOPPED;
@@ -99,7 +99,7 @@ void AudioStream::callback(const sample** input, sample** output) {
   // Tick the audio graph
   // XXX: Maybe use a message/signal thats executed immediately to run a cycle
   //      of the audio graph?
-  m_program_manager.tick_audio();
+  m_callback();
 
   // A prorgam wrote some data to the streams bus so should be flushed out
   if (m_audio_bus_manager.is_dirty(m_bus)) {

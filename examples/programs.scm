@@ -1,5 +1,6 @@
 (add-to-load-path ".")
 (use-modules (hans compiler)
+             (hans engine)
              (hans patcher)
              (hans os)
              (examples common))
@@ -131,3 +132,6 @@
   `((output        . "programs.hans")
     (library-paths . (,(base "../build/lib")
                       "/usr/lib"))))
+
+(let ((engine (make-engine "programs.hans")))
+  (engine-run engine))

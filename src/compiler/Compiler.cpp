@@ -802,8 +802,8 @@ static SCM get_object_info(SCM libraries, SCM objects) {
 
   auto object_list = ListView<ObjectDef>(&objs[0], objs.size());
   auto library_list = ListView<Library>(&libs[0], libs.size());
-  engine::LibraryManager library_manager(strings, object_list);
-  library_manager.load(library_list);
+  auto library_manager =
+      engine::LibraryManager(strings, object_list, library_list);
 
   auto total_objects_bytes = 0;
   for (auto& obj : objs) {

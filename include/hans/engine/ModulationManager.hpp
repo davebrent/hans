@@ -12,7 +12,6 @@ class ModulationManager {
  public:
   ModulationManager(ParameterManager& parameter_manager,
                     const common::ListView<Modulator> modulators);
-  void setup();
   void begin();
   void end();
 

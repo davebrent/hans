@@ -12,11 +12,10 @@ namespace engine {
 
 class RegisterManager {
  public:
-  RegisterManager(const common::Config& config);
+  RegisterManager(const common::Config& config,
+                  common::ListView<Register>& registers);
   /// Return a handle to a register
   Register make(ObjectDef::ID object, Register::Types type, uint16_t index);
-  /// Set the manager to read from a given array of values
-  void use(common::ListView<Register>& registers);
   /// Read data from a register
   void* read(const Register& reg) const;
   /// Write data to a register

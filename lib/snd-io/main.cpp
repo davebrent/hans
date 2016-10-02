@@ -62,15 +62,15 @@ void InObject::create(IPatcher& patcher) {
 
 void InObject::setup(Engine& engine) {
   for (auto i = 0; i < state.channels_len; ++i) {
-    state.registers[i] = engine.registers->make(id, Register::Types::OUTLET, i);
+    state.registers[i] = engine.registers.make(id, Register::Types::OUTLET, i);
   }
 }
 
 void InObject::callback(Engine& engine) {
   // Read from audio bus and write to outlets
   for (auto i = 0; i < state.channels_len; ++i) {
-    auto samples = engine.audio_buses->read(state.bus, state.channels[i]);
-    engine.registers->write(state.registers[i], samples);
+    auto samples = engine.audio_buses.read(state.bus, state.channels[i]);
+    engine.registers.write(state.registers[i], samples);
   }
 }
 
@@ -81,7 +81,7 @@ void OutObject::create(IPatcher& patcher) {
 
 void OutObject::setup(Engine& engine) {
   for (auto i = 0; i < state.channels_len; ++i) {
-    state.registers[i] = engine.registers->make(id, Register::Types::INLET, i);
+    state.registers[i] = engine.registers.make(id, Register::Types::INLET, i);
   }
 }
 
@@ -89,8 +89,8 @@ void OutObject::callback(Engine& engine) {
   // Read from inlets and write to audio bus
   for (auto i = 0; i < state.channels_len; ++i) {
     const auto& inlet = state.registers[i];
-    auto samples = static_cast<audio::sample*>(engine.registers->read(inlet));
-    engine.audio_buses->write(state.bus, state.channels[i], samples);
+    auto samples = static_cast<audio::sample*>(engine.registers.read(inlet));
+    engine.audio_buses.write(state.bus, state.channels[i], samples);
   }
 }
 

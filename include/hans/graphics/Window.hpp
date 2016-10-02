@@ -10,8 +10,9 @@ namespace graphics {
 
 class Window {
  public:
-  Window(const char* title, unsigned width, unsigned height);
+  Window();
   ~Window();
+  bool make(const char* title, uint16_t width, uint16_t height);
   bool should_close();
   void update();
 

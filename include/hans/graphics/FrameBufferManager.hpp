@@ -15,6 +15,7 @@ class FrameBufferManager {
   FrameBufferManager(common::ListView<FBO> fbos,
                      common::ListView<FBO::Attachment> attachments);
   ~FrameBufferManager();
+  void setup();
 
   /// Create an objects frame buffer and corresponding attachments
   FBO make(engine::ObjectDef::ID object);
