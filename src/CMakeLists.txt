@@ -1,4 +1,4 @@
-add_subdirectory(control)
+add_subdirectory(connect)
 add_subdirectory(compiler)
 add_subdirectory(engine)
 add_subdirectory(sequencer)

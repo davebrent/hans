@@ -57,7 +57,7 @@ static SCM midi_out_close(SCM device) {
   return SCM_BOOL_T;
 }
 
-void hans::control::init_midi_module() {
+void hans::connect::init_midi_module() {
   MidiOutTag = scm_make_smob_type("midi-out-device", sizeof(RtMidiOut));
   scm_c_define_gsubr("make-midi-out", 0, 0, 0, (scm_t_subr)make_midi_out);
   scm_c_define_gsubr("midi-out-ports", 1, 0, 0, (scm_t_subr)midi_out_ports);

@@ -1,5 +1,5 @@
 (use-modules (hans sequencer)
-             (hans control))
+             (hans connect))
 
 (define dev (make-midi-out))
 (define seq (make-sequencer))
