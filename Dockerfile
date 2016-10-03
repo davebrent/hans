@@ -31,6 +31,11 @@ RUN apt-get clean && apt-get update && \
 RUN mkdir -p /app
 WORKDIR /app
 
+# Install catch
+RUN cd /app && \
+  git clone https://github.com/philsquared/Catch.git && \
+  cp Catch/single_include/catch.hpp /usr/include/catch.hpp
+
 # Install nanovg (as a shared library)
 RUN cd /app && git clone https://github.com/memononen/nanovg.git
 RUN cd /app/nanovg && \
