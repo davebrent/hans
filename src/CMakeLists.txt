@@ -1,5 +1,6 @@
-add_subdirectory(connect)
+add_subdirectory(common)
 add_subdirectory(compiler)
+add_subdirectory(connect)
 add_subdirectory(engine)
-add_subdirectory(sequencer)
 add_subdirectory(module)
+add_subdirectory(sequencer)

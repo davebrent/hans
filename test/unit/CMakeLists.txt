@@ -8,6 +8,7 @@ add_executable(hans-unittest
   main.cpp)
 
 target_link_libraries(hans-unittest
+  hanscommon
   hansengine
   hansmodule
   hanssequencer)

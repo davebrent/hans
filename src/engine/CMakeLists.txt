@@ -1,8 +1,4 @@
 add_library(hansengine SHARED
-  ../common/DataLoader.cpp
-  ../common/hasher.cpp
-  ../common/StringManager.cpp
-  ../common/LinearAllocator.cpp
   AudioDevices.cpp
   AudioStream.cpp
   AudioBufferManager.cpp
@@ -18,6 +14,7 @@ add_library(hansengine SHARED
   Engine.cpp)
 
 target_link_libraries(hansengine
+  hanscommon
   ${GUILE_LIBRARIES}
   ${OPENGL_LIBRARIES}
   ${GLFW_LIBRARIES}
