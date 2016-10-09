@@ -1,7 +1,7 @@
 .PHONY: lint docs format check
 
 BUILD_DIR=build
-SRC_DIRS=src include lib test apps
+SRC_DIRS=src include lib test
 
 all: $(BUILD_DIR)
 
