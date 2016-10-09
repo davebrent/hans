@@ -8,6 +8,7 @@ IMRenderer::IMRenderer() {
   m_nvg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
   m_width = 0;
   m_height = 0;
+  m_no_loop = false;
 
   m_no_stroke = true;
   m_no_fill = false;
@@ -49,6 +50,14 @@ void IMRenderer::end_frame() {
 void IMRenderer::size(float width, float height) {
   m_width = width;
   m_height = height;
+}
+
+void IMRenderer::noloop() {
+  m_no_loop = true;
+}
+
+bool IMRenderer::should_loop() {
+  return m_no_loop == false;
 }
 
 void IMRenderer::background(uint8_t r, uint8_t g, uint8_t b, uint8_t a) {

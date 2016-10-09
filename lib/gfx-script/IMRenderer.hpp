@@ -21,11 +21,13 @@ class IMRenderer {
   void set_script_state(ScriptState* data);
   ScriptState* get_script_state();
 
+  bool should_loop();
   void begin_frame();
   void end_frame();
 
   void size(float width, float height);
   void background(uint8_t r, uint8_t g, uint8_t b, uint8_t a);
+  void noloop();
 
   void save();
   void reset();
@@ -63,6 +65,7 @@ class IMRenderer {
 
   bool m_no_stroke;
   bool m_no_fill;
+  bool m_no_loop;
 
   NVGcolor m_fill;
   NVGcolor m_stroke;

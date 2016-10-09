@@ -24,6 +24,11 @@ static SCM background(SCM r, SCM g, SCM b, SCM a) {
   return SCM_BOOL_T;
 }
 
+static SCM noloop() {
+  IMRenderer::get_instance().noloop();
+  return SCM_BOOL_T;
+}
+
 static SCM save() {
   IMRenderer::get_instance().save();
   return SCM_BOOL_T;
@@ -197,6 +202,7 @@ void ScriptObject::setup(Engine& engine) {
   engine.registers.write(state.outlet, &texture);
 
   scm_c_define_gsubr("size", 2, 0, 0, (scm_t_subr)size);
+  scm_c_define_gsubr("noloop", 0, 0, 0, (scm_t_subr)noloop);
   scm_c_define_gsubr("save", 0, 0, 0, (scm_t_subr)save);
   scm_c_define_gsubr("reset", 0, 0, 0, (scm_t_subr)reset);
   scm_c_define_gsubr("restore", 0, 0, 0, (scm_t_subr)restore);
@@ -231,10 +237,12 @@ void ScriptObject::draw(Engine& engine) const {
   engine.fbos.bind_fbo(state.fbo);
 
   auto& renderer = IMRenderer::get_instance();
-  renderer.size(state.width, state.height);
-  renderer.begin_frame();
-  scm_call_0(state.draw);
-  renderer.end_frame();
+  if (renderer.should_loop()) {
+    renderer.size(state.width, state.height);
+    renderer.begin_frame();
+    scm_call_0(state.draw);
+    renderer.end_frame();
+  }
 }
 
 HANS_PLUGIN_INIT(LibraryManager* library) {
