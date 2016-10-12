@@ -133,6 +133,7 @@ struct GlobalState {
 };
 
 struct Track {
+  uint64_t id;
   Cycle cycle;
   CycleClock clock;
   DoubleBuffer buffer;
@@ -142,8 +143,8 @@ struct Track {
   uint64_t next_cycle;
   uint64_t dispatched;
 
-  Track(float duration, SCM _producer)
-      : cycle(duration), clock(duration), producer(_producer) {
+  Track(uint64_t _id, float duration, SCM _producer)
+      : id(_id), cycle(duration), clock(duration), producer(_producer) {
     dispatched = 0;
     next_cycle = 0;
   }
@@ -300,7 +301,7 @@ static void process_on_events(EventList& on_events, Track& track,
       break;
     }
 
-    scm_call_2(procedure, event.value, SCM_BOOL_T);
+    scm_call_3(procedure, scm_from_uint64(track.id), event.value, SCM_BOOL_T);
     if (event.duration != 0) {
       track.off_events.push_back(event);
     }
@@ -317,7 +318,7 @@ static void process_off_events(Track& track, float delta, SCM procedure) {
 
   for (auto& event : track.off_events) {
     if (event.duration <= 0) {
-      scm_call_2(procedure, event.value, SCM_BOOL_F);
+      scm_call_3(procedure, scm_from_uint64(track.id), event.value, SCM_BOOL_F);
       removed++;
     } else {
       event.duration -= delta;
@@ -375,7 +376,8 @@ static void consume_events(GlobalState& global, std::vector<Track>& tracks) {
   // Flush all off events
   for (auto& track : tracks) {
     for (auto& event : track.off_events) {
-      scm_call_2(global.handler, event.value, SCM_BOOL_F);
+      scm_call_3(global.handler, scm_from_uint64(track.id), event.value,
+                 SCM_BOOL_F);
     }
   }
 }
@@ -392,8 +394,9 @@ class Sequencer {
   }
 
   int add_track(float duration, SCM procedure) {
-    tracks.push_back(Track(duration, procedure));
-    return tracks.size() - 1;
+    auto id = tracks.size();
+    tracks.push_back(Track(id, duration, procedure));
+    return id;
   }
 
   bool start(Processor producer_processor, Processor consumer_processor) {
