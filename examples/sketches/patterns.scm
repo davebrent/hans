@@ -1,0 +1,78 @@
+(use-modules (hans sequencer)
+             (hans utils))
+
+(define tracks (tracks-dump
+  `((,(bpm->ms 120 7)  ,(pattern 47 ~ ~ ~ ~ ~ ~ 47 ~ ~ ~ 47 ~ ~))
+    (,(bpm->ms 120 4)  ,(pattern 36 36 ~ ~ ~ ~ ~ 36 36 ~ ~ 36 ~ ~))
+    (,(bpm->ms 120 7)  ,(pattern ~ ~ ~ ~ ~ 38 ~ ~))
+    (,(bpm->ms 120 4)  ,(pattern 40 ~ ~ 40 ~ ~ ~ ~ ~ ~ ~ ~ 40 ~))
+    (,(bpm->ms 120 14) ,(pattern ~ ~ ~ ~ ~ ~ ~ 41))
+    (,(bpm->ms 120 21) ,(pattern 43 ~ 43 43 ~ ~ ~))
+    (,(bpm->ms 120 7)  ,(pattern ~ 45 ~ ~ ~ 45 45)))))
+
+(define width 640)
+(define height 380)
+
+(define (for-each-cycle proc tracks)
+  (let ((i 0))
+    (for-each (lambda (track)
+                (for-each (lambda (cycle-events)
+                            (proc i (car cycle-events) (cdr cycle-events)))
+                          track)
+                (set! i (+ 1 i)))
+              tracks)))
+
+(define (tracks-total-duration tracks)
+  (let ((sum 0))
+    (for-each-cycle (lambda (track cycle events)
+                      (set! sum (+ sum (cycle-duration cycle))))
+                    `(,(car tracks)))
+    sum))
+
+(define (draw-track-guides tracks)
+  (let ((num (length tracks)))
+    (stroke 255 0 0 255)
+    (stroke-width 1)
+    (for-n num (lambda (n)
+                 (let ((y (* n (/ height num))))
+                   (line 0 y width y))))))
+
+(define (draw-track-blocks tracks)
+  (let ((interval-y (/ height (length tracks)))
+        (interval-x (/ width (tracks-total-duration tracks))))
+    (for-each-cycle (lambda (track cycle events)
+                      (let* ((offset (* (cycle-duration cycle)
+                                        (cycle-number cycle)))
+                             (x-start (* interval-x offset))
+                             (y-start (* track interval-y))
+                             (y-prev (* (+ 1 track) interval-y)))
+
+                        ;; Draws a rect for each event in the cycle
+                        (no-stroke)
+                        (fill 255 255 255 100)
+                        (for-each (lambda (event)
+                                    (let* ((start (list-ref event 0))
+                                           (duration (list-ref event 1))
+                                           (x-pos (+ (* interval-x start)
+                                                     x-start))
+                                           (w (* interval-x duration)))
+                                      (rect x-pos y-start w interval-y)
+                                      (stroke 0 255 0 100)
+                                      (line x-pos y-start x-pos y-prev)))
+                                  events)
+
+                        ; Draws a stroke at the start of the cycle
+                        (stroke 255 0 0 255)
+                        (stroke-width 2)
+                        (line x-start y-start x-start y-prev)))
+                    tracks)))
+
+(define layers `(,draw-track-blocks
+                 ,draw-track-guides))
+
+(size width height)
+(draw (lambda ()
+  (noloop)
+  (background 0 0 0 255)
+  (for-each (lambda (layer)
+              (layer tracks)) layers)))

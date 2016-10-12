@@ -27,6 +27,8 @@
            function-node?
            pnode-length
 
+           tracks-dump
+
            pattern
            make-pattern
            pattern-transform
@@ -195,6 +197,21 @@
                                                events))))))
                 patterns)
       events)))
+
+(define (tracks-dump tracks)
+  ;; Dump events from all tracks to complete an entire loop
+  (let ((the-lcm (apply lcm (map car tracks))))
+    (map-in-order (lambda (track)
+                    (let ((dur (car track))
+                          (seq (pattern->sequence (last track)))
+                          (events '()))
+                      (for-n (/ the-lcm dur) (lambda (i)
+                        (let ((cycle (make-cycle 0 dur i)))
+                          (set! events
+                            (append events `(,
+                              (cons cycle (reverse (seq cycle)))))))))
+                      events))
+                  tracks)))
 
 (define-syntax pattern
   ;; Short hand for creating a pattern tree

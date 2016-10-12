@@ -3,6 +3,7 @@
   :use-module (srfi srfi-9)
   :use-module (ice-9 rdelim)
   :export (print
+           for-n
            rstrip
            slurp-file
            exit-with-error
@@ -44,6 +45,12 @@
     (map (lambda (prop)
         (cons prop (get-value ((record-accessor rtd prop) rec))))
       (record-type-fields rtd))))
+
+(define (for-n n proc)
+  ;; Call a procedure N times
+  (do ((i 0 (1+ i)))
+      ((>= i n))
+    (proc i)))
 
 (define (rotate-left lst n)
   ;; Rotate a list to the left by N items
