@@ -1,15 +1,9 @@
+(add-to-load-path "..")
 (use-modules (hans sequencer)
-             (hans utils))
+             (hans utils)
+             (examples patterns))
 
-(define tracks (tracks-dump
-  `((,(bpm->ms 120 7)  ,(pattern 47 ~ ~ ~ ~ ~ ~ 47 ~ ~ ~ 47 ~ ~))
-    (,(bpm->ms 120 4)  ,(pattern 36 36 ~ ~ ~ ~ ~ 36 36 ~ ~ 36 ~ ~))
-    (,(bpm->ms 120 7)  ,(pattern ~ ~ ~ ~ ~ 38 ~ ~))
-    (,(bpm->ms 120 4)  ,(pattern 40 ~ ~ 40 ~ ~ ~ ~ ~ ~ ~ ~ 40 ~))
-    (,(bpm->ms 120 14) ,(pattern ~ ~ ~ ~ ~ ~ ~ 41))
-    (,(bpm->ms 120 21) ,(pattern 43 ~ 43 43 ~ ~ ~))
-    (,(bpm->ms 120 7)  ,(pattern ~ 45 ~ ~ ~ 45 45)))))
-
+(define tracks (tracks-dump (patt1 120)))
 (define width 640)
 (define height 380)
 

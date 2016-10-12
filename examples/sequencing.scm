@@ -1,19 +1,35 @@
-(use-modules (hans sequencer)
-             (hans connect))
+(use-modules (srfi srfi-1)
+             (hans connect)
+             (hans sequencer)
+             (examples patterns))
 
-(define dev (make-midi-out))
-(define seq (make-sequencer))
-(define kick (pattern 72 ~ ~ ~ 60 ~ ~ ~ 60 ~ ~ ~ 60 ~ ~ ~))
+(define (midi-handler dev)
+  (lambda (track value onset?)
+    (if onset?
+      (midi-out-send dev 144 value 127)
+      (midi-out-send dev 128 value 0))))
 
-(sequencer-track seq (bpm->ms 120 4) (pattern->sequence kick))
-(sequencer-handler seq (lambda (track value onset?)
-                         (if onset?
-                           (midi-out-send dev 144 value 127)
-                           (midi-out-send dev 128 value 0))))
+(define (play-pattern the-pattern)
+  (let ((dev (make-midi-out))
+        (seq (make-sequencer)))
 
-(midi-out-open dev 0)
-(sequencer-start seq)
+    ;; Add each pattern as a track to the sequencer
+    (for-each (lambda (patt)
+                (let ((the-sequence (pattern->sequence (last patt))))
+                  (sequencer-track seq (car patt) the-sequence)))
+              the-pattern)
 
-(sequencer-stop seq)
-(midi-out-close dev)
-(sequencer-destroy seq)
+    ;; Set the sequence event handler and start
+    (sequencer-handler seq (midi-handler dev))
+    (midi-out-open dev 0)
+    (sequencer-start seq)
+
+    ;; Return a procedure to stop & destroy the sequencer
+    (lambda ()
+      (sequencer-stop seq)
+      (midi-out-close dev)
+      (sequencer-destroy seq))))
+
+(define stop-pattern (play-pattern (patt1 120)))
+(sleep 20)
+(stop-pattern)
