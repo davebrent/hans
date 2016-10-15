@@ -74,9 +74,8 @@ Options:
       (midi-out-close device))))
 
 (define* (runner interval path port #:optional (current-hash #f) (stop #f))
-  ;; Reads a scheme file & takes a hash of its contents. On the start of each
-  ;; cycle the hash of the file is checked again & if different the whole thing
-  ;; is restarted.
+  ;; Loads a scheme file & takes a hash of its contents. At an interval the
+  ;; file is checked for changes, if different the whole thing is restarted
   (print interval path port)
   (let ((next-hash (hans-hash (slurp-file path))))
     (if (not (eqv? current-hash next-hash))
