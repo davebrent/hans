@@ -120,10 +120,13 @@
   (pnode-add-child! parent child)
   child)
 
-(define (token-value? tk) (number? tk))
 (define (token-rest? tk) (eq? tk '~))
 (define (token-group? tk) (list? tk))
 (define (token-function? tk) (procedure? tk))
+(define (token-value? tk)
+  (and (not (token-rest? tk))
+       (not (token-group? tk))
+       (not (token-function? tk))))
 
 (define (make-pattern args root)
   ;; Create a pattern tree

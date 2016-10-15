@@ -1,15 +1,32 @@
 (define-module (hans connect elektron)
   :use-module (srfi srfi-1)
-  :export (md-ctrl-change))
+  :use-module (hans connect)
+  :export (md-trigger
+           md-ctrl-change))
 
 ;; Machine Drum MIDI mappings
 
-(define-public (md-trigger track)
-  ;; Return midi status byte for a trigger event
-  (cond ((eq? 1) 36)  ((eq? 2) 38)  ((eq? 3) 40)  ((eq? 4) 41)
-        ((eq? 5) 43)  ((eq? 6) 45)  ((eq? 7) 47)  ((eq? 8) 48)
-        ((eq? 9) 50)  ((eq? 10) 52) ((eq? 11) 53) ((eq? 12) 55)
-        ((eq? 13) 57) ((eq? 14) 59) ((eq? 15) 60) ((eq? 16) 62)))
+(define (md-trigger-lookup track)
+  (cond ((eq? 1 track) 36)
+        ((eq? 2 track) 38)
+        ((eq? 3 track) 40)
+        ((eq? 4 track) 41)
+        ((eq? 5 track) 43)
+        ((eq? 6 track) 45)
+        ((eq? 7 track) 47)
+        ((eq? 8 track) 48)
+        ((eq? 9 track) 50)
+        ((eq? 10 track) 52)
+        ((eq? 11 track) 53)
+        ((eq? 12 track) 55)
+        ((eq? 13 track) 57)
+        ((eq? 14 track) 59)
+        ((eq? 15 track) 60)
+        ((eq? 16 track) 62)))
+
+(define* (md-trigger track #:optional (base-channel 0))
+  ;; Return a midi message for a machinedrum control trigger event
+  (midi-note-on (md-trigger-lookup track) 127 base-channel))
 
 (define-public md-level        'level)
 (define-public md-mute         'mute)
@@ -78,9 +95,9 @@
 
 (define* (md-ctrl-change track parameter value #:optional (base-channel 0))
   ;; Return a midi message for a machinedrum control change event
-  (let ((first-byte (+ 176 base-channel (modulo (- track 1) 4)))
-        (second-byte (if (or (eq? parameter md-level)
-                             (eq? parameter md-mute))
-                       (+ (modulo track 4) (if (eq? parameter md-level) 7 11))
-                       (ctrl-lookup track parameter))))
-    `(,first-byte ,second-byte ,value)))
+  (let ((channel (+ 176 base-channel (modulo (- track 1) 4)))
+        (controller (if (or (eq? parameter md-level)
+                            (eq? parameter md-mute))
+                      (+ (modulo track 4) (if (eq? parameter md-level) 7 11))
+                      (ctrl-lookup track parameter))))
+    (midi-ctrl controller value channel)))

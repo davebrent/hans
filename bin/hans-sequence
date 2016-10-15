@@ -1,0 +1,110 @@
+#!/usr/local/bin/guile -e main -s
+-e main -s
+!#
+
+;; # vim: set filetype=scheme:
+
+(use-modules (ice-9 getopt-long)
+             (srfi srfi-1)
+             (hans common)
+             (hans connect)
+             (hans sequencer)
+             (hans utils))
+
+(define help-msg "\
+Execute sequences from a file
+
+Usage:
+  hans-sequence [options] <script>
+  hans-sequence (-h | --help)
+  hans-sequence --version
+
+Options:
+  -h, --help      Show this screen
+  -i, --interval  Interval to check for file changes (secs)
+  -p, --port      Midi port to use
+  -l, --list      List all available midi ports")
+
+(define option-spec
+  `((help     (single-char #\h) (value #f))
+    (interval (single-char #\i) (value #t) (predicate ,string->number))
+    (port     (single-char #\p) (value #t) (predicate ,string->number))
+    (list     (single-char #\l) (value #f))))
+
+(define (exit-with-msg msg)
+  (display msg)
+  (newline)
+  (exit 0))
+
+(define (event-handler device)
+  ;; Returns a procedure that will dispatch midi events to a MIDI device
+  ;; otherwise dumping them to the console
+  (define (dispatch event)
+    (midi-out-send device (midi-status event)
+                          (midi-byte-1 event)
+                          (midi-byte-2 event)))
+
+  (lambda (track event onset?)
+    (if (not (midi? event))
+      (print track onset? event)
+      (if onset?
+        (dispatch event)
+          (if (midi-note-on? event)
+            (dispatch (midi-note-on->off event)))))))
+
+(define (start tracks port)
+  ;; Creates a sequencer & connects all the tracks to it. Returning a procedure
+  ;; to stop and destroy everything
+  (let* ((sequencer (make-sequencer))
+         (device (make-midi-out)))
+
+    (for-each (lambda (track)
+                (sequencer-track sequencer
+                                 (car track)
+                                 (pattern->sequence (last track))))
+              tracks)
+
+    (midi-out-open device port)
+    (sequencer-handler sequencer (event-handler device))
+    (sequencer-start sequencer)
+
+    (lambda ()
+      (sequencer-stop sequencer)
+      (sequencer-destroy sequencer)
+      (midi-out-close device))))
+
+(define* (runner interval path port #:optional (current-hash #f) (stop #f))
+  ;; Reads a scheme file & takes a hash of its contents. On the start of each
+  ;; cycle the hash of the file is checked again & if different the whole thing
+  ;; is restarted.
+  (print interval path port)
+  (let ((next-hash (hans-hash (slurp-file path))))
+    (if (not (eqv? current-hash next-hash))
+      (begin
+        (if (not (eqv? stop #f))
+          (stop))
+        (runner interval path port next-hash (start (begin
+                                                      (primitive-load path)
+                                                      (main)) 0)))
+      (begin
+        (sleep interval)
+        (runner interval path port current-hash stop)))))
+
+(define (main args)
+  (let* ((opts (getopt-long args option-spec))
+         (path (option-ref opts '() #f)))
+
+    (if (option-ref opts 'list #f)
+      (let ((dev (make-midi-out))
+            (idx 0))
+        (for-each (lambda (port)
+                    (print idx "-" port)
+                    (set! idx (+ 1 idx))) (midi-out-ports dev))
+        (midi-out-close dev)
+        (exit 0)))
+
+    (if (or (option-ref opts 'help #f) (null? path))
+      (exit-with-msg help-msg)
+      (runner (option-ref opts 'interval 0)
+              (car path)
+              (option-ref opts 'port 0)))))
