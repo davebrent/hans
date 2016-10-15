@@ -76,7 +76,6 @@ Options:
 (define* (runner interval path port #:optional (current-hash #f) (stop #f))
   ;; Loads a scheme file & takes a hash of its contents. At an interval the
   ;; file is checked for changes, if different the whole thing is restarted
-  (print interval path port)
   (let ((next-hash (hans-hash (slurp-file path))))
     (if (not (eqv? current-hash next-hash))
       (begin
