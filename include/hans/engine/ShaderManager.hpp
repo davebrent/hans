@@ -5,7 +5,7 @@
 #include "hans/common/ListView.hpp"
 #include "hans/common/StringManager.hpp"
 #include "hans/common/types.hpp"
-#include "hans/engine/gl.h"
+#include "hans/engine/gl.hpp"
 #include "hans/engine/types.hpp"
 
 namespace hans {

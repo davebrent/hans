@@ -4,7 +4,7 @@
 #include "hans/common/types.hpp"
 #include "hans/engine/Engine.hpp"
 #include "hans/engine/Patcher.hpp"
-#include "hans/engine/gl.h"
+#include "hans/engine/gl.hpp"
 #include "hans/engine/types.hpp"
 
 namespace hans {

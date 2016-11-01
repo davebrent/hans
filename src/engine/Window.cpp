@@ -1,6 +1,6 @@
 #include "hans/engine/Window.hpp"
-#include <GLFW/glfw3.h>
 #include <iostream>
+#include "hans/engine/gl.hpp"
 
 using namespace hans;
 using namespace hans::engine;

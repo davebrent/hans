@@ -1,6 +1,6 @@
 #include "hans/engine/FrameBufferManager.hpp"
 #include <stdexcept>
-#include "hans/engine/gl.h"
+#include "hans/engine/gl.hpp"
 
 using namespace hans;
 using namespace hans::common;

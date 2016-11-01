@@ -1,7 +1,7 @@
 #ifndef HANS_ENGINE_WINDOW_H_
 #define HANS_ENGINE_WINDOW_H_
 
-#include "hans/engine/gl.h"
+#include <stdint.h>
 
 struct GLFWwindow;
 

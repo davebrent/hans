@@ -4,10 +4,6 @@
 #include <iostream>
 #include <stdexcept>
 #include <vector>
-// clang-format off
-#include "hans/engine/gl.h"
-#include <GLFW/glfw3.h>
-// clang-format on
 #include "hans/common/DataLoader.hpp"
 #include "hans/common/LinearAllocator.hpp"
 #include "hans/common/ListView.hpp"
@@ -17,6 +13,7 @@
 #include "hans/engine/object.hpp"
 #include "hans/engine/LibraryManager.hpp"
 #include "hans/engine/ShaderManager.hpp"
+#include "hans/engine/gl.hpp"
 
 using namespace hans;
 using namespace hans::common;
