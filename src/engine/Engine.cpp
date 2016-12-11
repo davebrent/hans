@@ -1,10 +1,8 @@
 #include "hans/engine/Engine.hpp"
-#include <GLFW/glfw3.h>
 #include <libguile.h>
 #include "hans/common/DataLoader.hpp"
 #include "hans/common/ListView.hpp"
 #include "hans/common/StringManager.hpp"
-#include "hans/common/hasher.hpp"
 #include "hans/engine/AudioBufferManager.hpp"
 #include "hans/engine/AudioBusManager.hpp"
 #include "hans/engine/AudioDevices.hpp"
@@ -14,16 +12,11 @@
 #include "hans/engine/RegisterManager.hpp"
 #include "hans/engine/RingBufferManager.hpp"
 #include "hans/engine/Window.hpp"
-#include "hans/engine/gl.h"
 #include "hans/engine/object.hpp"
 
 using namespace hans;
 using namespace hans::common;
 using namespace hans::engine;
-
-static void error_callback(int error, const char* description) {
-  std::cout << "Window Error: " << error << " " << description << std::endl;
-}
 
 Engine::Engine(Config& _config, DataReader* reader)
     : config(_config),
