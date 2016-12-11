@@ -7,7 +7,7 @@ add_library(hansengine SHARED
   Window.cpp
   ShaderManager.cpp
   FrameBufferManager.cpp
-  LibraryManager.cpp
+  PluginManager.cpp
   ModulationManager.cpp
   ParameterManager.cpp
   RegisterManager.cpp

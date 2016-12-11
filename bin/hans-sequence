@@ -1,4 +1,4 @@
-#!/usr/local/bin/guile -e main -s
+#!/usr/bin/guile \
 -e main -s
 !#
 

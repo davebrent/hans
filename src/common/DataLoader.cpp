@@ -92,8 +92,8 @@ DataReader::DataReader(const char* uri) {
     case DataFile::Types::STRING_HASHES:
       data.string_hashes = ListView<hash>(blob);
       break;
-    case DataFile::Types::LIBRARIES:
-      data.libraries = ListView<Library>(blob);
+    case DataFile::Types::PLUGINS:
+      data.plugins = ListView<Plugin>(blob);
       break;
     case DataFile::Types::OBJECTS:
       data.objects = ListView<ObjectDef>(blob);

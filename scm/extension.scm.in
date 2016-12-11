@@ -1,0 +1,25 @@
+;; # vim: set filetype=scheme:
+
+(define-module (hans extension)
+  :export (hans-load-extension
+           CMAKE-LIBRARY-OUTPUT-DIRECTORY
+           CMAKE-INSTALL-PREFIX))
+
+(define CMAKE-LIBRARY-OUTPUT-DIRECTORY "@CMAKE_LIBRARY_OUTPUT_DIRECTORY@")
+(define CMAKE-INSTALL-PREFIX "@CMAKE_INSTALL_PREFIX@")
+
+(define (hans-load-extension lib init)
+  ;; Load `lib` falling back to other paths if it fails
+  (define (load-extension-inner libs)
+    (catch 'misc-error
+           (lambda ()
+             (load-extension (car libs) init))
+           (lambda (key . parameters)
+             (if (not (null? (cdr libs)))
+               (load-extension-inner (cdr libs))
+               ;; Search paths exhausted, trigger the original error
+               (load-extension lib init)))))
+  (load-extension-inner
+    `(,lib
+      ,(string-append CMAKE-LIBRARY-OUTPUT-DIRECTORY "/" lib)
+      ,(string-append CMAKE-INSTALL-PREFIX "/lib/" lib))))

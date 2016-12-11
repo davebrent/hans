@@ -1,6 +1,6 @@
 add_library(hanscompiler SHARED
   Compiler.cpp
-  ../engine/LibraryManager.cpp
+  ../engine/PluginManager.cpp
   ../engine/ShaderManager.cpp)
 
 target_link_libraries(hanscompiler

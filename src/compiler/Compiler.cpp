@@ -10,10 +10,10 @@
 #include "hans/common/StringManager.hpp"
 #include "hans/common/hasher.hpp"
 #include "hans/common/types.hpp"
-#include "hans/engine/object.hpp"
-#include "hans/engine/LibraryManager.hpp"
+#include "hans/engine/PluginManager.hpp"
 #include "hans/engine/ShaderManager.hpp"
 #include "hans/engine/gl.hpp"
+#include "hans/engine/object.hpp"
 
 using namespace hans;
 using namespace hans::common;
@@ -119,20 +119,20 @@ static SCM write_modulators(SCM writer, SCM lst) {
   return write_list<Modulator>(writer, DataFile::Types::MODULATORS, result);
 }
 
-static SCM write_libraries(SCM writer, SCM lst) {
+static SCM write_plugins(SCM writer, SCM lst) {
   auto len = lst_length(lst);
-  std::vector<Library> result;
+  std::vector<Plugin> result;
   result.reserve(len);
 
   for (auto i = 0; i < len; ++i) {
     auto path = scm_list_ref(lst, scm_from_int(i));
 
-    Library library;
-    library.filepath = scm_to_hans_hash(path);
-    result.push_back(library);
+    Plugin plugin;
+    plugin.filepath = scm_to_hans_hash(path);
+    result.push_back(plugin);
   }
 
-  return write_list<Library>(writer, DataFile::Types::LIBRARIES, result);
+  return write_list<Plugin>(writer, DataFile::Types::PLUGINS, result);
 }
 
 static SCM write_objects(SCM writer, SCM lst) {
@@ -612,18 +612,18 @@ static SCM valid_shaders(SCM lst) {
   return scm_reverse(out);
 }
 
-static std::vector<Library> scm_to_hans_libs(SCM libraries,
+static std::vector<Plugin> scm_to_hans_plugs(SCM plugins,
                                              StringManager& strings) {
-  int len = lst_length(libraries);
-  std::vector<Library> result;
+  int len = lst_length(plugins);
+  std::vector<Plugin> result;
   result.reserve(len);
 
   for (int i = 0; i < len; ++i) {
-    Library lib;
-    auto path = scm_to_locale_string(scm_list_ref(libraries, scm_from_int(i)));
-    lib.filepath = strings.intern(path);
+    Plugin plugin;
+    auto path = scm_to_locale_string(scm_list_ref(plugins, scm_from_int(i)));
+    plugin.filepath = strings.intern(path);
     std::free(path);
-    result.push_back(lib);
+    result.push_back(plugin);
   }
 
   return result;
@@ -788,18 +788,19 @@ void GuilePatcher::next() {
 }
 
 /// Returns an alist for each object instance describing its runtime resources
-static SCM get_object_info(SCM libraries, SCM objects) {
+static SCM get_object_info(SCM plugins, SCM objects) {
+  using namespace hans::engine;
+
   StringManager strings(16384 /* 16kb */);
 
-  std::vector<Library> libs = scm_to_hans_libs(libraries, strings);
+  std::vector<Plugin> plugs = scm_to_hans_plugs(plugins, strings);
   std::vector<ObjectDef> objs = scm_to_hans_objs(objects, strings);
 
   auto patcher = GuilePatcher(objects, strings);
 
   auto object_list = ListView<ObjectDef>(&objs[0], objs.size());
-  auto library_list = ListView<Library>(&libs[0], libs.size());
-  auto library_manager =
-      engine::LibraryManager(strings, object_list, library_list);
+  auto plugin_list = ListView<Plugin>(&plugs[0], plugs.size());
+  auto plugin_manager = PluginManager(strings, object_list, plugin_list);
 
   auto total_objects_bytes = 0;
   for (auto& obj : objs) {
@@ -846,7 +847,7 @@ void scm_init_hans_compiler_module() {
   scm_c_define_gsubr("hans-file-write", 2, 0, 0, (scm_t_subr)hans_file_write);
 
   scm_c_define_gsubr("write-modulators", 2, 0, 0, (scm_t_subr)write_modulators);
-  scm_c_define_gsubr("write-libraries", 2, 0, 0, (scm_t_subr)write_libraries);
+  scm_c_define_gsubr("write-plugins", 2, 0, 0, (scm_t_subr)write_plugins);
   scm_c_define_gsubr("write-objects", 2, 0, 0, (scm_t_subr)write_objects);
   scm_c_define_gsubr("write-object-data", 2, 0, 0,
                      (scm_t_subr)write_object_data);

@@ -1,4 +1,4 @@
-#!/usr/local/bin/guile -e main -s
+#!/usr/bin/guile \
 -e main -s
 !#
 
@@ -9,8 +9,8 @@
              (hans engine)
              (hans os)
              (hans patcher)
-             (hans lib gfx-quad objects)
-             (hans lib gfx-script objects))
+             (hans plugin gfx-quad objects)
+             (hans plugin gfx-script objects))
 
 (define help-msg "\
 A tool to compile and run standalone Hans script files
@@ -53,11 +53,7 @@ Options:
       `((gfx-quad   . ,gfx-quad)
         (gfx-script . ,gfx-script))))
 
-    (define compile-settings
-      `((output        . ,out)
-        (library-paths . ,(append (string-split
-                                    (os-getenv "HANS_MODULES_PATH" "") #\:)
-                                  '("/usr/lib" "/usr/local/lib")))))
+    (define compile-settings `((output . ,out)))
 
     (if (or (option-ref opts 'help #f) (null? path))
       (exit-with-msg help-msg))

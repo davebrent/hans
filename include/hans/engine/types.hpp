@@ -8,7 +8,7 @@
 namespace hans {
 namespace engine {
 
-struct Library {
+struct Plugin {
   hash filepath;
 };
 

@@ -1,5 +1,6 @@
 (define-module (hans compiler)
   :use-module (srfi srfi-1)
+  :use-module (hans extension)
   :use-module (hans utils)
   :use-module (hans os)
   :use-module (hans patcher)
@@ -24,7 +25,7 @@
            validate-modulators-pass
            create-requested-resources-pass))
 
-(load-extension "libhanscompiler" "scm_init_hans_compiler_module")
+(hans-load-extension "libhanscompiler" "scm_init_hans_compiler_module")
 
 (define (gather lst iterator)
   "Gather an iterator function such as for-each into a list of all results"
@@ -85,9 +86,11 @@
     "Create a list of library search paths"
     (let ((from-options (assq-ref options 'library-paths))
           (from-env (string-split (os-getenv "HANS_LIBRARY_PATH" "") #\:)))
-      (if (eq? from-options #f)
+      (append
+        (if (eq? from-options #f) '() from-options)
         from-env
-        (append from-options from-env))))
+        `(,CMAKE-LIBRARY-OUTPUT-DIRECTORY
+          ,(string-append CMAKE-INSTALL-PREFIX "/lib")))))
 
   (define (resolve-library name paths)
     "Returns the location of a library or throws an error if not found"
@@ -369,7 +372,7 @@
   "Creates a blob of all the requested resources"
 
   (define (do-libraries writer file)
-    (write-libraries writer (list-libraries file)))
+    (write-plugins writer (list-libraries file)))
 
   (define (do-objects writer file)
     (write-objects

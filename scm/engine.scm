@@ -1,7 +1,8 @@
 (define-module (hans engine)
+  :use-module (hans extension)
   :export (make-engine
            set-engine-program!
            engine-run
            engine-destroy))
 
-(load-extension "libhansengine" "scm_init_engine_module")
+(hans-load-extension "libhansengine" "scm_init_engine_module")

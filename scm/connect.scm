@@ -1,5 +1,6 @@
 (define-module (hans connect)
   :use-module (srfi srfi-9)
+  :use-module (hans extension)
   :export (make-midi-out
            midi-out-ports
            midi-out-open
@@ -18,7 +19,7 @@
            midi-note-off
            midi-ctrl))
 
-(load-extension "libhansconnect" "scm_init_connect_module")
+(hans-load-extension "libhansconnect" "scm_init_connect_module")
 
 (define-record-type <midi>
   (midi status byte-1 byte-2)

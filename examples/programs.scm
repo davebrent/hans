@@ -129,9 +129,7 @@
                    (make-pgm-sine "sine")
                    (make-pgm-pass "passthrough")
                    (make-pgm-ringbuffer "ringbuffer" "rb-foobar")))
-  `((output        . "programs.hans")
-    (library-paths . (,(base "../build/lib")
-                      "/usr/lib"))))
+  `((output . "programs.hans")))
 
 (let ((engine (make-engine "programs.hans")))
   (engine-run engine))

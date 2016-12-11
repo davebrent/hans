@@ -1,19 +1,16 @@
-.PHONY: lint docs format check
+.PHONY: check lint format clean
 
 BUILD_DIR=build
-SRC_DIRS=src include lib test
+SRC_DIRS=src include plugins test
 
 all: $(BUILD_DIR)
 
 $(BUILD_DIR):
 	@mkdir $(BUILD_DIR)
-	@cd $(BUILD_DIR) && cmake \
-		-DCMAKE_BUILD_TYPE=Debug \
-		-DCMAKE_INSTALL_PREFIX:PATH=. \
-		.. && make install
+	@cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Release .. && make
 
 check: $(BUILD_DIR)
-	@find test/scm/*.scm -exec env DYLD_LIBRARY_PATH=build/lib guile {} \;
+	@find test/scm/*.scm -exec guile {} \;
 	@cd $(BUILD_DIR) && ./test/unit/hans-unittest
 
 lint:

@@ -2,6 +2,7 @@
   :use-module (srfi srfi-1)
   :use-module (srfi srfi-9)
   :use-module (srfi srfi-9 gnu)
+  :use-module (hans extension)
   :use-module (hans utils)
   :export (bpm->ms
 
@@ -40,12 +41,11 @@
            pattern-reverse
            pattern-degrade
            pattern-shuffle
-           pattern-rotate
-           pattern-palindrome))
+           pattern-rotate))
 
 ;; Tree based pattern generation
 
-(load-extension "libhanssequencer" "scm_init_sequencer_module")
+(hans-load-extension "libhanssequencer" "scm_init_sequencer_module")
 
 (define* (bpm->ms beats #:optional pulses)
   (* (if (not pulses) 4 pulses) (/ 60000 beats)))

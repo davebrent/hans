@@ -32,7 +32,7 @@ class DataReader {
     ListView<const char> strings;
     ListView<hash> string_hashes;
     ListView<size_t> string_offsets;
-    ListView<engine::Library> libraries;
+    ListView<engine::Plugin> plugins;
     ListView<engine::ObjectDef> objects;
     DataFile::Blob object_data;
     ListView<engine::Parameter> parameters;

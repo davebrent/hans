@@ -7,8 +7,8 @@
 #include "hans/engine/AudioBusManager.hpp"
 #include "hans/engine/AudioDevices.hpp"
 #include "hans/engine/AudioStream.hpp"
-#include "hans/engine/LibraryManager.hpp"
 #include "hans/engine/ParameterManager.hpp"
+#include "hans/engine/PluginManager.hpp"
 #include "hans/engine/RegisterManager.hpp"
 #include "hans/engine/RingBufferManager.hpp"
 #include "hans/engine/Window.hpp"
@@ -22,7 +22,7 @@ Engine::Engine(Config& _config, DataReader* reader)
     : config(_config),
       strings(reader->data.string_hashes, reader->data.string_offsets,
               reader->data.strings),
-      libraries(strings, reader->data.objects, reader->data.libraries),
+      plugins(strings, reader->data.objects, reader->data.plugins),
       registers(config, reader->data.registers),
       parameters(reader->data.parameters, reader->data.parameter_values),
       modulators(parameters, reader->data.modulators),

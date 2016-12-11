@@ -7,10 +7,10 @@
 #include "hans/engine/AudioBusManager.hpp"
 #include "hans/engine/AudioDevices.hpp"
 #include "hans/engine/FrameBufferManager.hpp"
-#include "hans/engine/LibraryManager.hpp"
 #include "hans/engine/ModulationManager.hpp"
 #include "hans/engine/ParameterManager.hpp"
 #include "hans/engine/Patcher.hpp"
+#include "hans/engine/PluginManager.hpp"
 #include "hans/engine/RegisterManager.hpp"
 #include "hans/engine/RingBufferManager.hpp"
 #include "hans/engine/ShaderManager.hpp"
@@ -22,7 +22,7 @@ namespace engine {
 struct Engine {
   common::Config config;
   common::StringManager strings;
-  LibraryManager libraries;
+  PluginManager plugins;
   RegisterManager registers;
   ParameterManager parameters;
   ModulationManager modulators;

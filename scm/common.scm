@@ -1,4 +1,5 @@
 (define-module (hans common)
+  :use-module (hans extension)
   :export (hans-hash))
 
-(load-extension "libhanscommon" "scm_init_common_module")
+(hans-load-extension "libhanscommon" "scm_init_common_module")

@@ -23,7 +23,7 @@ struct DataFile {
     STRINGS,
     STRING_HASHES,
     STRING_OFFSETS,
-    LIBRARIES,
+    PLUGINS,
     OBJECTS,
     OBJECTS_DATA,
     PARAMETERS,

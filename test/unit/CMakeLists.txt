@@ -10,5 +10,5 @@ add_executable(hans-unittest
 target_link_libraries(hans-unittest
   hanscommon
   hansengine
-  hansmodule
+  hansplugin
   hanssequencer)
