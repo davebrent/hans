@@ -548,7 +548,7 @@ static Argument::Types scm_to_hans_argument_type(SCM value) {
   throw std::runtime_error("Unknown argument type");
 }
 
-static SCM valid_shaders(SCM lst) {
+static SCM valid_shaders_inner(SCM lst) {
   auto strings = StringManager(96768);
   auto len = lst_length(lst);
   auto shader_vec = std::vector<Shader>();
@@ -573,22 +573,6 @@ static SCM valid_shaders(SCM lst) {
 
   auto shader_list = ListView<Shader>(&shader_vec[0], len);
 
-  bool res = glfwInit();
-  if (res != GL_TRUE) {
-    return SCM_BOOL_F;
-  }
-
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-  glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-  glfwWindowHint(GLFW_FOCUSED, GL_FALSE);
-  glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
-  glfwWindowHint(GLFW_DECORATED, GL_FALSE);
-  auto window = glfwCreateWindow(480, 320, "Shaders", nullptr, nullptr);
-  glfwMakeContextCurrent(window);
-
   auto shader_manager = ShaderManager(strings, shader_list);
   auto out = SCM_EOL;
 
@@ -607,9 +591,33 @@ static SCM valid_shaders(SCM lst) {
     out = scm_cons(scm_cons(out_valid, out_message), out);
   }
 
+  return scm_reverse(out);
+}
+
+static SCM valid_shaders(SCM lst) {
+  bool res = glfwInit();
+  if (res != GL_TRUE) {
+    return SCM_BOOL_F;
+  }
+
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+  glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+  glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+  glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+  glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+  glfwWindowHint(GLFW_FOCUSED, GL_FALSE);
+  glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+  glfwWindowHint(GLFW_DECORATED, GL_FALSE);
+
+  auto window = glfwCreateWindow(480, 320, "Shaders", nullptr, nullptr);
+  glfwMakeContextCurrent(window);
+
+  // Ensure shaders and other resources are destroyed before context destroyed
+  SCM out = valid_shaders_inner(lst);
+
   glfwDestroyWindow(window);
   glfwTerminate();
-  return scm_reverse(out);
+  return out;
 }
 
 static std::vector<Plugin> scm_to_hans_plugs(SCM plugins,
