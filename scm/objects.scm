@@ -61,12 +61,21 @@
   (size     audio-buffer-size))
 
 (define-record-type <parameter>
-  (parameter name help components value)
+  (make-parameter name help components value)
   parameter?
   (name       parameter-name)
   (help       parameter-help)
   (components parameter-components)
   (value      parameter-value))
+
+(define* (parameter name #:optional value help)
+  (if (and (not help) (string? value))
+    ;; (parameter 'foo "a description")
+    (make-parameter name value 1 0)
+    (make-parameter name
+                    (if (not help) "" help)
+                    (if (number? value) 1 (length value))
+                    value)))
 
 (define-record-type <fbo-attachment>
   (fbo-attachment type help width height components)

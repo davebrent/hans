@@ -23,40 +23,23 @@ real and imaginary parts of the transform."
   (audio-object "snd-feature"
     library
     "Extract an audio feature from a signal"
-    (list
-      ;; Onset detection
-      (parameter 'energy
-        "Calculates the local energy of the spectral frame" 1 '(0))
-      (parameter 'hfc
-        "Computes the High Frequency Content of the spectral frame" 1 '(0))
-      (parameter 'complex
-        "Complex Domain Method onset detection function" 1 '(0))
-      (parameter 'phase
-        "Phase Based Method onset detection function" 1 '(0))
-      (parameter 'specdiff
-        "Spectral difference method onset detection function" 1 '(0))
-      (parameter 'kl
-        "Kullback-Liebler onset detection function" 1 '(0))
-      (parameter 'mkl
-        "Modified Kullback-Liebler onset detection function" 1 '(0))
+    `(;; Onset detection
+      ,(parameter 'energy "Calculates the local energy of the spectral frame")
+      ,(parameter 'hfc "Computes High Frequency Content of the spectral frame")
+      ,(parameter 'complex "Complex Domain Method onset detection function")
+      ,(parameter 'phase "Phase Based Method onset detection function")
+      ,(parameter 'specdiff "Spectral difference method onset detection")
+      ,(parameter 'kl "Kullback-Liebler onset detection")
+      ,(parameter 'mkl "Modified Kullback-Liebler onset detection")
       ;; Signal
-      (parameter 'rms
-        "Loudness estimate in decibels" 1 '(0))
+      ,(parameter 'rms "Loudness estimate in (dB)")
       ;; Spectral
-      (parameter 'specflux
-        "Measure of how quickly power spectrum has changed" 1 '(0))
-      (parameter 'centroid
-        "Represents the barycenter of the spectrum (hZ)" 1 '(0))
-      (parameter 'spread
-        "Variance of the spectral distribution around its centroid" 1 '(0))
-      (parameter 'skewness
-        "Computed from the third order moment of the spectrum" 1 '(0))
-      (parameter 'kurtosis
-        "Measure of the flatness of the spectrum" 1 '(0))
-      (parameter 'slope
-        "Decreasing rate of the spectral amplitude" 1 '(0))
-      (parameter 'decrease
-        "Decreasing rate, based on perceptual criteria" 1 '(0))
-      (parameter 'rolloff
-        "Bin number below which 95% of the spectrum energy is found" 1 '(0)))
+      ,(parameter 'specflux "Measure of how quickly power spectrum has changed")
+      ,(parameter 'centroid "Represents the barycenter of the spectrum (hZ)")
+      ,(parameter 'spread "Spectral distribution variance around the centroid")
+      ,(parameter 'skewness "Computed from the third order moment of spectrum")
+      ,(parameter 'kurtosis "Measure of flatness of the spectrum")
+      ,(parameter 'slope "Decreasing rate of the spectral amplitude")
+      ,(parameter 'decrease "Decreasing rate, based on perceptual criteria")
+      ,(parameter 'rolloff "Bin below which 95% of spectrum energy is found"))
     '()))

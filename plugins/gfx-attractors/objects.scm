@@ -9,13 +9,12 @@
     "gfx-attractors"
     "libhans.gfx.attractors"
     ""
-    (list
-      (parameter 'a "Formula constant" 1 '(0.08))
-      (parameter 'b "Formula constant" 1 '(1.39))
-      (parameter 'c "Formula constant" 1 '(0.08))
-      (parameter 'd "Formula constant" 1 '(1.03))
-      (parameter 'e "Formula constant" 1 '(1.37))
-      (parameter 'f "Formula constant" 1 '(0.43)))
+    `(,(parameter 'a 0.08)
+      ,(parameter 'b 1.39)
+      ,(parameter 'c 0.08)
+      ,(parameter 'd 1.03)
+      ,(parameter 'e 1.37)
+      ,(parameter 'f 0.43))
     (list
       (shader 'vertex "attractors/shaders/vert"
         (slurp-file (string-append base "/particle.vert")))

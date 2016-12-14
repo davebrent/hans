@@ -7,12 +7,10 @@
   (audio-object "snd-gain"
     library
     "Control audio gain level"
-    (list
-      (parameter 'amount "Amount of gain to apply" 1 '(1)))))
+    `(,(parameter 'amount 1 "Amount of gain to apply"))))
 
 (define-public (snd-pan settings args)
   (audio-object "snd-pan"
     library
     "Control audio balence"
-    (list
-      (parameter 'amount "Amount of pan to apply" 1 '(0.5)))))
+    `(,(parameter 'amount 0.5 "Amount of pan to apply"))))
