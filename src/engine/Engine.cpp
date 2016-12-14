@@ -97,20 +97,12 @@ static SCM engine_set_program(SCM runner) {
   return SCM_BOOL_F;
 }
 
-static SCM engine_run(SCM runner) {
-  auto instance = scm_to_engine(runner);
-  Engine& engine = instance->engine;
-  Config& config = engine.config;
-
-  if (!engine.window.make("Hans", config.width, config.height)) {
-    std::cerr << "Unable to open window" << std::endl;
-    return SCM_BOOL_F;
-  }
-
+static SCM engine_run_inner(EngineRunner* runner, Engine& engine,
+                            Config& config) {
   engine.fbos.setup();
 
-  auto state = instance->object_data.data;
-  for (auto& object : instance->objects) {
+  auto state = runner->object_data.data;
+  for (auto& object : runner->objects) {
     object.instance = object.create(object.id, state);
     static_cast<Object*>(object.instance)->setup(engine);
     state = static_cast<void*>(static_cast<char*>(state) + object.size);
@@ -118,12 +110,12 @@ static SCM engine_run(SCM runner) {
 
   auto audio_stream =
       AudioStream(config, engine.audio_devices, engine.audio_buses, [&]() {
-        const auto& program = instance->programs[instance->selected_program];
+        const auto& program = runner->programs[runner->selected_program];
         const auto& chain = program.audio;
 
         for (auto i = chain.start; i < chain.end; ++i) {
-          auto id = instance->chains[i];
-          for (const auto& object : instance->objects) {
+          auto id = runner->chains[i];
+          for (const auto& object : runner->objects) {
             if (object.id == id) {
               auto instance = static_cast<AudioObject*>(object.instance);
               instance->callback(engine);
@@ -141,13 +133,13 @@ static SCM engine_run(SCM runner) {
   audio_stream.start();
 
   while (!engine.window.should_close()) {
-    const auto& program = instance->programs[instance->selected_program];
+    const auto& program = runner->programs[runner->selected_program];
 
     engine.modulators.begin();
 
     for (auto i = program.graphics.start; i < program.graphics.end; ++i) {
-      auto id = instance->chains[i];
-      for (const auto& object : instance->objects) {
+      auto id = runner->chains[i];
+      for (const auto& object : runner->objects) {
         if (object.id == id) {
           auto instance = static_cast<GraphicsObject*>(object.instance);
           instance->update(engine);
@@ -157,8 +149,8 @@ static SCM engine_run(SCM runner) {
     }
 
     for (auto i = program.graphics.start; i < program.graphics.end; ++i) {
-      auto id = instance->chains[i];
-      for (const auto& object : instance->objects) {
+      auto id = runner->chains[i];
+      for (const auto& object : runner->objects) {
         if (object.id == id) {
           auto instance = static_cast<GraphicsObject*>(object.instance);
           instance->draw(engine);
@@ -173,8 +165,21 @@ static SCM engine_run(SCM runner) {
   }
 
   audio_stream.close();
-  instance->destroy();
+  runner->destroy();
   return SCM_BOOL_T;
+}
+
+static SCM engine_run(SCM runner) {
+  auto instance = scm_to_engine(runner);
+  Engine& engine = instance->engine;
+  Config& config = engine.config;
+
+  if (!engine.window.make("Hans", config.width, config.height)) {
+    std::cerr << "Unable to open window" << std::endl;
+    return SCM_BOOL_F;
+  }
+
+  return engine_run_inner(instance, engine, config);
 }
 
 static SCM engine_destroy(SCM runner) {
