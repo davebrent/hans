@@ -1,5 +1,5 @@
 add_library(hanscommon SHARED
-  main.cpp
+  scm.cpp
   DataLoader.cpp
   hasher.cpp
   StringManager.cpp

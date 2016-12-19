@@ -3,7 +3,7 @@
 
 using namespace hans;
 
-static SCM hans_hash(SCM str, SCM hex) {
+SCM common::hans_hash(SCM str, SCM hex) {
   auto data = scm_to_locale_string(str);
   auto hash = common::hasher(data);
   free(data);
@@ -20,6 +20,6 @@ static SCM hans_hash(SCM str, SCM hex) {
 
 extern "C" {
 void scm_init_common_module() {
-  scm_c_define_gsubr("hans-hash", 1, 1, 0, (scm_t_subr)hans_hash);
+  scm_c_define_gsubr("hans-hash", 1, 1, 0, (scm_t_subr)common::hans_hash);
 }
 }
