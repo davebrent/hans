@@ -11,6 +11,7 @@ RUN apt-get clean && apt-get update && \
   portaudio19-dev \
   libepoxy-dev \
   libglfw3-dev \
+  libfreeimage-dev \
   libxrandr-dev \
   libxinerama-dev \
   libxi-dev \
