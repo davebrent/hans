@@ -5,6 +5,7 @@
            engine-open
            engine-close
            engine-run
-           engine-tick))
+           engine-tick
+           engine-capture))
 
 (hans-load-extension "libhansengine" "scm_init_engine_module")

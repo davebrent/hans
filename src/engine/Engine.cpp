@@ -3,6 +3,7 @@
 #include "hans/common/DataLoader.hpp"
 #include "hans/common/ListView.hpp"
 #include "hans/common/StringManager.hpp"
+#include "hans/common/scm.hpp"
 #include "hans/engine/AudioBufferManager.hpp"
 #include "hans/engine/AudioBusManager.hpp"
 #include "hans/engine/AudioDevices.hpp"
@@ -213,6 +214,12 @@ static SCM engine_tick(SCM scm_runner) {
   return SCM_BOOL_T;
 }
 
+static SCM engine_capture(SCM runner, SCM frame) {
+  auto& engine = scm_to_engine_runner(runner)->engine;
+  engine.window.capture(scm_to_frame(frame));
+  return SCM_BOOL_T;
+}
+
 extern "C" {
 void scm_init_engine_module() {
   EngineTag = scm_make_smob_type("engine", sizeof(EngineRunner));
@@ -226,5 +233,7 @@ void scm_init_engine_module() {
 
   scm_c_define_gsubr("engine-tick", 1, 0, 0, (scm_t_subr)engine_tick);
   scm_c_define_gsubr("engine-run", 1, 0, 0, (scm_t_subr)engine_run);
+
+  scm_c_define_gsubr("engine-capture", 2, 0, 0, (scm_t_subr)engine_capture);
 }
 }

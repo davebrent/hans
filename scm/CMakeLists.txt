@@ -4,6 +4,7 @@ set(SCM_FILES
   compiler.scm
   connect.scm
   engine.scm
+  media.scm
   objects.scm
   os.scm
   patcher.scm

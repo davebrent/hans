@@ -2,6 +2,7 @@
 #define HANS_ENGINE_WINDOW_H_
 
 #include <stdint.h>
+#include "hans/common/Frame.hpp"
 
 struct GLFWwindow;
 
@@ -15,6 +16,7 @@ class Window {
   bool make(const char* title, uint16_t width, uint16_t height);
   bool should_close();
   void update();
+  void capture(common::Frame& frame);
 
  private:
   GLFWwindow* m_window;

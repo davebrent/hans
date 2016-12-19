@@ -3,6 +3,7 @@
 #include "hans/engine/gl.hpp"
 
 using namespace hans;
+using namespace hans::common;
 using namespace hans::engine;
 
 static void error_callback(int error, const char* description) {
@@ -55,4 +56,9 @@ bool Window::should_close() {
 void Window::update() {
   glfwSwapBuffers(m_window);
   glfwPollEvents();
+}
+
+void Window::capture(Frame& f) {
+  auto fmt = f.format == Frame::RGB ? GL_BGR : GL_BGRA;
+  glReadPixels(0, 0, f.width, f.height, fmt, GL_UNSIGNED_BYTE, f.buffer);
 }

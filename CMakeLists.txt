@@ -6,6 +6,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 find_package(PkgConfig REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(Guile REQUIRED)
+find_package(FreeImage REQUIRED)
 
 pkg_search_module(GLFW REQUIRED glfw3)
 pkg_search_module(EPOXY REQUIRED epoxy)
