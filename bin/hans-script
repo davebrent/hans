@@ -62,4 +62,6 @@ Options:
       (hans-compile f compile-settings)
       (let ((engine (make-engine out)))
         (delete-file out)
-        (engine-run engine)))))
+        (engine-open engine)
+        (engine-run engine)
+        (engine-close engine)))))

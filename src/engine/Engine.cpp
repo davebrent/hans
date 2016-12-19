@@ -45,6 +45,8 @@ class EngineRunner {
   common::ListView<size_t> chains;
   common::ListView<Program> programs;
 
+  AudioStream* audio;
+
   EngineRunner(Config& config, DataReader* reader)
       : m_reader(reader),
         engine(config, reader),
@@ -52,6 +54,7 @@ class EngineRunner {
         objects(reader->data.objects),
         chains(reader->data.chains),
         programs(reader->data.programs) {
+    audio = nullptr;
     selected_program = 0;
   }
 
@@ -59,8 +62,13 @@ class EngineRunner {
     delete m_reader;
   }
 
-  // Objects must be destroyed before library destructor is called
   void destroy() {
+    if (audio != nullptr) {
+      audio->close();
+      delete audio;
+      audio = nullptr;
+    }
+
     for (const auto& object : objects) {
       object.destroy(object.instance);
     }
@@ -72,7 +80,7 @@ class EngineRunner {
 
 static scm_t_bits EngineTag;
 
-static EngineRunner* scm_to_engine(SCM engine) {
+static EngineRunner* scm_to_engine_runner(SCM engine) {
   scm_assert_smob_type(EngineTag, engine);
   return reinterpret_cast<EngineRunner*>(SCM_SMOB_DATA(engine));
 }
@@ -97,8 +105,41 @@ static SCM engine_set_program(SCM runner) {
   return SCM_BOOL_F;
 }
 
-static SCM engine_run_inner(EngineRunner* runner, Engine& engine,
-                            Config& config) {
+// One iteration of the realtime loop
+static SCM engine_frame(EngineRunner* runner, Engine& engine) {
+  const auto& program = runner->programs[runner->selected_program];
+
+  engine.modulators.begin();
+
+  for (auto i = program.graphics.start; i < program.graphics.end; ++i) {
+    auto id = runner->chains[i];
+    for (const auto& object : runner->objects) {
+      if (object.id == id) {
+        auto instance = static_cast<GraphicsObject*>(object.instance);
+        instance->update(engine);
+        break;
+      }
+    }
+  }
+
+  for (auto i = program.graphics.start; i < program.graphics.end; ++i) {
+    auto id = runner->chains[i];
+    for (const auto& object : runner->objects) {
+      if (object.id == id) {
+        auto instance = static_cast<GraphicsObject*>(object.instance);
+        instance->draw(engine);
+        break;
+      }
+    }
+  }
+
+  engine.modulators.end();
+  engine.ring_buffers.advance_all();
+  engine.window.update();
+}
+
+static SCM engine_open__inner(EngineRunner* runner, Engine& engine,
+                              Config& config) {
   engine.fbos.setup();
 
   auto state = runner->object_data.data;
@@ -108,91 +149,82 @@ static SCM engine_run_inner(EngineRunner* runner, Engine& engine,
     state = static_cast<void*>(static_cast<char*>(state) + object.size);
   }
 
-  auto audio_stream =
-      AudioStream(config, engine.audio_devices, engine.audio_buses, [&]() {
-        const auto& program = runner->programs[runner->selected_program];
-        const auto& chain = program.audio;
+  auto audio_callback = [&]() {
+    const auto& program = runner->programs[runner->selected_program];
+    const auto& chain = program.audio;
 
-        for (auto i = chain.start; i < chain.end; ++i) {
-          auto id = runner->chains[i];
-          for (const auto& object : runner->objects) {
-            if (object.id == id) {
-              auto instance = static_cast<AudioObject*>(object.instance);
-              instance->callback(engine);
-              break;
-            }
-          }
+    for (auto i = chain.start; i < chain.end; ++i) {
+      auto id = runner->chains[i];
+      for (const auto& object : runner->objects) {
+        if (object.id == id) {
+          auto instance = static_cast<AudioObject*>(object.instance);
+          instance->callback(engine);
+          break;
         }
-      });
+      }
+    }
+  };
 
-  if (!audio_stream.open()) {
+  runner->audio = new AudioStream(config, engine.audio_devices,
+                                  engine.audio_buses, audio_callback);
+
+  if (!runner->audio->open()) {
     std::cerr << "Unable to open audio stream" << std::endl;
     return SCM_BOOL_F;
   }
 
-  audio_stream.start();
-
-  while (!engine.window.should_close()) {
-    const auto& program = runner->programs[runner->selected_program];
-
-    engine.modulators.begin();
-
-    for (auto i = program.graphics.start; i < program.graphics.end; ++i) {
-      auto id = runner->chains[i];
-      for (const auto& object : runner->objects) {
-        if (object.id == id) {
-          auto instance = static_cast<GraphicsObject*>(object.instance);
-          instance->update(engine);
-          break;
-        }
-      }
-    }
-
-    for (auto i = program.graphics.start; i < program.graphics.end; ++i) {
-      auto id = runner->chains[i];
-      for (const auto& object : runner->objects) {
-        if (object.id == id) {
-          auto instance = static_cast<GraphicsObject*>(object.instance);
-          instance->draw(engine);
-          break;
-        }
-      }
-    }
-
-    engine.modulators.end();
-    engine.ring_buffers.advance_all();
-    engine.window.update();
-  }
-
-  audio_stream.close();
-  runner->destroy();
+  runner->audio->start();
   return SCM_BOOL_T;
 }
 
-static SCM engine_run(SCM runner) {
-  auto instance = scm_to_engine(runner);
-  Engine& engine = instance->engine;
-  Config& config = engine.config;
+static SCM engine_open(SCM runner) {
+  auto instance = scm_to_engine_runner(runner);
+  auto& engine = instance->engine;
+  auto& config = engine.config;
 
   if (!engine.window.make("Hans", config.width, config.height)) {
     std::cerr << "Unable to open window" << std::endl;
     return SCM_BOOL_F;
   }
 
-  return engine_run_inner(instance, engine, config);
+  // XXX: Ensures other GL classes are destroyed before the window & context
+  return engine_open__inner(instance, engine, config);
 }
 
-static SCM engine_destroy(SCM runner) {
-  return SCM_BOOL_F;
+static SCM engine_close(SCM runner) {
+  scm_to_engine_runner(runner)->destroy();
+}
+
+static SCM engine_run(SCM scm_runner) {
+  auto runner = scm_to_engine_runner(scm_runner);
+  auto& engine = runner->engine;
+
+  while (!engine.window.should_close()) {
+    engine_frame(runner, engine);
+  }
+
+  return SCM_BOOL_T;
+}
+
+static SCM engine_tick(SCM scm_runner) {
+  auto runner = scm_to_engine_runner(scm_runner);
+  auto& engine = runner->engine;
+  engine_frame(runner, engine);
+  return SCM_BOOL_T;
 }
 
 extern "C" {
 void scm_init_engine_module() {
   EngineTag = scm_make_smob_type("engine", sizeof(EngineRunner));
   scm_c_define_gsubr("make-engine", 1, 0, 0, (scm_t_subr)make_engine);
+
   scm_c_define_gsubr("set-engine-program!", 2, 0, 0,
                      (scm_t_subr)engine_set_program);
+
+  scm_c_define_gsubr("engine-open", 1, 0, 0, (scm_t_subr)engine_open);
+  scm_c_define_gsubr("engine-close", 1, 0, 0, (scm_t_subr)engine_close);
+
+  scm_c_define_gsubr("engine-tick", 1, 0, 0, (scm_t_subr)engine_tick);
   scm_c_define_gsubr("engine-run", 1, 0, 0, (scm_t_subr)engine_run);
-  scm_c_define_gsubr("engine-destroy", 1, 0, 0, (scm_t_subr)engine_destroy);
 }
 }
