@@ -6,23 +6,22 @@
 (define-public (snd-fft settings args)
   (audio-object "snd-fft"
     library
-    "Performs a Fast Fourier transform on any incoming signal and outputs the
-real and imaginary parts of the transform."
+    "Perform a FFT on a signal outputting the real and imaginary parts"
     '()
-    (list (audio-buffer "snd/fft/real" 1 (assq-ref settings 'blocksize))
-          (audio-buffer "snd/fft/imag" 1 (assq-ref settings 'blocksize)))))
+    `(,(audio-buffer "snd/fft/real" 1 (assq-ref settings 'blocksize))
+      ,(audio-buffer "snd/fft/imag" 1 (assq-ref settings 'blocksize)))))
 
 (define-public (snd-ifft settings args)
   (audio-object "snd-ifft"
     library
     "Performs an inverse fast Fourier transform on fft data"
     '()
-    (list (audio-buffer "snd/ifft/signal" 1 (assq-ref settings 'blocksize)))))
+    `(,(audio-buffer "snd/ifft/signal" 1 (assq-ref settings 'blocksize)))))
 
 (define-public (snd-feature settings args)
   (audio-object "snd-feature"
     library
-    "Extract an audio feature from a signal"
+    "Extract audio features from a signal"
     `(;; Onset detection
       ,(parameter 'energy "Calculates the local energy of the spectral frame")
       ,(parameter 'hfc "Computes High Frequency Content of the spectral frame")

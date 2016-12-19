@@ -7,4 +7,4 @@
     "An audio oscillator supporting multiple waveforms"
     `(,(parameter 'frequency 440 "Oscillator frequency")
       ,(parameter 'waveform 1 "Oscillator waveform"))
-    (list (audio-buffer "snd/osc/buffer" 1 (assq-ref settings 'blocksize)))))
+    `(,(audio-buffer "snd/osc/buffer" 1 (assq-ref settings 'blocksize)))))
