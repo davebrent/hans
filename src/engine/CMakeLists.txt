@@ -11,6 +11,7 @@ add_library(hansengine SHARED
   ModulationManager.cpp
   ParameterManager.cpp
   RegisterManager.cpp
+  replay.cpp
   Engine.cpp)
 
 target_link_libraries(hansengine

@@ -38,7 +38,8 @@ struct DataFile {
     FBO_ATTACHMENTS,
     AUDIO_BUFFERS,
     RING_BUFFERS,
-    MODULATORS
+    MODULATORS,
+    REPLAY
   };
 
   struct Blob {
