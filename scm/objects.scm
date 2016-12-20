@@ -75,7 +75,7 @@
     (make-parameter name
                     (if (not help) "" help)
                     (if (number? value) 1 (length value))
-                    value)))
+                    (if (number? value) `(,value) value))))
 
 (define-record-type <fbo-attachment>
   (fbo-attachment type help width height components)
