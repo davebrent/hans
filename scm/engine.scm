@@ -2,10 +2,14 @@
   :use-module (hans extension)
   :export (make-engine
            set-engine-program!
+           set-engine-frame!
+           set-engine-parameter!
            engine-open
            engine-close
            engine-run
            engine-tick
-           engine-capture))
+           engine-capture
+           engine-record-start
+           engine-record-stop))
 
 (hans-load-extension "libhansengine" "scm_init_engine_module")

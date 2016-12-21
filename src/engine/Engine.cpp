@@ -15,6 +15,7 @@
 #include "hans/engine/RingBufferManager.hpp"
 #include "hans/engine/Window.hpp"
 #include "hans/engine/object.hpp"
+#include "hans/engine/replay.hpp"
 
 using namespace hans;
 using namespace hans::common;
@@ -48,6 +49,8 @@ class EngineRunner {
   common::ListView<Program> programs;
 
   AudioStream* audio;
+  ReplayRecorder recorder;
+  ReplayPlayer player;
 
   EngineRunner(Config& config, DataReader* reader)
       : m_reader(reader),
@@ -55,7 +58,9 @@ class EngineRunner {
         object_data(reader->data.object_data),
         objects(reader->data.objects),
         chains(reader->data.chains),
-        programs(reader->data.programs) {
+        programs(reader->data.programs),
+        recorder(reader->data.parameter_values),
+        player(reader->data.parameter_values) {
     audio = nullptr;
     selected_program = 0;
   }
@@ -126,6 +131,8 @@ static SCM engine_frame(EngineRunner* runner, Engine& engine) {
       }
     }
   }
+
+  runner->recorder.update();
 
   for (auto i = program.graphics.start; i < program.graphics.end; ++i) {
     auto id = runner->chains[i];
@@ -205,11 +212,18 @@ static SCM engine_close(SCM scm_runner) {
   return SCM_BOOL_T;
 }
 
-static SCM engine_run(SCM scm_runner) {
+static SCM engine_run(SCM scm_runner, SCM callback) {
   auto runner = scm_to_engine_runner(scm_runner);
   auto& engine = runner->engine;
+  auto with_callback = scm_is_true(scm_procedure_p(callback)) == 1;
 
   while (!engine.window.should_close()) {
+    if (with_callback) {
+      if (scm_is_false(scm_call_0(callback)) == 1) {
+        break;
+      }
+    }
+
     engine_frame(runner, engine);
   }
 
@@ -229,6 +243,37 @@ static SCM engine_capture(SCM runner, SCM frame) {
   return SCM_BOOL_T;
 }
 
+static SCM engine_record_start(SCM scm_runner) {
+  auto runner = scm_to_engine_runner(scm_runner);
+  runner->recorder.start();
+  return SCM_BOOL_T;
+}
+
+static SCM engine_record_stop(SCM scm_runner) {
+  auto runner = scm_to_engine_runner(scm_runner);
+  runner->recorder.stop();
+  runner->player.reset_with_blob(runner->recorder.to_blob());
+  return SCM_BOOL_T;
+}
+
+static SCM engine_set_engine_frame(SCM scm_runner, SCM frameno) {
+  auto runner = scm_to_engine_runner(scm_runner);
+  runner->player.set(scm_to_int(frameno));
+  return SCM_BOOL_T;
+}
+
+static SCM engine_set_parameter(SCM runner, SCM id, SCM name, SCM component,
+                                SCM value) {
+  auto& engine = scm_to_engine_runner(runner)->engine;
+
+  if (engine.parameters.set(scm_to_int(id), scm_to_size_t(name),
+                            scm_to_int(component), scm_to_double(value))) {
+    return SCM_BOOL_T;
+  }
+
+  return SCM_BOOL_F;
+}
+
 extern "C" {
 void scm_init_engine_module() {
   EngineTag = scm_make_smob_type("engine", sizeof(EngineRunner));
@@ -237,7 +282,11 @@ void scm_init_engine_module() {
   scm::procedure<engine_open>("engine-open", 1, 0, 0);
   scm::procedure<engine_close>("engine-close", 1, 0, 0);
   scm::procedure<engine_tick>("engine-tick", 1, 0, 0);
-  scm::procedure<engine_run>("engine-run", 1, 0, 0);
+  scm::procedure<engine_run>("engine-run", 1, 1, 0);
   scm::procedure<engine_capture>("engine-capture", 2, 0, 0);
+  scm::procedure<engine_record_start>("engine-record-start", 1, 0, 0);
+  scm::procedure<engine_record_stop>("engine-record-stop", 1, 0, 0);
+  scm::procedure<engine_set_engine_frame>("set-engine-frame!", 2, 0, 0);
+  scm::procedure<engine_set_parameter>("set-engine-parameter!", 5, 0, 0);
 }
 }
