@@ -16,4 +16,5 @@ bool image::encode(const char* filepath, const common::Frame& frame) {
 
   FreeImage_Save(FIF_PNG, image, filepath, 0);
   FreeImage_Unload(image);
+  return true;
 }

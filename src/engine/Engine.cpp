@@ -137,6 +137,7 @@ static SCM engine_frame(EngineRunner* runner, Engine& engine) {
   engine.modulators.end();
   engine.ring_buffers.advance_all();
   engine.window.update();
+  return SCM_BOOL_T;
 }
 
 static SCM engine_open__inner(EngineRunner* runner, Engine& engine,
@@ -194,6 +195,7 @@ static SCM engine_open(SCM runner) {
 
 static SCM engine_close(SCM runner) {
   scm_to_engine_runner(runner)->destroy();
+  return SCM_BOOL_T;
 }
 
 static SCM engine_run(SCM scm_runner) {
