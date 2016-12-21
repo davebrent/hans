@@ -1,6 +1,7 @@
 add_library(hansmedia SHARED
   scm.cpp
-  Image.cpp)
+  Image.cpp
+  Video.cpp)
 
 target_link_libraries(hansmedia
   hanscommon

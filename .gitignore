@@ -1,4 +1,5 @@
 .DS_Store
 *.hans
 *.log
+*.mp4
 build/
