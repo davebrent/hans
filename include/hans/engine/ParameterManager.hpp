@@ -25,6 +25,9 @@ class ParameterManager {
   void set(const Parameter& parameter, const Parameter::Length& component,
            const Parameter::Value& value);
 
+  bool set(const ObjectDef::ID object, const hash name,
+           const Parameter::Length component, const Parameter::Value value);
+
  private:
   common::ListView<Parameter> m_parameters;
   common::ListView<Parameter::Value> m_values;

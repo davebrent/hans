@@ -28,6 +28,24 @@ void ParameterManager::set(const Parameter& parameter,
   m_values[parameter.offset + component] = value;
 }
 
+bool ParameterManager::set(const ObjectDef::ID object, const hash name,
+                           const Parameter::Length component,
+                           const Parameter::Value value) {
+  auto index = 0;
+
+  for (auto& parameter : m_parameters) {
+    if (parameter.object == object && parameter.name == name) {
+      auto& parameter = m_parameters[index];
+      set(parameter, component, value);
+      return true;
+    }
+
+    index++;
+  }
+
+  return false;
+}
+
 Parameter::Value ParameterManager::get(
     const Parameter& parameter, const Parameter::Length& component) const {
   assert(parameter.offset + component < m_values.size());
