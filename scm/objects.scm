@@ -71,7 +71,7 @@
 (define* (parameter name #:optional value help)
   (if (and (not help) (string? value))
     ;; (parameter 'foo "a description")
-    (make-parameter name value 1 0)
+    (make-parameter name value 1 `(1))
     (make-parameter name
                     (if (not help) "" help)
                     (if (number? value) 1 (length value))
