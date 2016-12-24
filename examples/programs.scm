@@ -132,4 +132,6 @@
   `((output . "programs.hans")))
 
 (let ((engine (make-engine "programs.hans")))
-  (engine-run engine))
+  (engine-open engine)
+  (engine-run engine)
+  (engine-close engine))
