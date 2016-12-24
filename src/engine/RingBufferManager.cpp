@@ -42,6 +42,12 @@ RingBufferManager::RingBufferManager(const Config& config,
   }
 }
 
+RingBufferManager::~RingBufferManager() {
+  delete[] m_available;
+  delete[] m_heads;
+  delete[] m_tails;
+}
+
 RingBuffer RingBufferManager::make(ObjectDef::ID producer, hash name) {
   for (const auto& ring : m_ring_buffers) {
     if (ring.producer == producer && ring.name == name) {

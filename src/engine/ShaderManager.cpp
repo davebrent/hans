@@ -12,7 +12,7 @@ ShaderManager::ShaderManager(const StringManager& string_manager,
     : m_string_manager(string_manager), m_shaders(shaders) {
 }
 
-ShaderManager::~ShaderManager() {
+void ShaderManager::destroy() {
   for (auto& shader : m_shader_handles) {
     glDeleteShader(shader);
   }

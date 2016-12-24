@@ -13,6 +13,7 @@ class RingBufferManager {
  public:
   RingBufferManager(const common::Config& config,
                     common::ListView<RingBuffer> ring_buffers);
+  ~RingBufferManager();
 
   RingBuffer make(engine::ObjectDef::ID producer, hash name);
 

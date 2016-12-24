@@ -70,6 +70,9 @@ class EngineRunner {
       audio = nullptr;
     }
 
+    engine.fbos.destroy();
+    engine.shaders.destroy();
+
     for (const auto& object : objects) {
       object.destroy(object.instance);
     }
@@ -98,7 +101,7 @@ static SCM make_engine(SCM filepath) {
 
   auto path = scm_to_locale_string(filepath);
   auto runner = new (place) EngineRunner(config, new DataReader(path));
-  free(path);
+  std::free(path);
   return scm_new_smob(EngineTag, (scm_t_bits)runner);
 }
 
@@ -193,8 +196,11 @@ static SCM engine_open(SCM runner) {
   return engine_open__inner(instance, engine, config);
 }
 
-static SCM engine_close(SCM runner) {
-  scm_to_engine_runner(runner)->destroy();
+static SCM engine_close(SCM scm_runner) {
+  auto runner = scm_to_engine_runner(scm_runner);
+  runner->destroy();
+  runner->~EngineRunner();
+  scm_gc_free(runner, sizeof(EngineRunner), "engine");
   return SCM_BOOL_T;
 }
 

@@ -13,6 +13,7 @@ class AudioBusManager {
  public:
   /// Creates N audio buses
   explicit AudioBusManager(const common::Config& config, size_t num);
+  ~AudioBusManager();
   /// Create an audio bus
   audio::bus_handle make();
   /// Write samples to a channel of a specified audio bus

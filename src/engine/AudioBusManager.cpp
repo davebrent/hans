@@ -22,6 +22,10 @@ AudioBusManager::AudioBusManager(const Config& config, size_t num) {
   m_revisions = new uint64_t[num];
 }
 
+AudioBusManager::~AudioBusManager() {
+  delete[] m_revisions;
+}
+
 audio::bus_handle AudioBusManager::make() {
   if (m_ids == m_max) {
     throw std::runtime_error("AudioBusManager: Exceeded number of buses");

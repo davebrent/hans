@@ -15,7 +15,7 @@ class ShaderManager {
  public:
   ShaderManager(const common::StringManager& string_manager,
                 const common::ListView<graphics::Shader> shaders);
-  ~ShaderManager();
+  void destroy();
 
   /// Returns nullptr if the shader is valid, other wise an error string that
   /// must be freed by the caller

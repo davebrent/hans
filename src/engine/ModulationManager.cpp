@@ -20,6 +20,12 @@ ModulationManager::ModulationManager(ParameterManager& parameter_manager,
   }
 }
 
+ModulationManager::~ModulationManager() {
+  delete[] m_srcs;
+  delete[] m_dests;
+  delete[] m_vals;
+}
+
 void ModulationManager::begin() {
   // Store
   for (auto i = 0; i < m_mods.size(); ++i) {

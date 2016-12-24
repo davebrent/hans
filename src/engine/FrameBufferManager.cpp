@@ -84,10 +84,13 @@ void FrameBufferManager::setup() {
 }
 
 FrameBufferManager::~FrameBufferManager() {
-  glDeleteFramebuffers(m_fbos.size(), m_gl_fbos);
-  glDeleteTextures(m_attachments.size(), m_gl_attachments);
   delete[] m_gl_fbos;
   delete[] m_gl_attachments;
+}
+
+void FrameBufferManager::destroy () {
+  glDeleteFramebuffers(m_fbos.size(), m_gl_fbos);
+  glDeleteTextures(m_attachments.size(), m_gl_attachments);
 }
 
 FBO FrameBufferManager::make(ObjectDef::ID object) {

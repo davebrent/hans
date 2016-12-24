@@ -12,6 +12,7 @@ class ModulationManager {
  public:
   ModulationManager(ParameterManager& parameter_manager,
                     const common::ListView<Modulator> modulators);
+  ~ModulationManager();
   void begin();
   void end();
 

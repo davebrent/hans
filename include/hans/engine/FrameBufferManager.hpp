@@ -15,6 +15,7 @@ class FrameBufferManager {
                      common::ListView<graphics::FBO::Attachment> attachments);
   ~FrameBufferManager();
   void setup();
+  void destroy();
 
   /// Create an objects frame buffer and corresponding attachments
   graphics::FBO make(engine::ObjectDef::ID object);
