@@ -36,6 +36,10 @@ RUN cd /app && \
   cd /app/nanovg && premake4 gmake && cd build && make nanovg && cd .. && \
   premake4 --prefix=/usr/local install
 
+RUN cd /app && \
+  git clone https://github.com/USCiLab/cereal.git --depth=1 && \
+  mv cereal/include/cereal/ /usr/include/cereal/
+
 COPY . /app
 RUN mkdir -p /app/build && cd /app/build && cmake .. && make install
 
