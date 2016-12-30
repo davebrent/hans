@@ -3,7 +3,8 @@
 #include "hans/common/DataLoader.hpp"
 #include "hans/common/ListView.hpp"
 #include "hans/common/StringManager.hpp"
-#include "hans/common/scm.hpp"
+#include "hans/common/procedure.hpp"
+#include "hans/common/smobs.hpp"
 #include "hans/engine/AudioBufferManager.hpp"
 #include "hans/engine/AudioBusManager.hpp"
 #include "hans/engine/AudioDevices.hpp"
@@ -224,24 +225,19 @@ static SCM engine_tick(SCM scm_runner) {
 
 static SCM engine_capture(SCM runner, SCM frame) {
   auto& engine = scm_to_engine_runner(runner)->engine;
-  engine.window.capture(scm_to_frame(frame));
+  engine.window.capture(scm::to_cpp<Frame>(frame));
   return SCM_BOOL_T;
 }
 
 extern "C" {
 void scm_init_engine_module() {
   EngineTag = scm_make_smob_type("engine", sizeof(EngineRunner));
-  scm_c_define_gsubr("make-engine", 1, 0, 0, (scm_t_subr)make_engine);
-
-  scm_c_define_gsubr("set-engine-program!", 2, 0, 0,
-                     (scm_t_subr)engine_set_program);
-
-  scm_c_define_gsubr("engine-open", 1, 0, 0, (scm_t_subr)engine_open);
-  scm_c_define_gsubr("engine-close", 1, 0, 0, (scm_t_subr)engine_close);
-
-  scm_c_define_gsubr("engine-tick", 1, 0, 0, (scm_t_subr)engine_tick);
-  scm_c_define_gsubr("engine-run", 1, 0, 0, (scm_t_subr)engine_run);
-
-  scm_c_define_gsubr("engine-capture", 2, 0, 0, (scm_t_subr)engine_capture);
+  scm::procedure<make_engine>("make-engine", 1, 0, 0);
+  scm::procedure<engine_set_program>("set-engine-program!", 2, 0, 0);
+  scm::procedure<engine_open>("engine-open", 1, 0, 0);
+  scm::procedure<engine_close>("engine-close", 1, 0, 0);
+  scm::procedure<engine_tick>("engine-tick", 1, 0, 0);
+  scm::procedure<engine_run>("engine-run", 1, 0, 0);
+  scm::procedure<engine_capture>("engine-capture", 2, 0, 0);
 }
 }

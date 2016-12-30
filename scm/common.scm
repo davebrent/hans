@@ -2,7 +2,6 @@
   :use-module (sxml simple)
   :use-module (hans extension)
   :export (hans-hash
-           make-frame
            make-hans-object
            hans-object?
            hans-object-get

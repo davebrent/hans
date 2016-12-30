@@ -2,6 +2,9 @@
 #include <libguile.h>
 #include <cassert>
 #include <stdexcept>
+#include "hans/common/procedure.hpp"
+#include "hans/common/smobs.hpp"
+#include "hans/common/types.hpp"
 
 using namespace hans;
 
@@ -20,39 +23,44 @@ SCM common::hans_hash(SCM str, SCM hex) {
   return value;
 }
 
-static scm_t_bits frame_tag;
-
 static bool str_eqaul_sym(const char* str, SCM sym) {
   assert(scm_is_true(scm_symbol_p(sym)) == 1);
   return scm_is_true(scm_eq_p(scm_from_locale_symbol(str), sym)) == 1;
 }
 
-static common::Frame::Format scm_to_fmt(SCM value) {
+static Frame::Format scm_to_fmt(SCM value) {
   if (str_eqaul_sym("rgba", value)) {
-    return common::Frame::RGBA;
+    return Frame::RGBA;
   } else if (str_eqaul_sym("rgb", value)) {
-    return common::Frame::RGB;
+    return Frame::RGB;
   }
   throw std::runtime_error("Unknown frame format");
 }
 
-SCM common::make_frame(SCM width, SCM height, SCM format) {
-  auto place = scm_gc_malloc(sizeof(Frame), "frame");
-  auto frame = new (place)
-      Frame(scm_to_int(width), scm_to_int(height), scm_to_fmt(format));
-  return scm_new_smob(frame_tag, (scm_t_bits)frame);
-}
-
-common::Frame& common::scm_to_frame(SCM frame) {
-  scm_assert_smob_type(frame_tag, frame);
-  return *reinterpret_cast<Frame*>(SCM_SMOB_DATA(frame));
-}
-
 extern "C" {
 void scm_init_common_module() {
-  scm_c_define_gsubr("hans-hash", 1, 1, 0, (scm_t_subr)common::hans_hash);
+  scm::procedure<common::hans_hash>("hans-hash", 1, 1, 0);
 
-  frame_tag = scm_make_smob_type("frame", sizeof(common::Frame));
-  scm_c_define_gsubr("make-frame", 3, 1, 0, (scm_t_subr)common::make_frame);
+  scm::smob<common::Config>("config");
+  scm::smob<Plugin>("plugin");
+  scm::smob<ObjectDef>("object");
+  scm::smob<Chain>("chain");
+  scm::smob<Program>("program");
+  scm::smob<Register>("register");
+  scm::smob<Argument>("argument");
+  scm::smob<Parameter>("parameter");
+  scm::smob<Modulator>("modulator");
+  scm::smob<RingBuffer>("ring-buffer");
+  scm::smob<audio::Buffer>("audio-buffer");
+  scm::smob<graphics::Shader>("shader");
+  scm::smob<graphics::FBO::Attachment>("fbo-attachment");
+  scm::smob<graphics::FBO>("fbo");
+
+  scm::smob<Frame>("frame", [](void* bytes, SCM args) {
+    auto width = scm_to_int(scm_list_ref(args, scm_from_int(0)));
+    auto height = scm_to_int(scm_list_ref(args, scm_from_int(1)));
+    auto fmt = scm_to_fmt(scm_list_ref(args, scm_from_int(2)));
+    return new (bytes) Frame(width, height, fmt);
+  });
 }
 }

@@ -1,13 +1,13 @@
 #ifndef HANS_MEDIA_IMAGE_H_
 #define HANS_MEDIA_IMAGE_H_
 
-#include "hans/common/Frame.hpp"
+#include "hans/common/types.hpp"
 
 namespace hans {
 namespace media {
 namespace image {
 
-bool encode(const char* filepath, const common::Frame& frame);
+bool encode(const char* filepath, const Frame& frame);
 
 } // namespace image
 } // namespace media

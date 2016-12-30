@@ -1,6 +1,7 @@
 (define-module (hans compiler)
   :use-module (srfi srfi-1)
   :use-module (hans extension)
+  :use-module (hans scm)
   :use-module (hans utils)
   :use-module (hans os)
   :use-module (hans patcher)

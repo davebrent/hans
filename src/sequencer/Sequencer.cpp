@@ -8,6 +8,7 @@
 #include <new>
 #include <thread>
 #include "./types.hpp"
+#include "hans/common/procedure.hpp"
 
 using namespace hans;
 using namespace hans::sequencer;
@@ -515,18 +516,16 @@ static SCM sequencer_destroy(SCM sequencer) {
 }
 
 void hans::sequencer::init_sequencer_module() {
-  scm_c_define_gsubr("make-sequencer", 0, 0, 0, (scm_t_subr)make_sequencer);
   SequencerTag = scm_make_smob_type("sequencer", sizeof(Sequencer));
-  scm_c_define_gsubr("sequencer-track", 3, 0, 0, (scm_t_subr)sequencer_track);
-  scm_c_define_gsubr("sequencer-handler", 2, 0, 0,
-                     (scm_t_subr)sequencer_handler);
-  scm_c_define_gsubr("sequencer-start", 1, 0, 0, (scm_t_subr)sequencer_start);
-  scm_c_define_gsubr("sequencer-stop", 1, 0, 0, (scm_t_subr)sequencer_stop);
-  scm_c_define_gsubr("sequencer-destroy", 1, 0, 0,
-                     (scm_t_subr)sequencer_destroy);
+  scm::procedure<make_sequencer>("make-sequencer");
+  scm::procedure<sequencer_track>("sequencer-track", 3, 0, 0);
+  scm::procedure<sequencer_handler>("sequencer-handler", 2, 0, 0);
+  scm::procedure<sequencer_start>("sequencer-start", 1, 0, 0);
+  scm::procedure<sequencer_stop>("sequencer-stop", 1, 0, 0);
+  scm::procedure<sequencer_destroy>("sequencer-destroy", 1, 0, 0);
 
-  scm_c_define_gsubr("make-cycle", 3, 0, 0, (scm_t_subr)make_cycle);
-  scm_c_define_gsubr("cycle-number", 1, 0, 0, (scm_t_subr)cycle_number);
-  scm_c_define_gsubr("cycle-start", 1, 0, 0, (scm_t_subr)cycle_start);
-  scm_c_define_gsubr("cycle-duration", 1, 0, 0, (scm_t_subr)cycle_duration);
+  scm::procedure<make_cycle>("make-cycle", 3, 0, 0);
+  scm::procedure<cycle_number>("cycle-number", 1, 0, 0);
+  scm::procedure<cycle_start>("cycle-start", 1, 0, 0);
+  scm::procedure<cycle_duration>("cycle-duration", 1, 0, 0);
 }

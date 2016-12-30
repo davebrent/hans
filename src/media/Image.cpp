@@ -5,7 +5,7 @@
 using namespace hans;
 using namespace hans::media;
 
-bool image::encode(const char* filepath, const common::Frame& frame) {
+bool image::encode(const char* filepath, const Frame& frame) {
   auto channels = frame.channels();
   auto bitdepth = channels * 8;
   auto pitch = channels * frame.width;

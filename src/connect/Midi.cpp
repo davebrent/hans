@@ -2,6 +2,7 @@
 #include <RtMidi.h>
 #include <libguile.h>
 #include <new>
+#include "hans/common/procedure.hpp"
 
 static scm_t_bits MidiOutTag;
 
@@ -59,9 +60,9 @@ static SCM midi_out_close(SCM device) {
 
 void hans::connect::init_midi_module() {
   MidiOutTag = scm_make_smob_type("midi-out-device", sizeof(RtMidiOut));
-  scm_c_define_gsubr("make-midi-out", 0, 0, 0, (scm_t_subr)make_midi_out);
-  scm_c_define_gsubr("midi-out-ports", 1, 0, 0, (scm_t_subr)midi_out_ports);
-  scm_c_define_gsubr("midi-out-open", 2, 0, 0, (scm_t_subr)midi_out_open);
-  scm_c_define_gsubr("midi-out-send", 4, 0, 0, (scm_t_subr)midi_out_send);
-  scm_c_define_gsubr("midi-out-close", 1, 0, 0, (scm_t_subr)midi_out_close);
+  scm::procedure<make_midi_out>("make-midi-out");
+  scm::procedure<midi_out_ports>("midi-out-ports", 1, 0, 0);
+  scm::procedure<midi_out_open>("midi-out-open", 2, 0, 0);
+  scm::procedure<midi_out_send>("midi-out-send", 4, 0, 0);
+  scm::procedure<midi_out_close>("midi-out-close", 1, 0, 0);
 }

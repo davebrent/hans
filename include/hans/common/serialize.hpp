@@ -67,6 +67,11 @@ void serialize(Archive& ar, RingBuffer& d) {
   ar(C(producer), C(name), C(offset), C(index));
 }
 
+template <class Archive>
+void serialize(Archive& ar, Frame& d) {
+  ar(C(width), C(height), C(format));
+}
+
 namespace audio {
 template <class Archive>
 void serialize(Archive& ar, audio::Buffer& d) {

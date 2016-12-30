@@ -9,6 +9,8 @@
 #include "hans/common/ListView.hpp"
 #include "hans/common/StringManager.hpp"
 #include "hans/common/hasher.hpp"
+#include "hans/common/procedure.hpp"
+#include "hans/common/smobs.hpp"
 #include "hans/common/types.hpp"
 #include "hans/engine/PluginManager.hpp"
 #include "hans/engine/ShaderManager.hpp"
@@ -848,34 +850,29 @@ static SCM get_object_info(SCM plugins, SCM objects) {
 
 extern "C" {
 void scm_init_hans_compiler_module() {
-  scm_c_define_gsubr("make-hans-file-writer", 1, 0, 0,
-                     (scm_t_subr)make_hans_file_writer);
   auto data_writer_size = sizeof(DataWriter);
   data_writer_tag = scm_make_smob_type("hans-file-writer", data_writer_size);
-  scm_c_define_gsubr("hans-file-write", 2, 0, 0, (scm_t_subr)hans_file_write);
 
-  scm_c_define_gsubr("write-modulators", 2, 0, 0, (scm_t_subr)write_modulators);
-  scm_c_define_gsubr("write-plugins", 2, 0, 0, (scm_t_subr)write_plugins);
-  scm_c_define_gsubr("write-objects", 2, 0, 0, (scm_t_subr)write_objects);
-  scm_c_define_gsubr("write-object-data", 2, 0, 0,
-                     (scm_t_subr)write_object_data);
-  scm_c_define_gsubr("write-programs", 3, 0, 0, (scm_t_subr)write_programs);
-  scm_c_define_gsubr("write-graphs", 2, 0, 0, (scm_t_subr)write_graphs);
-  scm_c_define_gsubr("write-parameters", 2, 0, 0, (scm_t_subr)write_parameters);
-  scm_c_define_gsubr("write-parameter-values", 2, 0, 0,
-                     (scm_t_subr)write_parameter_values);
-  scm_c_define_gsubr("write-registers", 2, 0, 0, (scm_t_subr)write_registers);
-  scm_c_define_gsubr("write-shaders", 2, 0, 0, (scm_t_subr)write_shaders);
-  scm_c_define_gsubr("write-fbos", 2, 0, 0, (scm_t_subr)write_fbos);
-  scm_c_define_gsubr("write-fbo-attachments", 2, 0, 0,
-                     (scm_t_subr)write_fbo_attachments);
-  scm_c_define_gsubr("write-audio-buffers", 2, 0, 0,
-                     (scm_t_subr)write_audio_buffers);
-  scm_c_define_gsubr("write-ring-buffers", 2, 0, 0,
-                     (scm_t_subr)write_ring_buffers);
-  scm_c_define_gsubr("write-strings", 2, 0, 0, (scm_t_subr)write_strings);
+  scm::procedure<make_hans_file_writer>("make-hans-file-writer", 1, 0, 0);
+  scm::procedure<hans_file_write>("hans-file-write", 2, 0, 0);
 
-  scm_c_define_gsubr("valid-shaders?", 1, 0, 0, (scm_t_subr)valid_shaders);
-  scm_c_define_gsubr("get-object-info", 2, 0, 0, (scm_t_subr)get_object_info);
+  scm::procedure<write_modulators>("write-modulators", 2, 0, 0);
+  scm::procedure<write_plugins>("write-plugins", 2, 0, 0);
+  scm::procedure<write_objects>("write-objects", 2, 0, 0);
+  scm::procedure<write_object_data>("write-object-data", 2, 0, 0);
+  scm::procedure<write_programs>("write-programs", 3, 0, 0);
+  scm::procedure<write_graphs>("write-graphs", 2, 0, 0);
+  scm::procedure<write_parameters>("write-parameters", 2, 0, 0);
+  scm::procedure<write_parameter_values>("write-parameter-values", 2, 0, 0);
+  scm::procedure<write_registers>("write-registers", 2, 0, 0);
+  scm::procedure<write_shaders>("write-shaders", 2, 0, 0);
+  scm::procedure<write_fbos>("write-fbos", 2, 0, 0);
+  scm::procedure<write_fbo_attachments>("write-fbo-attachments", 2, 0, 0);
+  scm::procedure<write_audio_buffers>("write-audio-buffers", 2, 0, 0);
+  scm::procedure<write_ring_buffers>("write-ring-buffers", 2, 0, 0);
+  scm::procedure<write_strings>("write-strings", 2, 0, 0);
+
+  scm::procedure<valid_shaders>("valid-shaders?", 1, 0, 0);
+  scm::procedure<get_object_info>("get-object-info", 2, 0, 0);
 }
 }
