@@ -5,6 +5,7 @@ add_executable(hans-unittest
   common/StringManager.cpp
   engine/ParameterManager.cpp
   engine/ModulationManager.cpp
+  common/smobs.cpp
   main.cpp)
 
 target_link_libraries(hans-unittest

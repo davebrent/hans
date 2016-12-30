@@ -3,7 +3,8 @@ add_library(hanscommon SHARED
   DataLoader.cpp
   hasher.cpp
   StringManager.cpp
-  LinearAllocator.cpp)
+  LinearAllocator.cpp
+  smobs.cpp)
 
 target_link_libraries(hanscommon
   ${GUILE_LIBRARIES})
