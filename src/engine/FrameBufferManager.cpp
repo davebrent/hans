@@ -88,7 +88,7 @@ FrameBufferManager::~FrameBufferManager() {
   delete[] m_gl_attachments;
 }
 
-void FrameBufferManager::destroy () {
+void FrameBufferManager::destroy() {
   glDeleteFramebuffers(m_fbos.size(), m_gl_fbos);
   glDeleteTextures(m_attachments.size(), m_gl_attachments);
 }
