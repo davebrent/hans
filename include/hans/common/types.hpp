@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <cstdlib>
 #include <functional>
+#include <vector>
 
 namespace hans {
 
@@ -218,6 +219,27 @@ struct FBO {
   size_t end;
 };
 } // namespace graphics
+
+struct EngineData {
+  common::Config config;
+  std::vector<char> strings;
+  std::vector<hash> string_hashes;
+  std::vector<size_t> string_offsets;
+  std::vector<Plugin> plugins;
+  std::vector<ObjectDef> objects;
+  std::vector<Parameter> parameters;
+  std::vector<Parameter::Value> parameter_values;
+  std::vector<Program> programs;
+  std::vector<size_t> chains;
+  std::vector<Modulator> modulators;
+  std::vector<Register> registers;
+  std::vector<RingBuffer> ring_buffers;
+  std::vector<graphics::Shader> shaders;
+  std::vector<graphics::FBO> fbos;
+  std::vector<graphics::FBO::Attachment> fbo_attachments;
+  std::vector<audio::Buffer> audio_buffers;
+  // DataFile::Blob object_data;
+};
 } // namespace hans
 
 #endif // HANS_COMMON_TYPES_H_

@@ -41,6 +41,7 @@ void scm_init_common_module() {
   scm::smob<graphics::Shader>("shader");
   scm::smob<graphics::FBO::Attachment>("fbo-attachment");
   scm::smob<graphics::FBO>("fbo");
+  scm::smob<EngineData>("engine-data");
 
   scm::smob<Frame>("frame", [](void* bytes, SCM args) {
     auto width = scm_to_int(scm_list_ref(args, scm_from_int(0)));

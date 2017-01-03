@@ -4,6 +4,7 @@
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/xml.hpp>
 #include <cereal/cereal.hpp>
+#include <cereal/types/vector.hpp>
 #include "hans/common/types.hpp"
 
 namespace hans {
@@ -94,6 +95,14 @@ template <class Archive>
 void serialize(Archive& ar, graphics::FBO& d) {
   ar(C(object), C(stencil_buffer), C(start), C(end));
 }
+}
+
+template <class Archive>
+void serialize(Archive& ar, EngineData& d) {
+  ar(C(config), C(strings), C(string_hashes), C(string_offsets), C(plugins),
+     C(objects), C(parameters), C(parameter_values), C(programs), C(chains),
+     C(modulators), C(registers), C(ring_buffers), C(shaders), C(fbos),
+     C(fbo_attachments), C(audio_buffers));
 }
 
 #undef C
