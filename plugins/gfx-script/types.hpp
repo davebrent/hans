@@ -3,12 +3,11 @@
 
 #include <libguile.h>
 #include "hans/common/types.hpp"
-#include "hans/engine/types.hpp"
 
 struct ScriptState {
   hans::hash path;
-  hans::engine::graphics::FBO fbo;
-  hans::engine::Register outlet;
+  hans::graphics::FBO fbo;
+  hans::Register outlet;
   float width;
   float height;
   SCM draw;

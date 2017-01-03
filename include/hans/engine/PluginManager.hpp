@@ -6,7 +6,6 @@
 #include <vector>
 #include "hans/common/StringManager.hpp"
 #include "hans/common/types.hpp"
-#include "hans/engine/types.hpp"
 
 #define HANS_PLUGIN_INIT extern "C" void __hans_plugin_init
 

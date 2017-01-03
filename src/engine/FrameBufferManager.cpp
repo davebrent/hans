@@ -5,7 +5,7 @@
 using namespace hans;
 using namespace hans::common;
 using namespace hans::engine;
-using namespace hans::engine::graphics;
+using namespace hans::graphics;
 
 FrameBufferManager::FrameBufferManager(ListView<FBO> fbos,
                                        ListView<FBO::Attachment> attachments)

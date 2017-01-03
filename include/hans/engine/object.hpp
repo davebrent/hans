@@ -5,7 +5,6 @@
 #include "hans/engine/Engine.hpp"
 #include "hans/engine/Patcher.hpp"
 #include "hans/engine/gl.hpp"
-#include "hans/engine/types.hpp"
 
 namespace hans {
 namespace engine {

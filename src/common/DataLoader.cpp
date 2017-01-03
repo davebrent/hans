@@ -6,7 +6,6 @@
 
 using namespace hans;
 using namespace hans::common;
-using namespace hans::engine;
 
 DataWriter::DataWriter(size_t size) : m_allocator(size) {
   m_cleanup = false;

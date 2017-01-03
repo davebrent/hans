@@ -5,7 +5,7 @@
 
 using namespace hans;
 using namespace hans::engine;
-using namespace hans::engine::audio;
+using namespace hans::audio;
 
 AudioDevices::AudioDevices() {
   PaError error = Pa_Initialize();

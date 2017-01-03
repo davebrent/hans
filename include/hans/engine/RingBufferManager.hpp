@@ -4,7 +4,6 @@
 #include "hans/common/LinearAllocator.hpp"
 #include "hans/common/ListView.hpp"
 #include "hans/common/types.hpp"
-#include "hans/engine/types.hpp"
 
 namespace hans {
 namespace engine {
@@ -15,7 +14,7 @@ class RingBufferManager {
                     common::ListView<RingBuffer> ring_buffers);
   ~RingBufferManager();
 
-  RingBuffer make(engine::ObjectDef::ID producer, hash name);
+  RingBuffer make(ObjectDef::ID producer, hash name);
 
   /// Write samples to a ring buffer, samples must be length of blocksize
   bool write(RingBuffer ring, const audio::sample* samples);

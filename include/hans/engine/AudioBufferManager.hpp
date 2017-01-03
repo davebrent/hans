@@ -3,7 +3,6 @@
 
 #include "hans/common/LinearAllocator.hpp"
 #include "hans/common/ListView.hpp"
-#include "hans/engine/types.hpp"
 
 namespace hans {
 namespace engine {
@@ -11,7 +10,7 @@ namespace engine {
 class AudioBufferManager {
  public:
   explicit AudioBufferManager(common::ListView<audio::Buffer> buffers);
-  audio::Buffer make(engine::ObjectDef::ID id, hash name);
+  audio::Buffer make(ObjectDef::ID id, hash name);
   audio::sample* get(const audio::Buffer& buff, uint8_t channel) const;
 
  private:

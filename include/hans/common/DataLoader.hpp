@@ -5,7 +5,6 @@
 #include "hans/common/LinearAllocator.hpp"
 #include "hans/common/ListView.hpp"
 #include "hans/common/types.hpp"
-#include "hans/engine/types.hpp"
 
 namespace hans {
 namespace common {
@@ -32,20 +31,20 @@ class DataReader {
     ListView<const char> strings;
     ListView<hash> string_hashes;
     ListView<size_t> string_offsets;
-    ListView<engine::Plugin> plugins;
-    ListView<engine::ObjectDef> objects;
+    ListView<Plugin> plugins;
+    ListView<ObjectDef> objects;
     DataFile::Blob object_data;
-    ListView<engine::Parameter> parameters;
-    ListView<engine::Parameter::Value> parameter_values;
-    ListView<engine::Program> programs;
+    ListView<Parameter> parameters;
+    ListView<Parameter::Value> parameter_values;
+    ListView<Program> programs;
     ListView<size_t> chains;
-    ListView<engine::Register> registers;
-    ListView<engine::graphics::Shader> shaders;
-    ListView<engine::graphics::FBO> fbos;
-    ListView<engine::graphics::FBO::Attachment> fbo_attachments;
-    ListView<engine::audio::Buffer> audio_buffers;
-    ListView<engine::RingBuffer> ring_buffers;
-    ListView<engine::Modulator> modulators;
+    ListView<Register> registers;
+    ListView<graphics::Shader> shaders;
+    ListView<graphics::FBO> fbos;
+    ListView<graphics::FBO::Attachment> fbo_attachments;
+    ListView<audio::Buffer> audio_buffers;
+    ListView<RingBuffer> ring_buffers;
+    ListView<Modulator> modulators;
   };
 
   explicit DataReader(const char* uri);

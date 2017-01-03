@@ -18,8 +18,8 @@
 using namespace hans;
 using namespace hans::common;
 using namespace hans::engine;
-using namespace hans::engine::audio;
-using namespace hans::engine::graphics;
+using namespace hans::audio;
+using namespace hans::graphics;
 
 static scm_t_bits data_writer_tag;
 

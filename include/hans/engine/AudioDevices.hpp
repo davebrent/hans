@@ -2,7 +2,7 @@
 #define HANS_ENGINE_AUDIODEVICES_H_
 
 #include <vector>
-#include "hans/engine/types.hpp"
+#include "hans/common/types.hpp"
 
 namespace hans {
 namespace engine {

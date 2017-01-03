@@ -4,7 +4,6 @@
 #include <vector>
 #include "hans/common/ListView.hpp"
 #include "hans/common/types.hpp"
-#include "hans/engine/types.hpp"
 
 namespace hans {
 namespace engine {
@@ -18,7 +17,7 @@ class FrameBufferManager {
   void destroy();
 
   /// Create an objects frame buffer and corresponding attachments
-  graphics::FBO make(engine::ObjectDef::ID object);
+  graphics::FBO make(ObjectDef::ID object);
 
   /// Bind to the windows default frame buffer
   /// Calls glBindFramebuffer on the requested frame buffer

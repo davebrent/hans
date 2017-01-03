@@ -4,7 +4,6 @@
 #include "hans/common/LinearAllocator.hpp"
 #include "hans/common/ListView.hpp"
 #include "hans/common/types.hpp"
-#include "hans/engine/types.hpp"
 
 namespace hans {
 namespace engine {

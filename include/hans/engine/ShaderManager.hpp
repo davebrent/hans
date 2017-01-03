@@ -6,7 +6,6 @@
 #include "hans/common/StringManager.hpp"
 #include "hans/common/types.hpp"
 #include "hans/engine/gl.hpp"
-#include "hans/engine/types.hpp"
 
 namespace hans {
 namespace engine {
