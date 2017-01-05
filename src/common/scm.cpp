@@ -23,20 +23,6 @@ SCM common::hans_hash(SCM str, SCM hex) {
   return value;
 }
 
-static bool str_eqaul_sym(const char* str, SCM sym) {
-  assert(scm_is_true(scm_symbol_p(sym)) == 1);
-  return scm_is_true(scm_eq_p(scm_from_locale_symbol(str), sym)) == 1;
-}
-
-static Frame::Format scm_to_fmt(SCM value) {
-  if (str_eqaul_sym("rgba", value)) {
-    return Frame::RGBA;
-  } else if (str_eqaul_sym("rgb", value)) {
-    return Frame::RGB;
-  }
-  throw std::runtime_error("Unknown frame format");
-}
-
 extern "C" {
 void scm_init_common_module() {
   scm::procedure<common::hans_hash>("hans-hash", 1, 1, 0);
@@ -59,8 +45,7 @@ void scm_init_common_module() {
   scm::smob<Frame>("frame", [](void* bytes, SCM args) {
     auto width = scm_to_int(scm_list_ref(args, scm_from_int(0)));
     auto height = scm_to_int(scm_list_ref(args, scm_from_int(1)));
-    auto fmt = scm_to_fmt(scm_list_ref(args, scm_from_int(2)));
-    return new (bytes) Frame(width, height, fmt);
+    return new (bytes) Frame(width, height);
   });
 }
 }

@@ -58,6 +58,5 @@ void Window::update() {
 }
 
 void Window::capture(Frame& f) {
-  auto fmt = f.format == Frame::RGB ? GL_BGR : GL_BGRA;
-  glReadPixels(0, 0, f.width, f.height, fmt, GL_UNSIGNED_BYTE, f.buffer);
+  glReadPixels(0, 0, f.width, f.height, GL_BGRA, GL_UNSIGNED_BYTE, f.buffer);
 }

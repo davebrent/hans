@@ -69,7 +69,7 @@ void serialize(Archive& ar, RingBuffer& d) {
 
 template <class Archive>
 void serialize(Archive& ar, Frame& d) {
-  ar(C(width), C(height), C(format));
+  ar(C(width), C(height));
 }
 
 namespace audio {

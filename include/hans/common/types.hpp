@@ -141,28 +141,20 @@ struct RingBuffer {
 
 struct Frame {
   using Buffer = unsigned char*;
-  enum Format { RGB, RGBA };
-
   Buffer buffer;
-  Format format;
 
   uint16_t width;
   uint16_t height;
 
-  Frame(uint16_t w, uint16_t h, Format fmt) {
-    buffer = static_cast<Buffer>(
-        std::calloc(w * h * (fmt == RGB ? 3 : 4), sizeof(char)));
-    format = fmt;
+  Frame(uint16_t w, uint16_t h) {
+    auto channels = 4; // Frame data is expected to be BGRA
+    buffer = static_cast<Buffer>(std::calloc(w * h * channels, sizeof(char)));
     width = w;
     height = h;
   }
 
   ~Frame() {
     std::free(buffer);
-  }
-
-  uint16_t channels() const {
-    return (format == RGB) ? 3 : 4;
   }
 };
 
