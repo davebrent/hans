@@ -4,6 +4,7 @@
 #include <cereal/archives/binary.hpp>
 #include <cereal/archives/xml.hpp>
 #include <cereal/cereal.hpp>
+#include <cereal/types/string.hpp>
 #include <cereal/types/vector.hpp>
 #include "hans/common/types.hpp"
 
@@ -25,7 +26,7 @@ void serialize(Archive& ar, Plugin& d) {
 
 template <class Archive>
 void serialize(Archive& ar, ObjectDef& d) {
-  ar(C(id), C(type), C(size));
+  ar(C(id), C(type), C(name));
 }
 
 template <class Archive>
@@ -65,7 +66,7 @@ void serialize(Archive& ar, Modulator& d) {
 
 template <class Archive>
 void serialize(Archive& ar, RingBuffer& d) {
-  ar(C(producer), C(name), C(offset), C(index));
+  ar(C(producer), C(name), C(index));
 }
 
 template <class Archive>
@@ -76,7 +77,7 @@ void serialize(Archive& ar, Frame& d) {
 namespace audio {
 template <class Archive>
 void serialize(Archive& ar, audio::Buffer& d) {
-  ar(C(object), C(name), C(channels), C(size), C(offset));
+  ar(C(object), C(name), C(channels), C(size));
 }
 }
 
@@ -88,7 +89,7 @@ void serialize(Archive& ar, graphics::Shader& d) {
 
 template <class Archive>
 void serialize(Archive& ar, graphics::FBO::Attachment& d) {
-  ar(C(type), C(width), C(components));
+  ar(C(type), C(width), C(height), C(components));
 }
 
 template <class Archive>
@@ -98,11 +99,21 @@ void serialize(Archive& ar, graphics::FBO& d) {
 }
 
 template <class Archive>
+void serialize(Archive& ar, Strings& d) {
+  ar(C(buffer), C(hashes), C(lengths));
+}
+
+template <class Archive>
+void serialize(Archive& ar, Arguments& d) {
+  ar(C(arguments), C(lengths), C(offsets));
+}
+
+template <class Archive>
 void serialize(Archive& ar, EngineData& d) {
-  ar(C(config), C(strings), C(string_hashes), C(string_offsets), C(plugins),
-     C(objects), C(parameters), C(parameter_values), C(programs), C(chains),
-     C(modulators), C(registers), C(ring_buffers), C(shaders), C(fbos),
-     C(fbo_attachments), C(audio_buffers));
+  ar(C(config), C(strings), C(plugins), C(objects), C(objects_state),
+     C(parameters), C(parameters_values), C(programs), C(chains), C(modulators),
+     C(registers), C(ring_buffers), C(shaders), C(fbos), C(fbos_attachments),
+     C(audio_buffers));
 }
 
 #undef C

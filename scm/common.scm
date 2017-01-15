@@ -4,8 +4,10 @@
   :export (hans-hash
            make-hans-object
            hans-object?
+           hans-object-stringify
            hans-object-get
            set-hans-object!
+           hans-object-enum
            hans-objects))
 
 (hans-load-extension "libhanscommon" "scm_init_common_module")
@@ -94,6 +96,8 @@
       "<?xml version=\"1.0\" encoding=\"utf-8\"?>"
       (call-with-output-string (lambda (port)
                                  (sxml->xml body port))))))
+
+(define hans-object-stringify %hans-object-get)
 
 (define (hans-object-get obj)
   (deserialize-object (%hans-object-get obj)))

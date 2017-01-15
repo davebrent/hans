@@ -105,11 +105,10 @@ struct Argument {
   enum Types { BOOLEAN, NUMBER, STRING };
   hash name;
   Types type;
-  union {
-    float number;
-    bool boolean;
-    hash string;
-  };
+  // XXX: Not a union type so serialization works as expected
+  float number;
+  bool boolean;
+  hash string;
 };
 
 struct Parameter {
@@ -137,7 +136,6 @@ struct Modulator {
 struct RingBuffer {
   ObjectDef::ID producer;
   hash name;
-  size_t offset;
   size_t index;
 };
 
@@ -220,15 +218,26 @@ struct FBO {
 };
 } // namespace graphics
 
+struct Strings {
+  std::string buffer;
+  std::vector<hash> hashes;
+  std::vector<size_t> lengths;
+};
+
+struct Arguments {
+  std::vector<Argument> arguments;
+  std::vector<size_t> lengths;
+  std::vector<size_t> offsets;
+};
+
 struct EngineData {
   common::Config config;
-  std::vector<char> strings;
-  std::vector<hash> string_hashes;
-  std::vector<size_t> string_offsets;
+  Strings strings;
   std::vector<Plugin> plugins;
   std::vector<ObjectDef> objects;
+  std::vector<std::string> objects_state;
   std::vector<Parameter> parameters;
-  std::vector<Parameter::Value> parameter_values;
+  std::vector<Parameter::Value> parameters_values;
   std::vector<Program> programs;
   std::vector<size_t> chains;
   std::vector<Modulator> modulators;
@@ -236,9 +245,8 @@ struct EngineData {
   std::vector<RingBuffer> ring_buffers;
   std::vector<graphics::Shader> shaders;
   std::vector<graphics::FBO> fbos;
-  std::vector<graphics::FBO::Attachment> fbo_attachments;
+  std::vector<graphics::FBO::Attachment> fbos_attachments;
   std::vector<audio::Buffer> audio_buffers;
-  // DataFile::Blob object_data;
 };
 } // namespace hans
 

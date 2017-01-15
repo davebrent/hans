@@ -1,0 +1,35 @@
+(define-module (hans compiler passes validate-shaders)
+  :use-module (srfi srfi-1)
+  :use-module (hans common)
+  :use-module (hans compiler passes backend)
+  :use-module (hans compiler shared)
+  :use-module (hans utils)
+  :use-module (hans objects)
+  :export (validate-shader-pass))
+
+(define (has-invalid? info)
+  (eq? 0 (length (filter car info))))
+
+(define (validate-shader-pass programs output options)
+  ;; Validates shaders
+  (let* ((engine-obj   (make-hans-object 'engine-data '()))
+         (engine-tpl   (hans-object-get engine-obj))
+         (shaders-data (emit-shaders programs))
+         (strings      (make-strings (append (cdr shaders-data)))))
+
+    (set! engine-tpl (assq-set! engine-tpl 'strings strings))
+    (set! engine-tpl (assq-set! engine-tpl 'shaders (car shaders-data)))
+    (set-hans-object! engine-obj engine-tpl)
+
+    (let ((result (%validate-shaders engine-obj)))
+      (if (has-invalid? result)
+        (throw 'compileerror
+               (map (lambda (shader-info)
+                      (let ((shader (car shader-info))
+                            (info (last shader-info)))
+                        (cons (shader-name shader) (rstrip (cdr info)))))
+                    (filter (lambda (shader-info)
+                              (let ((valid? (car (last shader-info))))
+                                (not valid?)))
+                            (zip (list-shaders programs) result))))
+        output))))
