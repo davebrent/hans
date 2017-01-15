@@ -9,6 +9,10 @@
 using namespace hans;
 
 SCM common::hans_hash(SCM str, SCM hex) {
+  if (scm_is_true(scm_symbol_p(str)) == 1) {
+    str = scm_symbol_to_string(str);
+  }
+
   auto data = scm_to_locale_string(str);
   auto hash = common::hasher(data);
   free(data);
