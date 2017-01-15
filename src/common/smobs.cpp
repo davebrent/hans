@@ -56,7 +56,12 @@ static int hans_object_print(SCM smob, SCM port, scm_print_state* pstate) {
 }
 
 static SCM hans_object_set(SCM smob, SCM data) {
-  auto factory = detail::Smobs::get().lookup(SCM_SMOB_FLAGS(smob));
+  auto& smobs = detail::Smobs::get();
+  if (SCM_SMOB_PREDICATE(smobs.tag, smob) == 0) {
+    return SCM_BOOL_F;
+  }
+
+  auto factory = smobs.lookup(SCM_SMOB_FLAGS(smob));
   if (factory == nullptr) {
     return SCM_BOOL_F;
   }
@@ -72,7 +77,12 @@ static SCM hans_object_set(SCM smob, SCM data) {
 }
 
 static SCM hans_object_get(SCM smob) {
-  auto factory = detail::Smobs::get().lookup(SCM_SMOB_FLAGS(smob));
+  auto& smobs = detail::Smobs::get();
+  if (SCM_SMOB_PREDICATE(smobs.tag, smob) == 0) {
+    return SCM_BOOL_F;
+  }
+
+  auto factory = smobs.lookup(SCM_SMOB_FLAGS(smob));
   if (factory == nullptr) {
     return SCM_BOOL_F;
   }
@@ -92,7 +102,12 @@ static SCM hans_object_get(SCM smob) {
 }
 
 static SCM hans_object_type(SCM smob) {
-  auto factory = detail::Smobs::get().lookup(SCM_SMOB_FLAGS(smob));
+  auto& smobs = detail::Smobs::get();
+  if (SCM_SMOB_PREDICATE(smobs.tag, smob) == 0) {
+    return SCM_BOOL_F;
+  }
+
+  auto factory = smobs.lookup(SCM_SMOB_FLAGS(smob));
   if (factory == nullptr) {
     return SCM_UNDEFINED;
   }
