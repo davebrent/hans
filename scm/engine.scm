@@ -1,7 +1,6 @@
 (define-module (hans engine)
   :use-module (hans extension)
-  :export (make-engine
-           set-engine-program!
+  :export (set-engine-program!
            set-engine-frame!
            set-engine-parameter!
            engine-open
