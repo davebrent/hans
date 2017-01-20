@@ -60,7 +60,7 @@
          (out (unique-filename filepath))
          (cmd (lossy-cmd path out))
          (ffmpeg (open-output-pipe cmd))
-         (encoder (make-hans-object 'video-encoder `(,out ,width ,height))))
+         (encoder (make-hans-primitive 'video-encoder `(,out ,width ,height))))
     (make-video-out encoder ffmpeg path)))
 
 (define (video-encoder-encode video-out frame)

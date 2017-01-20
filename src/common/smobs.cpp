@@ -6,7 +6,7 @@
 using namespace hans;
 using namespace hans::scm;
 
-static SCM hans_object_make(SCM smob_name, SCM args) {
+static SCM hans_primitive_make(SCM smob_name, SCM args) {
   auto& smobs = detail::Smobs::get();
   auto name = scm_to_locale_string(scm_symbol_to_string(smob_name));
   auto factory = smobs.lookup(name);
@@ -24,12 +24,12 @@ static SCM hans_object_make(SCM smob_name, SCM args) {
   return smob;
 }
 
-static SCM hans_object_mark(SCM smob) {
+static SCM hans_primitive_mark(SCM smob) {
   // Hans objects should not contain scheme values
   return SCM_BOOL_F;
 }
 
-static size_t hans_object_free(SCM smob) {
+static size_t hans_primitive_free(SCM smob) {
   auto factory = detail::Smobs::get().lookup(SCM_SMOB_FLAGS(smob));
   if (factory == nullptr) {
     return 0;
@@ -41,7 +41,7 @@ static size_t hans_object_free(SCM smob) {
   return 0;
 }
 
-static int hans_object_print(SCM smob, SCM port, scm_print_state* pstate) {
+static int hans_primitive_print(SCM smob, SCM port, scm_print_state* pstate) {
   auto type = SCM_SMOB_FLAGS(smob);
   auto factory = detail::Smobs::get().lookup(type);
   if (factory == nullptr) {
@@ -55,7 +55,7 @@ static int hans_object_print(SCM smob, SCM port, scm_print_state* pstate) {
   return 1;
 }
 
-static SCM hans_object_set(SCM smob, SCM data) {
+static SCM hans_primitive_set(SCM smob, SCM data) {
   auto& smobs = detail::Smobs::get();
   if (SCM_SMOB_PREDICATE(smobs.tag, smob) == 0) {
     return SCM_BOOL_F;
@@ -76,7 +76,7 @@ static SCM hans_object_set(SCM smob, SCM data) {
   return SCM_BOOL_T;
 }
 
-static SCM hans_object_get(SCM smob) {
+static SCM hans_primitive_get(SCM smob) {
   auto& smobs = detail::Smobs::get();
   if (SCM_SMOB_PREDICATE(smobs.tag, smob) == 0) {
     return SCM_BOOL_F;
@@ -101,7 +101,7 @@ static SCM hans_object_get(SCM smob) {
   return scm_from_utf8_stringn(str.c_str(), str.size());
 }
 
-static SCM hans_object_type(SCM smob) {
+static SCM hans_primitive_type(SCM smob) {
   auto& smobs = detail::Smobs::get();
   if (SCM_SMOB_PREDICATE(smobs.tag, smob) == 0) {
     return SCM_BOOL_F;
@@ -115,7 +115,7 @@ static SCM hans_object_type(SCM smob) {
   return scm_from_utf8_symbol(factory->name);
 }
 
-static SCM hans_object_p(SCM smob, SCM type) {
+static SCM hans_primitive_p(SCM smob, SCM type) {
   auto& smobs = detail::Smobs::get();
 
   if (SCM_SMOB_PREDICATE(smobs.tag, smob) == 0) {
@@ -137,12 +137,12 @@ static SCM hans_object_p(SCM smob, SCM type) {
   return SCM_BOOL_T;
 }
 
-static SCM hans_object_enum(SCM scope, SCM key) {
+static SCM hans_primitive_enum(SCM scope, SCM key) {
   auto& smobs = detail::Smobs::get();
   return smobs.scm_to_enum(scope, key);
 }
 
-static SCM hans_objects() {
+static SCM hans_primitives() {
   SCM names = SCM_EOL;
 
   auto& smobs = detail::Smobs::get();
@@ -169,19 +169,19 @@ detail::Smobs::Factory::Factory(const char* _name, size_t _size,
 
 detail::Smobs::Smobs() {
   // Zero size so that hans SMOB'S can vary in size
-  tag = scm_make_smob_type("hans-object", 0);
+  tag = scm_make_smob_type("hans-primitive", 0);
 
-  scm_set_smob_mark(tag, hans_object_mark);
-  scm_set_smob_free(tag, hans_object_free);
-  scm_set_smob_print(tag, hans_object_print);
+  scm_set_smob_mark(tag, hans_primitive_mark);
+  scm_set_smob_free(tag, hans_primitive_free);
+  scm_set_smob_print(tag, hans_primitive_print);
 
-  scm::procedure<hans_object_make>("make-hans-object", 2, 0, 0);
-  scm::procedure<hans_object_p>("hans-object?", 1, 1, 0);
-  scm::procedure<hans_object_set>("%set-hans-object!", 2, 0, 0);
-  scm::procedure<hans_object_get>("%hans-object-get", 1, 0, 0);
-  scm::procedure<hans_object_type>("hans-object-type", 1, 1, 0);
-  scm::procedure<hans_object_enum>("hans-object-enum", 2, 0, 0);
-  scm::procedure<hans_objects>("hans-objects", 0, 0, 0);
+  scm::procedure<hans_primitive_make>("make-hans-primitive", 2, 0, 0);
+  scm::procedure<hans_primitive_p>("hans-primitive?", 1, 1, 0);
+  scm::procedure<hans_primitive_set>("%set-hans-primitive!", 2, 0, 0);
+  scm::procedure<hans_primitive_get>("%hans-primitive-get", 1, 0, 0);
+  scm::procedure<hans_primitive_type>("hans-primitive-type", 1, 1, 0);
+  scm::procedure<hans_primitive_enum>("hans-primitive-enum", 2, 0, 0);
+  scm::procedure<hans_primitives>("hans-primitives", 0, 0, 0);
 }
 
 detail::Smobs::Id detail::Smobs::id() {

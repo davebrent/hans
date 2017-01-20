@@ -15,7 +15,7 @@
   :export (hans-compile))
 
 (define* (hans-compile config programs #:optional passes)
-  (let* ((output (make-hans-object 'engine-data '()))
+  (let* ((output (make-hans-primitive 'engine-data '()))
          (default-passes `(,assign-graph-id-pass
                            ,normalize-args-pass
                            ,resolve-library-paths-pass

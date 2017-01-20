@@ -53,7 +53,7 @@
                  (list-objects programs))))
 
 ;; Emitter functions have the signature:
-;;   (programs) -> (cons (list hans-primative ...) (list string ...))
+;;   (programs) -> (cons (list hans-primitive ...) (list string ...))
 
 (define (emit-libraries programs)
   (let ((libraries (list-libraries programs)))
@@ -69,26 +69,26 @@
                         (id  (hans-object-instance-id obj))
                         (type (object-record-type rec)))
                    `((id   . ,id)
-                     (type . ,(hans-object-enum 'OBJECTS type))
+                     (type . ,(hans-primitive-enum 'OBJECTS type))
                      (name . ,(hans-hash (object-record-name rec))))))
                objects)
           (map (compose object-record-name hans-object-rec) objects))))
 
 (define (%tag-pair arg)
   (cond ((or (string? (cdr arg)) (symbol? (cdr arg)))
-          `((type    . ,(hans-object-enum 'ARGUMENTS 'string))
+          `((type    . ,(hans-primitive-enum 'ARGUMENTS 'string))
             (name    . ,(hans-hash (car arg)))
             (boolean . #f)
             (number  . 0)
             (string  . ,(hans-hash (cdr arg)))))
         ((number? (cdr arg))
-          `((type    . ,(hans-object-enum 'ARGUMENTS 'number))
+          `((type    . ,(hans-primitive-enum 'ARGUMENTS 'number))
             (name    . ,(hans-hash (car arg)))
             (boolean . #f)
             (number  . ,(cdr arg))
             (string  . 0)))
         ((boolean? (cdr arg))
-          `((type    . ,(hans-object-enum 'ARGUMENTS 'boolean))
+          `((type    . ,(hans-primitive-enum 'ARGUMENTS 'boolean))
             (name    . ,(hans-hash (car arg)))
             (boolean . ,(cdr arg))
             (number  . 0)
@@ -212,7 +212,7 @@
                       (rec (hans-object-rec obj))
                       (type (object-record-type rec)))
                 `((object   . ,id)
-                  (type     . ,(hans-object-enum 'OBJECTS type))
+                  (type     . ,(hans-primitive-enum 'OBJECTS type))
                   (graph    . ,(list-ref reg 0))
                   (index    . ,(list-ref reg 1))
                   (bin      . ,(list-ref reg 2))
@@ -230,7 +230,7 @@
                      (type (object-record-type rec)))
                 (set! output (append output (map
                   (lambda (attachment)
-                    `((type       . ,(hans-object-enum
+                    `((type       . ,(hans-primitive-enum
                                        'FBO_ATTACHMENTS
                                        (fbo-attachment-type attachment)))
                       (width      . ,(fbo-attachment-width attachment))
@@ -259,7 +259,7 @@
 (define (emit-shaders programs)
   (let ((shaders (list-shaders programs)))
     (cons (map (lambda (shdr)
-                 `((type . ,(hans-object-enum 'SHADERS (shader-type shdr)))
+                 `((type . ,(hans-primitive-enum 'SHADERS (shader-type shdr)))
                    (name . ,(hans-hash (shader-name shdr)))
                    (code . ,(hans-hash (shader-code shdr)))))
                shaders)
@@ -322,7 +322,7 @@
 
 (define (backend-pass programs output options)
   (define strings '())
-  (define out (hans-object-get output))
+  (define out (hans-primitive-get output))
 
   (define (set-engine-data! key emitter)
     (let* ((res (emitter programs))
@@ -350,5 +350,5 @@
               (ring_buffers      . ,emit-ring-buffers)
               (audio_buffers     . ,emit-audio-buffers)))
 
-  (set-hans-object! output (assq-set! out 'strings (make-strings strings)))
+  (set-hans-primitive! output (assq-set! out 'strings (make-strings strings)))
   output)

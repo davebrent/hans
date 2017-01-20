@@ -136,7 +136,7 @@
                     ,(make-pgm-pass "passthrough")
                     ,(make-pgm-ringbuffer "ringbuffer" "rb-foobar"))))
 
-(let ((engine (make-hans-object 'engine `(,ng-data))))
+(let ((engine (make-hans-primitive 'engine `(,ng-data))))
   (engine-open engine)
   (engine-run engine)
   (engine-close engine))

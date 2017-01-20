@@ -10,9 +10,9 @@
 
 (define (configure-objects-pass programs output options)
   ;; Allow objects to request resources, from C++, based on their arguments
-  (let* ((engine-obj   (make-hans-object 'engine-data '()))
-         (args-obj     (make-hans-object 'arguments '()))
-         (engine-tpl   (hans-object-get engine-obj))
+  (let* ((engine-obj   (make-hans-primitive 'engine-data '()))
+         (args-obj     (make-hans-primitive 'arguments '()))
+         (engine-tpl   (hans-primitive-get engine-obj))
          (library-data (emit-libraries programs))
          (object-data  (emit-objects programs))
          (args-data    (emit-arguments programs))
@@ -26,8 +26,8 @@
     (set! engine-tpl (assq-set! engine-tpl 'strings strings))
     (set! engine-tpl (assq-set! engine-tpl 'objects objects))
     (set! engine-tpl (assq-set! engine-tpl 'plugins libraries))
-    (set-hans-object! engine-obj engine-tpl)
-    (set-hans-object! args-obj arguments)
+    (set-hans-primitive! engine-obj engine-tpl)
+    (set-hans-primitive! args-obj arguments)
 
     (let ((states (%configure-objects engine-obj args-obj)))
       (for-each (lambda (data)

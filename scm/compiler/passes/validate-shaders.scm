@@ -12,14 +12,14 @@
 
 (define (validate-shader-pass programs output options)
   ;; Validates shaders
-  (let* ((engine-obj   (make-hans-object 'engine-data '()))
-         (engine-tpl   (hans-object-get engine-obj))
+  (let* ((engine-obj   (make-hans-primitive 'engine-data '()))
+         (engine-tpl   (hans-primitive-get engine-obj))
          (shaders-data (emit-shaders programs))
          (strings      (make-strings (append (cdr shaders-data)))))
 
     (set! engine-tpl (assq-set! engine-tpl 'strings strings))
     (set! engine-tpl (assq-set! engine-tpl 'shaders (car shaders-data)))
-    (set-hans-object! engine-obj engine-tpl)
+    (set-hans-primitive! engine-obj engine-tpl)
 
     (let ((result (%validate-shaders engine-obj)))
       (if (has-invalid? result)

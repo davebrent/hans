@@ -2,13 +2,13 @@
   :use-module (sxml simple)
   :use-module (hans extension)
   :export (hans-hash
-           make-hans-object
-           hans-object?
-           hans-object-stringify
-           hans-object-get
-           set-hans-object!
-           hans-object-enum
-           hans-objects))
+           make-hans-primitive
+           hans-primitive?
+           hans-primitive-stringify
+           hans-primitive-get
+           set-hans-primitive!
+           hans-primitive-enum
+           hans-primitives))
 
 (hans-load-extension "libhanscommon" "scm_init_common_module")
 
@@ -88,12 +88,12 @@
           (map serialize-value value))
         (else value)))
 
-(define (deserialize-object buffer)
+(define (deserialize-primitive buffer)
   (let* ((data (xml->sxml buffer #:trim-whitespace? #t))
          (body (list-ref data 2)))
     (car (assq-ref `(,(deserialize-field body)) 'cereal))))
 
-(define (serialize-object data)
+(define (serialize-primitive data)
   (let ((body `((cereal
                 ,(append '(value0)
                          (map (lambda (pair)
@@ -108,10 +108,10 @@
       (call-with-output-string (lambda (port)
                                  (sxml->xml body port))))))
 
-(define hans-object-stringify %hans-object-get)
+(define hans-primitive-stringify %hans-primitive-get)
 
-(define (hans-object-get obj)
-  (deserialize-object (%hans-object-get obj)))
+(define (hans-primitive-get obj)
+  (deserialize-primitive (%hans-primitive-get obj)))
 
-(define (set-hans-object! obj data)
-  (%set-hans-object! obj (serialize-object data)))
+(define (set-hans-primitive! obj data)
+  (%set-hans-primitive! obj (serialize-primitive data)))

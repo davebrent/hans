@@ -76,7 +76,7 @@
          (graph-2 (make-audio-graph (env 'connect obj-1-2 0 obj-2-2 0)))
          (pgm-2   (make-program "foobar" graph-2))
 
-         (ng (make-hans-object 'engine-data '())))
+         (ng (make-hans-primitive 'engine-data '())))
     (assign-graph-id-pass `(,pgm-1 ,pgm-2) ng opts)
     (test-equal 0 (hans-graph-id (hans-program-audio-graph pgm-1)))
     (test-equal 1 (hans-graph-id (hans-program-graphics-graph pgm-1)))
@@ -90,7 +90,7 @@
          (obj-2 (env 'create 'test-object-2 '() '(0 0)))
          (graph (make-audio-graph (env 'connect obj-1 0 obj-2 0)))
          (pgm   (make-program "foobar" graph))
-         (ng    (make-hans-object 'engine-data '())))
+         (ng    (make-hans-primitive 'engine-data '())))
     (normalize-args-pass `(,pgm) ng opts)
     (test-equal "bar" (assq-ref (hans-object-args obj-1) 'foo))))
 
@@ -101,7 +101,7 @@
          (obj-2 (env 'create 'test-object-2 '() '(0 0)))
          (graph (make-audio-graph (env 'connect obj-1 0 obj-2 0)))
          (pgm   (make-program "foobar" graph))
-         (ng    (make-hans-object 'engine-data '()))
+         (ng    (make-hans-primitive 'engine-data '()))
          (ex    #f))
     (catch 'compileerror (lambda ()
                            (resolve-library-paths-pass `(,pgm) ng opts))
@@ -114,7 +114,7 @@
 ; (begin
 ;   ;; Getting object resources
 ;   (let ((p1 (make-test-program "test-1" `((foo . bar))))
-;         (ng (make-hans-object 'engine-data '()))
+;         (ng (make-hans-primitive 'engine-data '()))
 ;         (ex #f))
 ;     (catch 'compileerror (lambda ()
 ;                            (configure-objects-pass `(,p1) ng opts))
@@ -129,7 +129,7 @@
          (obj-2 (env 'create 'test-object-2 '() '(0 0)))
          (graph (make-audio-graph (env 'connect obj-1 0 obj-2 0)))
          (pgm   (make-program "foobar" graph))
-         (ng    (make-hans-object 'engine-data '())))
+         (ng    (make-hans-primitive 'engine-data '())))
 
     (set-hans-graph-id! graph 999)
     (register-allocation-pass `(,pgm) ng opts)
@@ -156,7 +156,7 @@
          (graph (make-audio-graph (env 'connect obj-2 0 obj-3 0)
                                   (env 'connect obj-1 0 obj-2 0)))
          (pgm   (make-program "foobar" graph))
-         (ng    (make-hans-object 'engine-data '())))
+         (ng    (make-hans-primitive 'engine-data '())))
     (topological-sort-pass `(,pgm) ng opts)
     (let ((objs (map hans-object-instance-id (hans-graph-objects graph))))
       (test-equal `(,(hans-object-instance-id obj-1)
@@ -433,7 +433,7 @@
 ;          (obj-2  (env 'create 'test-gfx-object-1 '() '(0 0)))
 ;          (graph  (make-graphics-graph (env 'connect obj-1 0 obj-2 0)))
 ;          (pgm    (make-program "foobar" graph))
-;          (output (make-hans-object 'engine-data '())))
+;          (output (make-hans-primitive 'engine-data '())))
 ;     (set-hans-object-registers! obj-1 `((99 0 1 #f)))
 ;     (set-hans-object-registers! obj-2 `((99 1 1 #t)))
 ;     (set-hans-object-resources! obj-1 `((ring-buffer . "bar")))

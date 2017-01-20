@@ -48,11 +48,11 @@ TEST_CASE("Smobs", "[scm]") {
     });
 
     SCM result = scm_c_eval_string(R"(
-      (let ((object? #f))
-        (let ((obj (make-hans-object 'test-object '(3.14 3))))
-          (set! object? (hans-object? obj 'test-object)))
+      (let ((primitive? #f))
+        (let ((obj (make-hans-primitive 'test-object '(3.14 3))))
+          (set! primitive? (hans-primitive? obj 'test-object)))
         (gc)
-        object?)
+        primitive?)
     )");
 
     REQUIRE(constructed == true);
@@ -63,8 +63,8 @@ TEST_CASE("Smobs", "[scm]") {
     scm::smob<SimpleObject>("simple-object");
 
     SCM result = scm_c_eval_string(R"(
-      (let ((obj (make-hans-object 'simple-object '())))
-        (eq? (hans-object-type obj) 'simple-object))
+      (let ((obj (make-hans-primitive 'simple-object '())))
+        (eq? (hans-primitive-type obj) 'simple-object))
     )");
 
     REQUIRE(scm_to_bool(result) == 1);
@@ -74,8 +74,8 @@ TEST_CASE("Smobs", "[scm]") {
     scm::smob<SimpleObject>("simple-object");
 
     SCM result = scm_c_eval_string(R"(
-      (let ((obj (make-hans-object 'simple-object '())))
-        (%hans-object-get obj))
+      (let ((obj (make-hans-primitive 'simple-object '())))
+        (%hans-primitive-get obj))
     )");
 
     auto str = scm_to_locale_string(result);
@@ -98,8 +98,8 @@ TEST_CASE("Smobs", "[scm]") {
     scm::smob<SimpleObject>("simple-object");
 
     SCM result = scm_c_eval_string(R"(
-    (let ((obj (make-hans-object 'simple-object '())))
-      (%set-hans-object! obj "<?xml version='1.0' encoding='utf-8'?>
+    (let ((obj (make-hans-primitive 'simple-object '())))
+      (%set-hans-primitive! obj "<?xml version='1.0' encoding='utf-8'?>
 <cereal>
 	<value0>
 		<a>2</a>
