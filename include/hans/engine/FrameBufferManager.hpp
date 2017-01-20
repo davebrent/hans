@@ -2,7 +2,7 @@
 #define HANS_ENGINE_FRAMEBUFFERMANAGER_H_
 
 #include <vector>
-#include "hans/common/types.hpp"
+#include "hans/common/primitives.hpp"
 
 namespace hans {
 namespace engine {

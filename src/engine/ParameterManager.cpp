@@ -3,7 +3,6 @@
 #include <stdexcept>
 
 using namespace hans;
-using namespace hans::common;
 using namespace hans::engine;
 
 ParameterManager::ParameterManager(std::vector<Parameter>& parameters,

@@ -2,8 +2,8 @@
 #define HANS_MEDIA_VIDEOENCODER_H_
 
 #include <fstream>
+#include "hans/common/primitives.hpp"
 #include "hans/common/serialize.hpp"
-#include "hans/common/types.hpp"
 
 namespace hans {
 namespace media {

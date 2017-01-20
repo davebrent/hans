@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "hans/common/LinearAllocator.hpp"
-#include "hans/common/types.hpp"
+#include "hans/common/primitives.hpp"
 
 namespace hans {
 namespace engine {

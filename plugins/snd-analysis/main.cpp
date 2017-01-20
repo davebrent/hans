@@ -106,7 +106,7 @@ void FFTObject::callback(Engine& engine) {
   auto real_buff = engine.audio_buffers.get(state.buffer_real, 0);
   auto imag_buff = engine.audio_buffers.get(state.buffer_imag, 0);
 
-  for (auto i = 0; i < engine.config.blocksize; ++i) {
+  for (auto i = 0; i < engine.settings.blocksize; ++i) {
     real_buff[i] = state.real->data[i];
     imag_buff[i] = state.imag->data[i];
   }
@@ -188,7 +188,7 @@ void IFFTObject::callback(Engine& engine) {
   const auto imag =
       static_cast<audio::sample*>(engine.registers.read(state.imag));
 
-  realimag_to_compspec(engine.config.blocksize, real, imag, state.compspec);
+  realimag_to_compspec(engine.settings.blocksize, real, imag, state.compspec);
   aubio_fft_rdo_complex(state.fft, state.compspec, state.out);
   engine.registers.write(state.outlet, state.out->data);
 }
@@ -265,7 +265,7 @@ void FeatureObject::setup(Engine& engine) {
   state.signal = engine.registers.make(id, Register::Types::INLET, 0);
   state.outlet = engine.registers.make(id, Register::Types::OUTLET, 1);
 
-  auto winsize = engine.config.blocksize;
+  auto winsize = engine.settings.blocksize;
   state.value = new_fvec(1);
   state.in = new_fvec(winsize);
   state.fftgrain = new_cvec(winsize);
@@ -286,8 +286,8 @@ void FeatureObject::callback(Engine& engine) {
   aubio_specdesc_do(state.desc, state.fftgrain, state.value);
 
   if (state.method == METHOD_CENTROID || state.method == METHOD_ROLLOFF) {
-    auto winsize = engine.config.blocksize;
-    auto samplerate = engine.config.samplerate;
+    auto winsize = engine.settings.blocksize;
+    auto samplerate = engine.settings.samplerate;
     auto hz = aubio_bintofreq(state.value->data[0], samplerate, winsize);
     engine.parameters.set(state.parameter, 0, hz);
   } else {

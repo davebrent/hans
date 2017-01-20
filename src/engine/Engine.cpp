@@ -20,10 +20,10 @@ using namespace hans::common;
 using namespace hans::engine;
 
 Engine::Engine(EngineData& ng)
-    : config(ng.config),
+    : settings(ng.settings),
       strings(ng.strings),
       plugins(strings, ng.objects, ng.plugins),
-      registers(ng.config, ng.registers),
+      registers(ng.settings, ng.registers),
       parameters(ng.parameters, ng.parameters_values),
       modulators(parameters, ng.modulators),
       window(),
@@ -31,8 +31,8 @@ Engine::Engine(EngineData& ng)
       fbos(ng.fbos, ng.fbos_attachments),
       audio_devices(),
       audio_buffers(ng.audio_buffers),
-      audio_buses(ng.config, 1),
-      ring_buffers(ng.config.blocksize, ng.ring_buffers) {
+      audio_buses(ng.settings, 1),
+      ring_buffers(ng.settings.blocksize, ng.ring_buffers) {
 }
 
 struct EngineRunner {
@@ -123,7 +123,7 @@ static SCM engine_frame(EngineRunner& runner, Engine& engine) {
 }
 
 static SCM engine_open__inner(EngineRunner& runner, Engine& engine,
-                              Config& config) {
+                              Settings& settings) {
   engine.fbos.setup();
 
   for (auto i = 0; i < runner.objects.size(); ++i) {
@@ -147,7 +147,7 @@ static SCM engine_open__inner(EngineRunner& runner, Engine& engine,
     }
   };
 
-  runner.audio = new AudioStream(config, engine.audio_devices,
+  runner.audio = new AudioStream(settings, engine.audio_devices,
                                  engine.audio_buses, audio_callback);
 
   if (!runner.audio->open()) {
@@ -162,14 +162,14 @@ static SCM engine_open__inner(EngineRunner& runner, Engine& engine,
 static SCM engine_open(SCM scm_runner) {
   auto& runner = scm::to_cpp<EngineRunner>(scm_runner);
   auto& engine = runner.engine;
-  auto& config = engine.config;
+  auto& settings = engine.settings;
 
-  if (!engine.window.make("Hans", config.width, config.height)) {
+  if (!engine.window.make("Hans", settings.width, settings.height)) {
     std::cerr << "[HANS] Unable to open window" << std::endl;
     return SCM_BOOL_F;
   }
 
-  return engine_open__inner(runner, engine, config);
+  return engine_open__inner(runner, engine, settings);
 }
 
 static SCM engine_close(SCM scm_runner) {

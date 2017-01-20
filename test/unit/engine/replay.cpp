@@ -1,9 +1,8 @@
 #include "hans/engine/replay.hpp"
 #include <catch.hpp>
-#include "hans/common/types.hpp"
+#include "hans/common/primitives.hpp"
 
 using namespace hans;
-using namespace hans::common;
 using namespace hans::engine;
 
 TEST_CASE("replay recorder", "[replay]") {

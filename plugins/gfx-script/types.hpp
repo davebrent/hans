@@ -2,7 +2,7 @@
 #define HANS_SCRIPT_TYPES_H_
 
 #include <libguile.h>
-#include "hans/common/types.hpp"
+#include "hans/common/primitives.hpp"
 #include "hans/engine/object.hpp"
 
 struct ScriptState {

@@ -1,6 +1,6 @@
 #include "hans/engine/RingBufferManager.hpp"
 #include <catch.hpp>
-#include "hans/common/types.hpp"
+#include "hans/common/primitives.hpp"
 
 using namespace hans;
 using namespace hans::engine;

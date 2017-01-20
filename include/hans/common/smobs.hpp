@@ -8,8 +8,8 @@
 #include <utility>
 #include <vector>
 #include "hans/common/hasher.hpp"
+#include "hans/common/primitives.hpp"
 #include "hans/common/serialize.hpp"
-#include "hans/common/types.hpp"
 
 namespace hans {
 namespace scm {

@@ -3,7 +3,7 @@
 
 #include <sstream>
 #include <vector>
-#include "hans/common/types.hpp"
+#include "hans/common/primitives.hpp"
 
 namespace hans {
 namespace engine {
@@ -15,10 +15,10 @@ class ReplayRecorder {
   void start();
   void update();
   void stop();
-  common::Blob to_blob();
+  Blob to_blob();
 
  private:
-  common::Blob m_blob;
+  Blob m_blob;
   std::ostringstream m_stream;
   const std::vector<Parameter::Value>& m_values;
   bool m_recording;
@@ -28,7 +28,7 @@ class ReplayPlayer {
  public:
   ReplayPlayer(EngineData& ng_data, std::vector<Parameter::Value>& values);
   // ReplayPlayer(std::vector<Parameter::Value>& values);
-  void reset_with_blob(common::Blob blob);
+  void reset_with_blob(Blob blob);
   void tick();
   void set(uint64_t frameno);
 

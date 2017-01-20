@@ -51,7 +51,7 @@ void SndTexObject::create(IPatcher& patcher) {
 }
 
 void SndTexObject::setup(Engine& engine) {
-  auto blocksize = engine.config.blocksize;
+  auto blocksize = engine.settings.blocksize;
 
   state.outlet = engine.registers.make(id, Register::Types::OUTLET, 0);
   state.samples = new audio::sample[blocksize * MAX_FRAMES];
@@ -61,7 +61,7 @@ void SndTexObject::setup(Engine& engine) {
 }
 
 void SndTexObject::update(Engine& engine) {
-  auto blocksize = engine.config.blocksize;
+  auto blocksize = engine.settings.blocksize;
   auto framesize = blocksize * sizeof(audio::sample);
   auto available = engine.ring_buffers.available(state.name);
 

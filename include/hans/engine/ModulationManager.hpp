@@ -2,7 +2,7 @@
 #define HANS_ENGINE_MODULATIONMANAGER_H_
 
 #include <vector>
-#include "hans/common/types.hpp"
+#include "hans/common/primitives.hpp"
 #include "hans/engine/ParameterManager.hpp"
 
 namespace hans {

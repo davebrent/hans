@@ -2,9 +2,9 @@
 #include <libguile.h>
 #include <cassert>
 #include <stdexcept>
+#include "hans/common/primitives.hpp"
 #include "hans/common/procedure.hpp"
 #include "hans/common/smobs.hpp"
-#include "hans/common/types.hpp"
 #include "hans/engine/Patcher.hpp"
 
 using namespace hans;
@@ -31,7 +31,7 @@ SCM common::hans_hash(SCM str, SCM hex) {
 void scm_init_common_module() {
   scm::procedure<common::hans_hash>("hans-hash", 1, 1, 0);
 
-  scm::smob<common::Config>("config");
+  scm::smob<Settings>("settings");
   scm::smob<Strings>("strings");
   scm::smob<Plugin>("plugin");
   scm::smob<ObjectDef>("object");

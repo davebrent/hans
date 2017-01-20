@@ -5,7 +5,6 @@
 #include <iostream>
 
 using namespace hans;
-using namespace hans::common;
 using namespace hans::engine;
 
 ReplayRecorder::ReplayRecorder(const std::vector<Parameter::Value>& values)
@@ -46,7 +45,7 @@ void ReplayRecorder::stop() {
   std::memcpy(m_blob.data, str.c_str(), m_blob.size);
 }
 
-common::Blob ReplayRecorder::to_blob() {
+Blob ReplayRecorder::to_blob() {
   return m_blob;
 }
 

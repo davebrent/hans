@@ -2,7 +2,7 @@
 #define HANS_ENGINE_AUDIOSTREAM_H_
 
 #include <portaudio.h>
-#include "hans/common/types.hpp"
+#include "hans/common/primitives.hpp"
 #include "hans/engine/AudioBusManager.hpp"
 #include "hans/engine/AudioDevices.hpp"
 
@@ -23,8 +23,7 @@ class AudioStream {
   AudioStream(const AudioStream& other) = delete;
 
   // FIXME: audioDevices should be marked as const
-  explicit AudioStream(const common::Config& config,
-                       AudioDevices& audio_devices,
+  explicit AudioStream(const Settings& settings, AudioDevices& audio_devices,
                        AudioBusManager& audio_bus_manager,
                        std::function<void()> callback);
   ~AudioStream();
@@ -46,7 +45,7 @@ class AudioStream {
   AudioDevices& m_audio_devices;
   AudioBusManager& m_audio_bus_manager;
   std::function<void()> m_callback;
-  const common::Config& m_config;
+  const Settings& m_settings;
 
   audio::bus_handle m_bus;
   audio::Device::ID m_input_device;

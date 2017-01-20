@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "hans/common/StringManager.hpp"
-#include "hans/common/types.hpp"
+#include "hans/common/primitives.hpp"
 #include "hans/engine/gl.hpp"
 
 namespace hans {

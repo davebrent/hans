@@ -6,9 +6,9 @@ using namespace hans;
 using namespace hans::common;
 using namespace hans::engine;
 
-AudioBusManager::AudioBusManager(const Config& config, size_t num) {
-  auto blocksize = config.blocksize;
-  auto channels = config.channels;
+AudioBusManager::AudioBusManager(const Settings& settings, size_t num) {
+  auto blocksize = settings.blocksize;
+  auto channels = settings.channels;
   auto bytes = num * channels * blocksize * sizeof(audio::sample);
   m_allocator.reset(bytes);
   auto data = m_allocator.allocate(bytes, alignof(audio::sample));

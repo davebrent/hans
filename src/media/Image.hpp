@@ -1,7 +1,7 @@
 #ifndef HANS_MEDIA_IMAGE_H_
 #define HANS_MEDIA_IMAGE_H_
 
-#include "hans/common/types.hpp"
+#include "hans/common/primitives.hpp"
 
 namespace hans {
 namespace media {

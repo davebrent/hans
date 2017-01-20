@@ -6,17 +6,15 @@
 #include <cereal/cereal.hpp>
 #include <cereal/types/string.hpp>
 #include <cereal/types/vector.hpp>
-#include "hans/common/types.hpp"
+#include "hans/common/primitives.hpp"
 
 namespace hans {
 
 #define C(T) cereal::make_nvp(#T, d.T)
 
-namespace common {
 template <class Archive>
-void serialize(Archive& ar, common::Config& d) {
+void serialize(Archive& ar, Settings& d) {
   ar(C(channels), C(samplerate), C(blocksize), C(width), C(height));
-}
 }
 
 template <class Archive>
@@ -110,7 +108,7 @@ void serialize(Archive& ar, Arguments& d) {
 
 template <class Archive>
 void serialize(Archive& ar, EngineData& d) {
-  ar(C(config), C(strings), C(plugins), C(objects), C(objects_state),
+  ar(C(settings), C(strings), C(plugins), C(objects), C(objects_state),
      C(parameters), C(parameters_values), C(programs), C(chains), C(modulators),
      C(registers), C(ring_buffers), C(shaders), C(fbos), C(fbos_attachments),
      C(audio_buffers));

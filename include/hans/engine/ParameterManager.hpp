@@ -3,7 +3,7 @@
 
 #include <cstdint>
 #include <vector>
-#include "hans/common/types.hpp"
+#include "hans/common/primitives.hpp"
 
 namespace hans {
 namespace engine {

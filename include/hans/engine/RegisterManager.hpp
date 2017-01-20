@@ -3,7 +3,7 @@
 
 #include <vector>
 #include "hans/common/LinearAllocator.hpp"
-#include "hans/common/types.hpp"
+#include "hans/common/primitives.hpp"
 
 namespace hans {
 namespace engine {
@@ -11,8 +11,7 @@ namespace engine {
 class RegisterManager {
  public:
   RegisterManager(const RegisterManager& other) = delete;
-  RegisterManager(const common::Config& config,
-                  std::vector<Register>& registers);
+  RegisterManager(const Settings& settings, std::vector<Register>& registers);
   /// Return a handle to a register
   Register make(ObjectDef::ID object, Register::Types type, uint16_t index);
   /// Read data from a register

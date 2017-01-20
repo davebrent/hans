@@ -2,7 +2,7 @@
 #define HANS_ENGINE_WINDOW_H_
 
 #include <stdint.h>
-#include "hans/common/types.hpp"
+#include "hans/common/primitives.hpp"
 
 struct GLFWwindow;
 

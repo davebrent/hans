@@ -49,6 +49,6 @@ static uint64_t murmur_hash_64(const void* key, uint32_t len, uint64_t seed) {
   return h;
 }
 
-hash hans::common::hasher(const char* str) {
+uint64_t hans::common::hasher(const char* str) {
   return murmur_hash_64(str, strlen(str) * sizeof(char), 0);
 }

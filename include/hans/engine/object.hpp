@@ -5,7 +5,7 @@
 #include <cereal/archives/xml.hpp>
 #include <cereal/cereal.hpp>
 #include <cereal/types/vector.hpp>
-#include "hans/common/types.hpp"
+#include "hans/common/primitives.hpp"
 #include "hans/engine/Engine.hpp"
 #include "hans/engine/Patcher.hpp"
 #include "hans/engine/gl.hpp"

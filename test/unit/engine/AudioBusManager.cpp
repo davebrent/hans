@@ -7,11 +7,11 @@ using namespace hans::engine;
 
 TEST_CASE("audio bus manager", "[audiobus]") {
   SECTION("writing data to single bus multiple channels") {
-    Config config;
-    config.blocksize = 4;
-    config.channels = 2;
+    Settings settings;
+    settings.blocksize = 4;
+    settings.channels = 2;
 
-    AudioBusManager manager(config, 1);
+    AudioBusManager manager(settings, 1);
     auto bus = manager.make();
 
     audio::sample frame1[4] = {13, 14, 15, 16};
@@ -35,11 +35,11 @@ TEST_CASE("audio bus manager", "[audiobus]") {
   }
 
   SECTION("writing data to multipe buses & multiple channels") {
-    Config config;
-    config.blocksize = 4;
-    config.channels = 2;
+    Settings settings;
+    settings.blocksize = 4;
+    settings.channels = 2;
 
-    AudioBusManager manager(config, 2);
+    AudioBusManager manager(settings, 2);
     auto bus1 = manager.make();
     auto bus2 = manager.make();
 

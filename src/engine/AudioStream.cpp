@@ -17,13 +17,13 @@ static int audio_callback(const void* input, void* output,
   return paContinue;
 }
 
-AudioStream::AudioStream(const Config& config, AudioDevices& audio_devices,
+AudioStream::AudioStream(const Settings& settings, AudioDevices& audio_devices,
                          AudioBusManager& audio_bus_manager,
                          std::function<void()> callback)
     : m_audio_devices(audio_devices),
       m_audio_bus_manager(audio_bus_manager),
       m_callback(callback),
-      m_config(config) {
+      m_settings(settings) {
   m_stream = nullptr;
   m_state = HANS_AUDIO_STOPPED;
 
@@ -55,20 +55,20 @@ void AudioStream::set_output_device(const audio::Device& device) {
 bool AudioStream::open() {
   PaStreamParameters input_params;
   input_params.device = m_input_device;
-  input_params.channelCount = m_config.channels;
+  input_params.channelCount = m_settings.channels;
   input_params.sampleFormat = paFloat32 | paNonInterleaved;
   input_params.hostApiSpecificStreamInfo = nullptr;
 
   PaStreamParameters output_params;
   output_params.device = m_output_device;
-  output_params.channelCount = m_config.channels;
+  output_params.channelCount = m_settings.channels;
   output_params.sampleFormat = paFloat32 | paNonInterleaved;
   output_params.hostApiSpecificStreamInfo = nullptr;
 
   m_bus = m_audio_bus_manager.make();
 
   PaError error = Pa_OpenStream(&m_stream, &input_params, &output_params,
-                                m_config.samplerate, m_config.blocksize,
+                                m_settings.samplerate, m_settings.blocksize,
                                 paClipOff, &audio_callback, this);
 
   if (error == paNoError) {
@@ -90,7 +90,7 @@ void AudioStream::callback(const audio::sample** input,
   }
 
   // Write input data to the default audio bus, channel by channel
-  for (int channel = 0; channel < m_config.channels; ++channel) {
+  for (int channel = 0; channel < m_settings.channels; ++channel) {
     m_audio_bus_manager.write(m_bus, channel, input[channel]);
   }
 
@@ -104,9 +104,9 @@ void AudioStream::callback(const audio::sample** input,
   // A prorgam wrote some data to the streams bus so should be flushed out
   if (m_audio_bus_manager.is_dirty(m_bus)) {
     // Read the data on the bus back and send to the sound card
-    for (int channel = 0; channel < m_config.channels; ++channel) {
+    for (int channel = 0; channel < m_settings.channels; ++channel) {
       auto samples = m_audio_bus_manager.read(m_bus, channel);
-      for (int s = 0; s < m_config.blocksize; ++s) {
+      for (int s = 0; s < m_settings.blocksize; ++s) {
         output[channel][s] = samples[s];
       }
     }

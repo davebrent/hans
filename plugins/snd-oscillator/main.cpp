@@ -57,7 +57,7 @@ void OscObject::create(IPatcher& patcher) {
 }
 
 void OscObject::setup(Engine& engine) {
-  state.samplerate = engine.config.samplerate;
+  state.samplerate = engine.settings.samplerate;
   state.waveform = engine.parameters.make(id, PARAM_WAVEFORM);
   state.frequency = engine.parameters.make(id, PARAM_FREQUENCY);
   state.buffer = engine.audio_buffers.make(id, AUDIO_BUFFER);

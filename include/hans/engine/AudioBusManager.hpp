@@ -2,7 +2,7 @@
 #define HANS_ENGINE_AUDIOBUSMANAGER_H_
 
 #include "hans/common/LinearAllocator.hpp"
-#include "hans/common/types.hpp"
+#include "hans/common/primitives.hpp"
 #include "hans/engine/AudioBufferManager.hpp"
 
 namespace hans {
@@ -12,7 +12,7 @@ class AudioBusManager {
  public:
   /// Creates N audio buses
   AudioBusManager(const AudioBusManager& other) = delete;
-  explicit AudioBusManager(const common::Config& config, size_t num);
+  explicit AudioBusManager(const Settings& settings, size_t num);
   ~AudioBusManager();
   /// Create an audio bus
   audio::bus_handle make();

@@ -331,7 +331,7 @@
       (set! out (assq-set! out key data))
       (set! strings (append strings strs))))
 
-  (set! out (assq-set! out 'config options))
+  (set! out (assq-set! out 'settings options))
   (for-each (lambda (task)
               (set-engine-data! (car task) (cdr task)))
             `((plugins           . ,emit-libraries)

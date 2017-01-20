@@ -1,7 +1,6 @@
 #include "hans/engine/ModulationManager.hpp"
 
 using namespace hans;
-using namespace hans::common;
 using namespace hans::engine;
 
 ModulationManager::ModulationManager(ParameterManager& parameter_manager,

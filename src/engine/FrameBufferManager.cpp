@@ -3,7 +3,6 @@
 #include "hans/engine/gl.hpp"
 
 using namespace hans;
-using namespace hans::common;
 using namespace hans::engine;
 using namespace hans::graphics;
 

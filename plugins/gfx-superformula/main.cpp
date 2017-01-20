@@ -302,7 +302,7 @@ void FormulaObject::draw(Engine& engine) const {
 
   auto model_view_matrix = glm::mat4();
 
-  auto aspect = (float)engine.config.width / (float)engine.config.height;
+  auto aspect = (float)engine.settings.width / (float)engine.settings.height;
   auto projection_matrix = glm::perspective(45.0f, aspect, 0.1f, 100.f);
   model_view_matrix = glm::translate(model_view_matrix, translation);
   model_view_matrix = glm::rotate(model_view_matrix, state.rotation, axis);

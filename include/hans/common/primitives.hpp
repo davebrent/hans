@@ -1,5 +1,5 @@
-#ifndef HANS_COMMON_TYPES_H_
-#define HANS_COMMON_TYPES_H_
+#ifndef HANS_COMMON_PRIMITIVES_H_
+#define HANS_COMMON_PRIMITIVES_H_
 
 #include <stddef.h>
 #include <stdint.h>
@@ -11,10 +11,8 @@ namespace hans {
 
 typedef uint64_t hash;
 
-namespace common {
-
-struct Config {
-  uint8_t channels;
+struct Settings {
+  uint16_t channels;
   uint16_t samplerate;
   uint16_t blocksize;
   uint16_t width;
@@ -25,7 +23,6 @@ struct Blob {
   size_t size;
   void* data;
 };
-} // namespace common
 
 struct Plugin {
   hash filepath;
@@ -199,7 +196,7 @@ struct Arguments {
 };
 
 struct EngineData {
-  common::Config config;
+  Settings settings;
   Strings strings;
   std::vector<Plugin> plugins;
   std::vector<ObjectDef> objects;
@@ -218,4 +215,4 @@ struct EngineData {
 };
 } // namespace hans
 
-#endif // HANS_COMMON_TYPES_H_
+#endif // HANS_COMMON_PRIMITIVES_H_

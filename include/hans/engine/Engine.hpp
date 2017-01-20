@@ -19,7 +19,7 @@ namespace hans {
 namespace engine {
 
 struct Engine {
-  common::Config config;
+  Settings settings;
   common::StringManager strings;
   PluginManager plugins;
   RegisterManager registers;
