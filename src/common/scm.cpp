@@ -5,6 +5,7 @@
 #include "hans/common/procedure.hpp"
 #include "hans/common/smobs.hpp"
 #include "hans/common/types.hpp"
+#include "hans/engine/Patcher.hpp"
 
 using namespace hans;
 
@@ -27,17 +28,17 @@ SCM common::hans_hash(SCM str, SCM hex) {
   return value;
 }
 
-extern "C" {
 void scm_init_common_module() {
   scm::procedure<common::hans_hash>("hans-hash", 1, 1, 0);
 
   scm::smob<common::Config>("config");
+  scm::smob<Strings>("strings");
   scm::smob<Plugin>("plugin");
   scm::smob<ObjectDef>("object");
   scm::smob<Chain>("chain");
   scm::smob<Program>("program");
   scm::smob<Register>("register");
-  scm::smob<Argument>("argument");
+  scm::smob<Arguments>("arguments");
   scm::smob<Parameter>("parameter");
   scm::smob<Modulator>("modulator");
   scm::smob<RingBuffer>("ring-buffer");
@@ -52,5 +53,42 @@ void scm_init_common_module() {
     auto height = scm_to_int(scm_list_ref(args, scm_from_int(1)));
     return new (bytes) Frame(width, height);
   });
-}
+
+  // clang-format off
+  scm::define_enum("OBJECTS", {
+    {"audio", ObjectDef::AUDIO},
+    {"graphics", ObjectDef::GRAPHICS}
+  });
+
+  scm::define_enum("RESOURCES", {
+    {"parameter", engine::IPatcher::Resources::PARAMETER},
+    {"shader", engine::IPatcher::Resources::SHADER},
+    {"audio-buffer", engine::IPatcher::Resources::AUDIO_BUFFER},
+    {"inlet", engine::IPatcher::Resources::INLET},
+    {"outlet", engine::IPatcher::Resources::OUTLET},
+    {"ring-buffer", engine::IPatcher::Resources::RING_BUFFER}
+  });
+
+  scm::define_enum("REGISTERS", {
+    {"inlet", Register::INLET},
+    {"outlet", Register::OUTLET}
+  });
+
+  scm::define_enum("ARGUMENTS", {
+    {"boolean", Argument::BOOLEAN},
+    {"number", Argument::NUMBER},
+    {"string", Argument::STRING}
+  });
+
+  scm::define_enum("SHADERS", {
+    {"vertex", graphics::Shader::VERTEX},
+    {"fragment", graphics::Shader::FRAGMENT}
+  });
+
+  scm::define_enum("FBO_ATTACHMENTS", {
+    {"color", graphics::FBO::Attachment::COLOR},
+    {"depth", graphics::FBO::Attachment::DEPTH},
+    {"stencil", graphics::FBO::Attachment::STENCIL}
+  });
+  // clang-format on
 }

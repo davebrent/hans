@@ -4,6 +4,7 @@
 #include <cereal/archives/xml.hpp>
 #include <cereal/cereal.hpp>
 #include <string>
+#include "hans/common/scm.hpp"
 
 using namespace hans;
 
@@ -113,5 +114,25 @@ TEST_CASE("Smobs", "[scm]") {
     REQUIRE(obj.a == 2);
     REQUIRE(obj.b == 6);
     REQUIRE(obj.c == 10);
+  }
+
+  SECTION("enums") {
+    auto& smobs = hans::scm::detail::Smobs::get();
+    scm::define_enum("TEST", {{"bar", 10}});
+
+    auto scope = scm_from_utf8_symbol("TEST");
+    auto symbol = scm_from_utf8_symbol("bar");
+    REQUIRE(scm_to_int(smobs.scm_to_enum(scope, symbol)) == 10);
+
+    scope = scm_from_utf8_symbol("TEST1");
+    REQUIRE(scm_to_bool(smobs.scm_to_enum(scope, symbol)) == 0);
+  }
+
+  SECTION("enums extended") {
+    scm_init_common_module();
+    auto& smobs = hans::scm::detail::Smobs::get();
+    auto scope = scm_from_utf8_symbol("ARGUMENTS");
+    auto symbol = scm_from_utf8_symbol("string");
+    REQUIRE(scm_to_int(smobs.scm_to_enum(scope, symbol)) == Argument::STRING);
   }
 }

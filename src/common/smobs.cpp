@@ -137,6 +137,11 @@ static SCM hans_object_p(SCM smob, SCM type) {
   return SCM_BOOL_T;
 }
 
+static SCM hans_object_enum(SCM scope, SCM key) {
+  auto& smobs = detail::Smobs::get();
+  return smobs.scm_to_enum(scope, key);
+}
+
 static SCM hans_objects() {
   SCM names = SCM_EOL;
 
@@ -175,6 +180,7 @@ detail::Smobs::Smobs() {
   scm::procedure<hans_object_set>("%set-hans-object!", 2, 0, 0);
   scm::procedure<hans_object_get>("%hans-object-get", 1, 0, 0);
   scm::procedure<hans_object_type>("hans-object-type", 1, 1, 0);
+  scm::procedure<hans_object_enum>("hans-object-enum", 2, 0, 0);
   scm::procedure<hans_objects>("hans-objects", 0, 0, 0);
 }
 
@@ -217,4 +223,87 @@ detail::Smobs::Factory* detail::Smobs::lookup(detail::Smobs::Id id) {
     i++;
   }
   return nullptr;
+}
+
+void detail::Smobs::define_enum(
+    const char* scope, std::vector<std::pair<const char*, size_t>> values) {
+  auto start = m_enum_hashes.size();
+  auto end = start + values.size();
+
+  m_enum_scopes.push_back(common::hasher(scope));
+  m_enum_ranges.push_back({start, end});
+
+  for (const auto& pair : values) {
+    auto name = std::get<0>(pair);
+    auto value = std::get<1>(pair);
+
+    m_enum_hashes.push_back(common::hasher(name));
+    m_enum_values.push_back(value);
+
+    auto symbol = scm_permanent_object(scm_from_utf8_symbol(name));
+    m_enum_symbols.push_back(symbol);
+  }
+}
+
+SCM detail::Smobs::scm_to_enum(SCM scope, SCM key) {
+  auto i = 0;
+  auto scope_str = scm_symbol_to_string(scope);
+  auto str = scm_to_locale_string(scope_str);
+  auto scope_hash = common::hasher(str);
+  std::free(str);
+
+  for (const auto& _scope : m_enum_scopes) {
+    if (_scope != scope_hash) {
+      i++;
+      continue;
+    }
+
+    auto sym = scm_symbol_to_string(key);
+    auto str = scm_to_locale_string(sym);
+    auto hash = common::hasher(str);
+    std::free(str);
+
+    auto range = m_enum_ranges.at(i);
+    auto start = std::get<0>(range);
+    auto end = std::get<1>(range);
+
+    for (auto s = start; s < end; ++s) {
+      auto _hash = m_enum_hashes.at(s);
+      if (_hash == hash) {
+        return scm_from_int(m_enum_values.at(s));
+      }
+    }
+  }
+
+  return SCM_BOOL_F;
+}
+
+SCM detail::Smobs::enum_to_scm(const char* scope, size_t value) {
+  auto i = 0;
+  auto scope_hash = common::hasher(scope);
+  for (const auto& _scope : m_enum_scopes) {
+    if (_scope != scope_hash) {
+      i++;
+      continue;
+    }
+
+    auto range = m_enum_ranges.at(i);
+    auto start = std::get<0>(range);
+    auto end = std::get<1>(range);
+
+    for (auto s = start; s < end; ++s) {
+      auto _value = m_enum_values.at(s);
+      if (_value == value) {
+        return m_enum_symbols.at(s);
+      }
+    }
+  }
+
+  return SCM_BOOL_F;
+}
+
+void scm::define_enum(const char* name,
+                      std::vector<std::pair<const char*, size_t>> values) {
+  auto& smobs = detail::Smobs::get();
+  smobs.define_enum(name, values);
 }

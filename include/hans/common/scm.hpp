@@ -4,10 +4,12 @@
 #include <libguile.h>
 #include "hans/common/hasher.hpp"
 
+extern "C" {
+void scm_init_common_module();
+}
+
 namespace hans {
 namespace common {
-
-void scm_init_common_module();
 
 SCM hans_hash(SCM str, SCM hex);
 

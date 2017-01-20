@@ -5,6 +5,7 @@
 #include <functional>
 #include <new>
 #include <sstream>
+#include <utility>
 #include <vector>
 #include "hans/common/hasher.hpp"
 #include "hans/common/serialize.hpp"
@@ -47,10 +48,21 @@ class Smobs {
   Factory* lookup(const char* name);
   Factory* lookup(Id id);
 
+  void define_enum(const char* name,
+                   std::vector<std::pair<const char*, size_t>> values);
+  SCM scm_to_enum(SCM scope, SCM key);
+  SCM enum_to_scm(const char* scope, size_t value);
+
  private:
   Smobs();
   std::vector<Id> m_ids;
   std::vector<hash> m_hashes;
+
+  std::vector<hash> m_enum_scopes;
+  std::vector<std::pair<size_t, size_t>> m_enum_ranges;
+  std::vector<hash> m_enum_hashes;
+  std::vector<int> m_enum_values;
+  std::vector<SCM> m_enum_symbols;
 };
 
 } // namespace detail
@@ -100,6 +112,9 @@ T& to_cpp(SCM smob) {
   scm_assert_smob_type(smobs.tag, smob);
   return *reinterpret_cast<T*>(SCM_SMOB_DATA(smob));
 }
+
+void define_enum(const char* scope,
+                 std::vector<std::pair<const char*, size_t>> values);
 
 } // namespace scm
 } // namespace hans
