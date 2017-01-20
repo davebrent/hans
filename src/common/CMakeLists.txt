@@ -1,6 +1,5 @@
 add_library(hanscommon SHARED
   scm.cpp
-  DataLoader.cpp
   hasher.cpp
   StringManager.cpp
   LinearAllocator.cpp

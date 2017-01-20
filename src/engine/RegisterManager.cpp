@@ -11,7 +11,7 @@ using namespace hans::engine;
 static uint16_t EMPTY_BIN = 65535;
 
 RegisterManager::RegisterManager(const Config& config,
-                                 ListView<Register>& registers) {
+                                 std::vector<Register>& registers) {
   m_audio_reg_size = sizeof(audio::sample) * config.blocksize;
   m_graphics_reg_size = sizeof(uint32_t);
 

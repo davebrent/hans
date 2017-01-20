@@ -8,7 +8,7 @@ using namespace hans::engine;
 using namespace hans::graphics;
 
 ShaderManager::ShaderManager(const StringManager& string_manager,
-                             const ListView<Shader> shaders)
+                             const std::vector<Shader>& shaders)
     : m_string_manager(string_manager), m_shaders(shaders) {
 }
 
@@ -32,7 +32,7 @@ const char* ShaderManager::validate(const hash name) {
     GLint length = 0;
     glGetShaderiv(handle, GL_INFO_LOG_LENGTH, &length);
 
-    char* message = new char[length + 1];
+    auto message = new char[length + 1];
     glGetShaderInfoLog(handle, length, nullptr, static_cast<GLchar*>(message));
     message[length] = '\0';
     return message;

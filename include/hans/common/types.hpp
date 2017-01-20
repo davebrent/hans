@@ -21,40 +21,8 @@ struct Config {
   uint16_t height;
 };
 
-struct DataFile {
-  enum Types {
-    STRINGS,
-    STRING_HASHES,
-    STRING_OFFSETS,
-    PLUGINS,
-    OBJECTS,
-    OBJECTS_DATA,
-    PARAMETERS,
-    PARAMETER_VALUES,
-    PROGRAMS,
-    CHAINS,
-    REGISTERS,
-    SHADERS,
-    FBOS,
-    FBO_ATTACHMENTS,
-    AUDIO_BUFFERS,
-    RING_BUFFERS,
-    MODULATORS,
-    REPLAY
-  };
-
-  struct Blob {
-    Types type;
-    size_t offset;
-    size_t size;
-    void* data;
-  };
-
-  uint16_t version;
-  bool little_endian;
+struct Blob {
   size_t size;
-  size_t length;
-  Blob* blobs;
   void* data;
 };
 } // namespace common

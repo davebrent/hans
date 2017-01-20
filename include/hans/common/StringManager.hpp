@@ -3,7 +3,6 @@
 
 #include <vector>
 #include "hans/common/LinearAllocator.hpp"
-#include "hans/common/ListView.hpp"
 #include "hans/common/types.hpp"
 
 namespace hans {
@@ -12,11 +11,12 @@ namespace common {
 class StringManager {
  public:
   explicit StringManager(size_t size);
-  StringManager(ListView<hash> hashes, ListView<size_t> offsets,
-                ListView<const char> data);
+  explicit StringManager(const Strings& strings);
+  StringManager(const StringManager& other) = delete;
 
   /// Intern a string and retrieve its hash
   hash intern(const char* string);
+
   /// Return the original string for a given hash
   const char* lookup(hash hashed) const;
 

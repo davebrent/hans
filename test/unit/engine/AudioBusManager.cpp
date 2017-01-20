@@ -11,7 +11,7 @@ TEST_CASE("audio bus manager", "[audiobus]") {
     config.blocksize = 4;
     config.channels = 2;
 
-    auto manager = AudioBusManager(config, 1);
+    AudioBusManager manager(config, 1);
     auto bus = manager.make();
 
     audio::sample frame1[4] = {13, 14, 15, 16};
@@ -39,7 +39,7 @@ TEST_CASE("audio bus manager", "[audiobus]") {
     config.blocksize = 4;
     config.channels = 2;
 
-    auto manager = AudioBusManager(config, 2);
+    AudioBusManager manager(config, 2);
     auto bus1 = manager.make();
     auto bus2 = manager.make();
 

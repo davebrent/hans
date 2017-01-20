@@ -11,6 +11,7 @@ namespace engine {
 class AudioBusManager {
  public:
   /// Creates N audio buses
+  AudioBusManager(const AudioBusManager& other) = delete;
   explicit AudioBusManager(const common::Config& config, size_t num);
   ~AudioBusManager();
   /// Create an audio bus

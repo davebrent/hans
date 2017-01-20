@@ -8,11 +8,10 @@ using namespace hans;
 using namespace hans::common;
 using namespace hans::engine;
 
-ReplayRecorder::ReplayRecorder(const ListView<Parameter::Value>& values)
+ReplayRecorder::ReplayRecorder(const std::vector<Parameter::Value>& values)
     : m_values(values), m_stream(std::ostringstream::binary) {
   m_blob.size = 0;
   m_blob.data = nullptr;
-  m_blob.type = DataFile::REPLAY;
   m_recording = false;
 }
 
@@ -30,7 +29,9 @@ void ReplayRecorder::start() {
 void ReplayRecorder::update() {
   if (m_recording) {
     auto bytes = sizeof(Parameter::Value) * m_values.size();
-    m_stream.write(reinterpret_cast<char*>(&m_values[0]), bytes);
+    m_stream.write(
+        reinterpret_cast<char*>(const_cast<Parameter::Value*>(&m_values[0])),
+        bytes);
   }
 }
 
@@ -45,30 +46,26 @@ void ReplayRecorder::stop() {
   std::memcpy(m_blob.data, str.c_str(), m_blob.size);
 }
 
-common::DataFile::Blob ReplayRecorder::to_blob() {
+common::Blob ReplayRecorder::to_blob() {
   return m_blob;
 }
 
-ReplayPlayer::ReplayPlayer(DataFile::Blob blob,
-                           ListView<Parameter::Value>& values)
-    : m_blob(blob), m_values(values) {
-  assert(m_blob.type == DataFile::REPLAY);
+ReplayPlayer::ReplayPlayer(EngineData& ng_data,
+                           std::vector<Parameter::Value>& values)
+    : m_ng_data(ng_data), m_values(values) {
   m_frameno = -1;
 }
 
-ReplayPlayer::ReplayPlayer(ListView<Parameter::Value>& values)
-    : m_values(values) {
-  m_blob.type = DataFile::REPLAY;
-  m_blob.data = nullptr;
-  m_blob.size = 0;
-  m_frameno = -1;
-}
+// ReplayPlayer::ReplayPlayer(std::vector<Parameter::Value>& values)
+//     : m_values(values) {
+//   m_frameno = -1;
+// }
 
-void ReplayPlayer::reset_with_blob(DataFile::Blob blob) {
-  assert(m_blob.type == DataFile::REPLAY);
-  m_blob.data = blob.data;
-  m_blob.size = blob.size;
-  m_frameno = -1;
+void ReplayPlayer::reset_with_blob(Blob blob) {
+  // assert(m_blob.type == DataFile::REPLAY);
+  // m_blob.data = blob.data;
+  // m_blob.size = blob.size;
+  // m_frameno = -1;
 }
 
 void ReplayPlayer::tick() {
@@ -76,19 +73,20 @@ void ReplayPlayer::tick() {
 }
 
 void ReplayPlayer::set(uint64_t frameno) {
-  if (m_blob.data == nullptr) {
-    return;
-  }
+  // if (m_blob.data == nullptr) {
+  //   return;
+  // }
 
-  auto bytes = sizeof(Parameter::Value) * m_values.size();
-  auto offset = frameno * bytes;
+  // auto bytes = sizeof(Parameter::Value) * m_values.size();
+  // auto offset = frameno * bytes;
 
-  if (offset >= m_blob.size) {
-    return;
-  }
+  // if (offset >= m_blob.size) {
+  //   return;
+  // }
 
-  auto dest = &m_values[0];
-  auto src = reinterpret_cast<void*>(static_cast<char*>(m_blob.data) + offset);
-  std::memcpy(dest, src, bytes);
-  m_frameno = frameno;
+  // auto dest = &m_values[0];
+  // auto src = reinterpret_cast<void*>(static_cast<char*>(m_blob.data) +
+  // offset);
+  // std::memcpy(dest, src, bytes);
+  // m_frameno = frameno;
 }

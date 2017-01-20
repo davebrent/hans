@@ -2,7 +2,6 @@
 #define HANS_ENGINE_FRAMEBUFFERMANAGER_H_
 
 #include <vector>
-#include "hans/common/ListView.hpp"
 #include "hans/common/types.hpp"
 
 namespace hans {
@@ -10,8 +9,9 @@ namespace engine {
 
 class FrameBufferManager {
  public:
-  FrameBufferManager(common::ListView<graphics::FBO> fbos,
-                     common::ListView<graphics::FBO::Attachment> attachments);
+  FrameBufferManager(const FrameBufferManager& other) = delete;
+  FrameBufferManager(std::vector<graphics::FBO>& fbos,
+                     std::vector<graphics::FBO::Attachment>& attachments);
   ~FrameBufferManager();
   void setup();
   void destroy();
@@ -36,8 +36,8 @@ class FrameBufferManager {
   void bind_stencil_attachment(const graphics::FBO& handle) const;
 
  private:
-  common::ListView<graphics::FBO> m_fbos;
-  common::ListView<graphics::FBO::Attachment> m_attachments;
+  std::vector<graphics::FBO>& m_fbos;
+  std::vector<graphics::FBO::Attachment>& m_attachments;
   uint32_t* m_gl_fbos;
   uint32_t* m_gl_attachments;
 };

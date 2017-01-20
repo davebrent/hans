@@ -4,11 +4,11 @@
 #include <cereal/archives/portable_binary.hpp>
 #include <cereal/cereal.hpp>
 #include <cereal/external/base64.hpp>
+#include <cstring>
 #include <functional>
 #include <iostream>
 #include <sstream>
 #include <vector>
-#include <cstring>
 #include "hans/common/StringManager.hpp"
 #include "hans/common/types.hpp"
 
@@ -17,19 +17,28 @@
 namespace hans {
 namespace engine {
 
+class Object;
+
 class PluginManager {
  public:
+  PluginManager(const PluginManager& other) = delete;
   PluginManager(common::StringManager& string_manager,
-                common::ListView<ObjectDef> objects);
+                std::vector<ObjectDef>& objects);
 
   PluginManager(common::StringManager& string_manager,
-                common::ListView<ObjectDef> objects,
-                common::ListView<Plugin> plugins);
+                std::vector<ObjectDef>& objects,
+                const std::vector<Plugin>& plugins);
+
   ~PluginManager();
+
+  Object* create(hash name);
+  Object* create(hash name, ObjectDef::ID id, const std::string& state);
+  void destroy(hash name, Object* object);
+  std::string serialize(hash name, Object* object);
 
   template <typename State, typename Object>
   bool add_object(const char* name) {
-    auto size = sizeof(State);
+    auto size = sizeof(Object);
 
     auto create = [](ObjectDef::ID id, const std::string& state) {
       auto instance = new Object(id);
@@ -46,7 +55,8 @@ class PluginManager {
     };
 
     auto destroy = [](void* instance) {
-      delete static_cast<Object*>(instance);
+      auto object = static_cast<Object*>(instance);
+      delete object;
     };
 
     auto serialize = [](void* instance) {
@@ -82,7 +92,7 @@ class PluginManager {
  private:
   common::StringManager& m_string_manager;
   std::vector<void*> m_handles;
-  common::ListView<ObjectDef> m_objects;
+  std::vector<ObjectDef>& m_objects;
 };
 
 } // namespace engine

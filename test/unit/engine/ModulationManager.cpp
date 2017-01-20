@@ -1,6 +1,5 @@
 #include "hans/engine/ModulationManager.hpp"
 #include <catch.hpp>
-#include "hans/common/ListView.hpp"
 #include "hans/common/types.hpp"
 
 using namespace hans;
@@ -8,18 +7,17 @@ using namespace hans::engine;
 
 TEST_CASE("modulation manager", "[modulators]") {
   SECTION("modulating parameters") {
-    Parameter::Value data[2] = {10, 20};
-    Parameter fixture[2];
+    Parameter p1;
+    p1.object = 1;
+    p1.name = 0x10;
+    p1.size = 1;
+    p1.offset = 0;
 
-    fixture[0].object = 1;
-    fixture[0].name = 0x10;
-    fixture[0].size = 1;
-    fixture[0].offset = 0;
-
-    fixture[1].object = 2;
-    fixture[1].name = 0x10;
-    fixture[1].size = 1;
-    fixture[1].offset = 1;
+    Parameter p2;
+    p2.object = 2;
+    p2.name = 0x10;
+    p2.size = 1;
+    p2.offset = 1;
 
     Modulator modulator;
     modulator.source.object = 1;
@@ -33,14 +31,13 @@ TEST_CASE("modulation manager", "[modulators]") {
     modulator.offset = 3;
     modulator.scale = 1.5;
 
-    auto parameters = common::ListView<Parameter>(&fixture[0], 2);
-    auto values = common::ListView<Parameter::Value>(&data[0], 2);
-    auto modulators = common::ListView<Modulator>(&modulator, 1);
+    std::vector<Parameter> parameters = {p1, p2};
+    std::vector<Parameter::Value> values = {10, 20};
+    std::vector<Modulator> modulators = {modulator};
 
-    auto param_manager = engine::ParameterManager(parameters, values);
-    auto mod_manager = engine::ModulationManager(param_manager, modulators);
+    engine::ParameterManager param_manager(parameters, values);
+    engine::ModulationManager mod_manager(param_manager, modulators);
 
-    auto handle1 = param_manager.make(1, 0x10);
     auto handle2 = param_manager.make(2, 0x10);
 
     mod_manager.begin();

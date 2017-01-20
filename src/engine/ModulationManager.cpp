@@ -5,7 +5,7 @@ using namespace hans::common;
 using namespace hans::engine;
 
 ModulationManager::ModulationManager(ParameterManager& parameter_manager,
-                                     const ListView<Modulator> modulators)
+                                     const std::vector<Modulator>& modulators)
     : m_mods(modulators), m_parameter_manager(parameter_manager) {
   auto num = m_mods.size();
 

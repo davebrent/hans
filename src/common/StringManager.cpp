@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cstring>
+#include <iostream>
 #include "hans/common/hasher.hpp"
 
 using namespace hans;
@@ -10,20 +11,21 @@ using namespace hans::common;
 StringManager::StringManager(size_t size) : m_allocator(size) {
 }
 
-StringManager::StringManager(ListView<hash> hashes, ListView<size_t> offsets,
-                             ListView<const char> data) {
-  auto bytes = data.size();
+StringManager::StringManager(const Strings& strings)
+    : m_hashes(strings.hashes) {
+  auto num_bytes = strings.buffer.size() + strings.lengths.size() + 1;
+  m_allocator.reset(num_bytes);
 
-  m_allocator.reset(bytes);
-  auto dest = m_allocator.allocate(bytes);
-  std::memcpy(dest, static_cast<void*>(const_cast<char*>(&data[0])), bytes);
-  auto base = static_cast<char*>(m_allocator.start());
+  auto dest = static_cast<char*>(m_allocator.allocate(num_bytes));
+  auto src = strings.buffer.c_str();
 
-  auto length = hashes.size();
-  for (auto i = 0; i < length; ++i) {
-    auto offset = offsets[i];
-    m_hashes.push_back(hashes[i]);
-    m_strings.push_back(&base[offset]);
+  m_strings.reserve(strings.lengths.size());
+  for (auto& length : strings.lengths) {
+    m_strings.push_back(dest);
+    std::memcpy(dest, static_cast<void*>(const_cast<char*>(src)), length);
+    dest[length] = '\0';
+    dest += length + 1;
+    src += length;
   }
 }
 

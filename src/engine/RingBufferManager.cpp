@@ -1,5 +1,6 @@
 #include "hans/engine/RingBufferManager.hpp"
 #include <cstring>
+#include <iostream>
 #include <stdexcept>
 
 // TODO: Experiment with this value and its relation to blocksize
@@ -9,11 +10,11 @@ using namespace hans;
 using namespace hans::common;
 using namespace hans::engine;
 
-RingBufferManager::RingBufferManager(const Config& config,
-                                     ListView<RingBuffer> ring_buffers)
+RingBufferManager::RingBufferManager(uint16_t blocksize,
+                                     std::vector<RingBuffer>& ring_buffers)
     : m_ring_buffers(ring_buffers) {
   auto num_ring_buffers = m_ring_buffers.size();
-  m_frame_size = sizeof(audio::sample) * config.blocksize;
+  m_frame_size = sizeof(audio::sample) * blocksize;
 
   auto single = m_frame_size * RB_FRAMES;
   auto bytes = num_ring_buffers * single;
@@ -22,24 +23,9 @@ RingBufferManager::RingBufferManager(const Config& config,
   m_allocator.reset(bytes);
   m_base = static_cast<char*>(m_allocator.allocate(bytes, alignment));
 
-  m_available = new uint8_t[num_ring_buffers];
-  m_heads = new uint8_t[num_ring_buffers];
-  m_tails = new uint8_t[num_ring_buffers];
-
-  auto offset = 0;
-  auto index = 0;
-
-  for (auto& ring_buffer : m_ring_buffers) {
-    ring_buffer.offset = offset;
-    ring_buffer.index = index;
-
-    m_available[index] = 0;
-    m_heads[index] = 0;
-    m_tails[index] = 0;
-
-    offset += single;
-    index++;
-  }
+  m_available = new uint8_t[num_ring_buffers]();
+  m_heads = new uint8_t[num_ring_buffers]();
+  m_tails = new uint8_t[num_ring_buffers]();
 }
 
 RingBufferManager::~RingBufferManager() {
@@ -66,9 +52,11 @@ RingBuffer RingBufferManager::find(hash name) {
   throw std::runtime_error("RingBufferManager: Unknown ring buffer");
 }
 
-bool RingBufferManager::write(RingBuffer ring, const audio::sample* samples) {
+bool RingBufferManager::write(const RingBuffer& ring,
+                              const audio::sample* samples) {
+  auto offset = m_frame_size * RB_FRAMES * ring.index;
   auto head = m_heads[ring.index];
-  auto dest = m_base + ring.offset + (m_frame_size * head);
+  auto dest = m_base + offset + (m_frame_size * head);
 
   std::memcpy(dest, samples, m_frame_size);
 
@@ -79,9 +67,10 @@ bool RingBufferManager::write(RingBuffer ring, const audio::sample* samples) {
 
 audio::sample* RingBufferManager::read(hash name, uint8_t frame) {
   auto ring = find(name);
+  auto offset = m_frame_size * RB_FRAMES * ring.index;
   auto tail = m_tails[ring.index];
   auto samples =
-      m_base + ring.offset + (m_frame_size * ((tail + frame) % RB_FRAMES));
+      m_base + offset + (m_frame_size * ((tail + frame) % RB_FRAMES));
   return reinterpret_cast<audio::sample*>(samples);
 }
 

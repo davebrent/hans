@@ -30,6 +30,10 @@ class TestObject : protected GraphicsObject {
   TestState state;
 };
 
+static TestObject* to_test(Object* object) {
+  return reinterpret_cast<TestObject*>(object);
+}
+
 TEST_CASE("engine objects", "[object]") {
   SECTION("serializing state") {
     StringManager strings(12);
@@ -38,18 +42,20 @@ TEST_CASE("engine objects", "[object]") {
     def.name = strings.intern("test-object");
     def.type = ObjectDef::GRAPHICS;
     def.size = sizeof(TestState);
+    std::vector<ObjectDef> objects;
+    objects.push_back(std::move(def));
 
-    auto objects = ListView<ObjectDef>(&def, 1);
     PluginManager plugins(strings, objects);
     plugins.add_object<TestState, TestObject>("test-object");
 
-    auto inst_1 = def.create(0, "");
-    static_cast<TestObject*>(inst_1)->state.foo = 123456;
-    REQUIRE(def.serialize(inst_1) == "AUDiAQA=");
-    def.destroy(inst_1);
+    auto inst_1 = plugins.create(def.name);
 
-    auto inst_2 = def.create(0, "AUDiAQA=");
-    REQUIRE(static_cast<TestObject*>(inst_2)->state.foo == 123456);
-    def.destroy(inst_2);
+    to_test(inst_1)->state.foo = 123456;
+    REQUIRE(plugins.serialize(def.name, inst_1) == "AUDiAQA=");
+    plugins.destroy(def.name, inst_1);
+
+    auto inst_2 = plugins.create(def.name, 0, "AUDiAQA=");
+    REQUIRE(to_test(inst_2)->state.foo == 123456);
+    plugins.destroy(def.name, inst_2);
   }
 }

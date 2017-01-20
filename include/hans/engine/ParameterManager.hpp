@@ -2,7 +2,7 @@
 #define HANS_ENGINE_PARAMETERMANAGER_H_
 
 #include <cstdint>
-#include "hans/common/ListView.hpp"
+#include <vector>
 #include "hans/common/types.hpp"
 
 namespace hans {
@@ -10,9 +10,10 @@ namespace engine {
 
 class ParameterManager {
  public:
+  ParameterManager(const ParameterManager& other) = delete;
   /// Set the manager to read from a given array of values
-  ParameterManager(common::ListView<Parameter> parameters,
-                   common::ListView<Parameter::Value> values);
+  ParameterManager(std::vector<Parameter>& parameters,
+                   std::vector<Parameter::Value>& values);
 
   /// Make an objects parameter by name
   Parameter make(const ObjectDef::ID object, const hash name) const;
@@ -29,8 +30,8 @@ class ParameterManager {
            const Parameter::Length component, const Parameter::Value value);
 
  private:
-  common::ListView<Parameter> m_parameters;
-  common::ListView<Parameter::Value> m_values;
+  std::vector<Parameter>& m_parameters;
+  std::vector<Parameter::Value>& m_values;
 };
 
 } // namespace engine

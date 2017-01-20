@@ -1,8 +1,8 @@
 #ifndef HANS_ENGINE_RINGBUFFERMANAGER_H_
 #define HANS_ENGINE_RINGBUFFERMANAGER_H_
 
+#include <vector>
 #include "hans/common/LinearAllocator.hpp"
-#include "hans/common/ListView.hpp"
 #include "hans/common/types.hpp"
 
 namespace hans {
@@ -10,14 +10,14 @@ namespace engine {
 
 class RingBufferManager {
  public:
-  RingBufferManager(const common::Config& config,
-                    common::ListView<RingBuffer> ring_buffers);
+  RingBufferManager(const RingBufferManager& other) = delete;
+  RingBufferManager(uint16_t blocksize, std::vector<RingBuffer>& ring_buffers);
   ~RingBufferManager();
 
   RingBuffer make(ObjectDef::ID producer, hash name);
 
   /// Write samples to a ring buffer, samples must be length of blocksize
-  bool write(RingBuffer ring, const audio::sample* samples);
+  bool write(const RingBuffer& ring, const audio::sample* samples);
 
   /// Advance all ring buffers
   void advance_all();
@@ -32,7 +32,7 @@ class RingBufferManager {
   RingBuffer find(hash name);
 
   common::LinearAllocator m_allocator;
-  common::ListView<RingBuffer> m_ring_buffers;
+  std::vector<RingBuffer>& m_ring_buffers;
   size_t m_frame_size;
   char* m_base = nullptr;
   uint8_t* m_available;

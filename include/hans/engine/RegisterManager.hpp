@@ -1,8 +1,8 @@
 #ifndef HANS_ENGINE_REGISTERMANAGER_H_
 #define HANS_ENGINE_REGISTERMANAGER_H_
 
+#include <vector>
 #include "hans/common/LinearAllocator.hpp"
-#include "hans/common/ListView.hpp"
 #include "hans/common/types.hpp"
 
 namespace hans {
@@ -10,8 +10,9 @@ namespace engine {
 
 class RegisterManager {
  public:
+  RegisterManager(const RegisterManager& other) = delete;
   RegisterManager(const common::Config& config,
-                  common::ListView<Register>& registers);
+                  std::vector<Register>& registers);
   /// Return a handle to a register
   Register make(ObjectDef::ID object, Register::Types type, uint16_t index);
   /// Read data from a register

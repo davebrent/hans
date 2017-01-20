@@ -1,7 +1,6 @@
 #ifndef HANS_ENGINE_ENGINE_H
 #define HANS_ENGINE_ENGINE_H
 
-#include "hans/common/DataLoader.hpp"
 #include "hans/common/StringManager.hpp"
 #include "hans/engine/AudioBufferManager.hpp"
 #include "hans/engine/AudioBusManager.hpp"
@@ -34,7 +33,7 @@ struct Engine {
   AudioBusManager audio_buses;
   RingBufferManager ring_buffers;
 
-  Engine(common::Config& config, common::DataReader* reader);
+  Engine(EngineData& data);
   Engine(const Engine& other) = delete;
 };
 

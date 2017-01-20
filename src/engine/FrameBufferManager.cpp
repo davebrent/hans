@@ -7,15 +7,14 @@ using namespace hans::common;
 using namespace hans::engine;
 using namespace hans::graphics;
 
-FrameBufferManager::FrameBufferManager(ListView<FBO> fbos,
-                                       ListView<FBO::Attachment> attachments)
+FrameBufferManager::FrameBufferManager(
+    std::vector<FBO>& fbos, std::vector<FBO::Attachment>& attachments)
     : m_fbos(fbos), m_attachments(attachments) {
+  m_gl_fbos = new uint32_t[m_fbos.size()];
+  m_gl_attachments = new uint32_t[m_attachments.size()];
 }
 
 void FrameBufferManager::setup() {
-  m_gl_fbos = new uint32_t[m_fbos.size()];
-  m_gl_attachments = new uint32_t[m_attachments.size()];
-
   glGenFramebuffers(m_fbos.size(), m_gl_fbos);
   glGenTextures(m_attachments.size(), m_gl_attachments);
 

@@ -20,6 +20,8 @@ class AudioStream {
     HANS_AUDIO_ERROR
   };
 
+  AudioStream(const AudioStream& other) = delete;
+
   // FIXME: audioDevices should be marked as const
   explicit AudioStream(const common::Config& config,
                        AudioDevices& audio_devices,

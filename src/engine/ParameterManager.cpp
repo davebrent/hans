@@ -6,8 +6,8 @@ using namespace hans;
 using namespace hans::common;
 using namespace hans::engine;
 
-ParameterManager::ParameterManager(ListView<Parameter> parameters,
-                                   ListView<Parameter::Value> values)
+ParameterManager::ParameterManager(std::vector<Parameter>& parameters,
+                                   std::vector<Parameter::Value>& values)
     : m_parameters(parameters), m_values(values) {
 }
 

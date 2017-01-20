@@ -11,6 +11,7 @@ namespace engine {
 
 class Window {
  public:
+  Window(const Window& other) = delete;
   Window();
   ~Window();
   bool make(const char* title, uint16_t width, uint16_t height);

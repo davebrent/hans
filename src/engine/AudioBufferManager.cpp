@@ -6,7 +6,7 @@ using namespace hans;
 using namespace hans::common;
 using namespace hans::engine;
 
-AudioBufferManager::AudioBufferManager(ListView<audio::Buffer> buffers)
+AudioBufferManager::AudioBufferManager(std::vector<audio::Buffer>& buffers)
     : m_buffers(buffers) {
   size_t total = 0;
 
