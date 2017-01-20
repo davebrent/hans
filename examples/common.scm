@@ -17,10 +17,11 @@
            hans-modulate))
 
 (define settings `(
-  (width     . 640)
-  (height    . 360)
-  (blocksize . 64)
-  (channels  . 2)))
+  (width      . 640)
+  (height     . 360)
+  (blocksize  . 64)
+  (samplerate . 44100)
+  (channels   . 2)))
 
 (define hans (make-environment settings
   `((gfx-quad         . ,gfx-quad)
