@@ -36,6 +36,11 @@ struct FilterState {
   GLuint u_resolution_loc;
   GLuint u_amount_loc;
   uint32_t texture_value;
+
+  template <class Archive>
+  void serialize(Archive& ar) {
+    ar(shader);
+  }
 };
 
 class FilterObject : protected GraphicsObject {

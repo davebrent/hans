@@ -12,6 +12,11 @@ struct IOState {
   uint8_t channels_len;
   uint8_t channels[IO_MAX_CHANNELS];
   Register registers[IO_MAX_CHANNELS];
+
+  template <class Archive>
+  void serialize(Archive& ar) {
+    ar(bus, channels_len, channels);
+  }
 };
 
 class InObject : protected AudioObject {

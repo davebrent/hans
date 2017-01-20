@@ -21,6 +21,11 @@ struct OscState {
   Parameter waveform;
   audio::Buffer buffer;
   Register outlets[SND_OSC_MAX_CHANNELS];
+
+  template <class Archive>
+  void serialize(Archive& ar) {
+    ar(channels, phase);
+  }
 };
 
 class OscObject : protected AudioObject {

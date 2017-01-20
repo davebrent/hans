@@ -8,6 +8,11 @@ using namespace hans::engine;
 
 struct GainState {
   float gain;
+
+  template <class Archive>
+  void serialize(Archive& ar) {
+    ar(gain);
+  }
 };
 
 class GainObject : protected AudioObject {

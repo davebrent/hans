@@ -13,6 +13,11 @@ struct SndTexState {
   Register outlet;
   uint32_t texture_value;
   audio::sample* samples = nullptr;
+
+  template <class Archive>
+  void serialize(Archive& ar) {
+    ar(name);
+  }
 };
 
 class SndTexObject : protected GraphicsObject {

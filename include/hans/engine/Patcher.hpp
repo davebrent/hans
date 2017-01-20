@@ -1,7 +1,7 @@
 #ifndef HANS_ENGINE_PATCHER_H_
 #define HANS_ENGINE_PATCHER_H_
 
-#include "hans/common/ListView.hpp"
+#include <vector>
 #include "hans/common/types.hpp"
 
 namespace hans {
@@ -19,8 +19,9 @@ class IPatcher {
     RING_BUFFER
   };
 
-  virtual common::ListView<Argument> arguments() = 0;
-  virtual void missing(Argument::Types type, hash name) = 0;
+  virtual std::vector<Argument> arguments() = 0;
+  virtual void missing(const char* name) = 0;
+  virtual void invalid(const char* name) = 0;
   virtual void request(Resources type, size_t value) = 0;
 };
 

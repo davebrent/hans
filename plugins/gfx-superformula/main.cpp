@@ -172,6 +172,11 @@ struct FormulaState {
   Parameter rotation_speed;
   Parameter draw_mode;
   std::vector<UniformParameter> uniforms;
+
+  template <class Archive>
+  void serialize(Archive& ar) {
+    ar(segments);
+  }
 };
 
 class FormulaObject : protected GraphicsObject {

@@ -10,6 +10,11 @@ struct RingBufferState {
   Register inlet;
   Register outlet;
   RingBuffer ringbuffer;
+
+  template <class Archive>
+  void serialize(Archive& ar) {
+    ar(name);
+  }
 };
 
 class RingBufferObject : protected AudioObject {
@@ -32,9 +37,13 @@ void RingBufferObject::create(IPatcher& patcher) {
     }
   }
 
-  patcher.request(IPatcher::Resources::INLET, 1);
-  patcher.request(IPatcher::Resources::OUTLET, 1);
-  patcher.request(IPatcher::Resources::RING_BUFFER, state.name);
+  if (!state.name) {
+    patcher.missing("name");
+  } else {
+    patcher.request(IPatcher::Resources::INLET, 1);
+    patcher.request(IPatcher::Resources::OUTLET, 1);
+    patcher.request(IPatcher::Resources::RING_BUFFER, state.name);
+  }
 }
 
 void RingBufferObject::setup(Engine& engine) {

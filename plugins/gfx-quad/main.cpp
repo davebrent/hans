@@ -18,6 +18,10 @@ struct QuadState {
   graphics::ShaderProgram program;
   Register inlet;
   uint32_t texture_value;
+
+  template <class Archive>
+  void serialize(Archive& ar) {
+  }
 };
 
 class QuadObject : protected GraphicsObject {

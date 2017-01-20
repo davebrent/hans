@@ -23,6 +23,11 @@ struct ScopeState {
   float buffer_length;
   GLuint audio_buffer_object;
   GLuint buffer_length_loc;
+
+  template <class Archive>
+  void serialize(Archive& ar) {
+    ar(left, right);
+  }
 };
 
 class OscScopeObject : protected GraphicsObject {
@@ -64,10 +69,6 @@ static void parse_args(IPatcher& patcher, ScopeState& state) {
 }
 
 void OscScopeObject::create(IPatcher& patcher) {
-  state.left = 0;
-  state.right = 0;
-  state.buffer_length = 0;
-  state.vertex_shader_name = SHADERS_OSC;
   parse_args(patcher, state);
   patcher.request(IPatcher::Resources::OUTLET, 1);
 }
@@ -78,6 +79,7 @@ void OscScopeObject::setup(Engine& engine) {
   auto max_channel_samples = blocksize * MAX_FRAMES;
   auto max_points = max_channel_samples * channels;
 
+  state.vertex_shader_name = SHADERS_OSC;
   state.outlet = engine.registers.make(id, Register::Types::OUTLET, 0);
   state.fbo = engine.fbos.make(id);
   state.samples = new audio::sample[max_points];
@@ -191,10 +193,6 @@ void OscScopeObject::draw(Engine& engine) const {
 }
 
 void PhaseScopeObject::create(IPatcher& patcher) {
-  state.left = 0;
-  state.right = 0;
-  state.buffer_length = 0;
-  state.vertex_shader_name = SHADERS_PHASE;
   parse_args(patcher, state);
   patcher.request(IPatcher::Resources::OUTLET, 1);
 }
@@ -205,6 +203,7 @@ void PhaseScopeObject::setup(Engine& engine) {
 
   auto max_points = blocksize * MAX_FRAMES * channels;
 
+  state.vertex_shader_name = SHADERS_PHASE;
   state.outlet = engine.registers.make(id, Register::Types::OUTLET, 0);
   state.fbo = engine.fbos.make(id);
   state.samples = new audio::sample[max_points];

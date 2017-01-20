@@ -29,6 +29,10 @@ struct AttractorsState {
   size_t buffer_length;
   GLuint position_buffer;
   GLuint buffer_length_loc;
+
+  template <class Archive>
+  void serialize(Archive& ar) {
+  }
 };
 
 class AttractorsObject : protected GraphicsObject {

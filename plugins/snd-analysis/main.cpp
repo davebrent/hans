@@ -1,11 +1,25 @@
 #include <aubio/aubio.h>
+#include <algorithm>
 #include "hans/engine/object.hpp"
 
 #define REAL_BUFF_NAME 0xf3b756f37cabf321  /* snd/fft/real */
 #define IMAG_BUFF_NAME 0x716e5449ebf816b9  /* snd/fft/imag */
 #define SIGN_BUFF_NAME 0xbd100e8a2d401c4e  /* snd/ifft/signal */
 #define PARAM_METHOD 0x5d2dfaed5ad5f81b    /* method */
+#define METHOD_ENERGY 0x3f9a73b271805e09   /* energy */
+#define METHOD_HFC 0x7da617bb1e8ad8c6      /* hfc */
+#define METHOD_COMPLEX 0x5f6599e6ac9aa918  /* complex */
+#define METHOD_PHASE 0x9c38c179d4311f91    /* phase */
+#define METHOD_SPECDIFF 0x57cbc8bf661860c4 /* specdiff */
+#define METHOD_KL 0xc8bc167a13da09c0       /* kl */
+#define METHOD_MKL 0x296f16634dcc65c1      /* mkl */
+#define METHOD_SPECFLUX 0xf10e9ed7bd4aa42d /* specflux */
 #define METHOD_CENTROID 0x56ae04ce70d4f343 /* centroid */
+#define METHOD_SPREAD 0xaefe2de866b71295   /* spread */
+#define METHOD_SKEWNESS 0x35a598c181a4abcb /* skewness */
+#define METHOD_KURTOSIS 0xcb87259c586798c0 /* kurtosis */
+#define METHOD_SLOPE 0x91c70f31fa1831cb    /* slope */
+#define METHOD_DECREASE 0x5366a8e4857da971 /* decrease */
 #define METHOD_ROLLOFF 0x7e13c94680db0c7f  /* rolloff */
 
 using namespace hans;
@@ -24,6 +38,10 @@ struct FFTState {
   cvec_t* spectrum;
   fvec_t* real;
   fvec_t* imag;
+
+  template <class Archive>
+  void serialize(Archive& ar) {
+  }
 };
 
 class FFTObject : protected AudioObject {
@@ -118,6 +136,10 @@ struct IFFTState {
   cvec_t* fftgrain;
   fvec_t* out;
   fvec_t* compspec;
+
+  template <class Archive>
+  void serialize(Archive& ar) {
+  }
 };
 
 class IFFTObject : protected AudioObject {
@@ -181,6 +203,11 @@ struct FeatureState {
   cvec_t* fftgrain;
   aubio_pvoc_t* pvoc;
   aubio_specdesc_t* desc;
+
+  template <class Archive>
+  void serialize(Archive& ar) {
+    ar(method);
+  }
 };
 
 class FeatureObject : protected AudioObject {
@@ -207,12 +234,28 @@ FeatureObject::~FeatureObject() {
   }
 }
 
+const std::vector<hash> METHODS = {
+    METHOD_ENERGY,   METHOD_HFC,      METHOD_COMPLEX,  METHOD_PHASE,
+    METHOD_SPECDIFF, METHOD_KL,       METHOD_MKL,      METHOD_SPECFLUX,
+    METHOD_CENTROID, METHOD_SPREAD,   METHOD_SKEWNESS, METHOD_KURTOSIS,
+    METHOD_SLOPE,    METHOD_DECREASE, METHOD_ROLLOFF};
+
 void FeatureObject::create(IPatcher& patcher) {
-  patcher.request(IPatcher::Resources::INLET, 1);
-  patcher.request(IPatcher::Resources::OUTLET, 1);
   for (const auto& arg : patcher.arguments()) {
     if (arg.name == PARAM_METHOD && arg.type == Argument::Types::STRING) {
       state.method = arg.string;
+    }
+  }
+
+  if (!state.method) {
+    patcher.missing("method");
+  } else {
+    auto it = std::find(METHODS.begin(), METHODS.end(), state.method);
+    if (it == METHODS.end()) {
+      patcher.invalid("method");
+    } else {
+      patcher.request(IPatcher::Resources::INLET, 1);
+      patcher.request(IPatcher::Resources::OUTLET, 1);
     }
   }
 }
