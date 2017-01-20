@@ -151,8 +151,6 @@ static SCM configure_objects(SCM scm_engine_data, SCM scm_arguments) {
     GuilePatcher patcher(strings, ng.objects, args);
 
     for (const auto& factory : ng.objects) {
-      std::cout << strings.lookup(factory.name) << std::endl;
-      std::cout << "===" << std::endl;
       auto object = plugins.create(factory.name);
 
       auto resources = SCM_EOL;
@@ -170,13 +168,10 @@ static SCM configure_objects(SCM scm_engine_data, SCM scm_arguments) {
         }
       }
 
-      std::cout << "==destroystart==" << std::endl;
       plugins.destroy(factory.name, object);
-      std::cout << "==destroyend==" << std::endl;
       patcher.advance();
       output = scm_cons(scm_cons(state, resources), output);
     }
-    std::cout << "Exiting scope" << std::endl;
   }
 
   return scm_reverse(output);
