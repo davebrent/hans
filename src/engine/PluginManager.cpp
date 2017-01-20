@@ -9,6 +9,11 @@ using namespace hans::engine;
 typedef void (*setup)(PluginManager*);
 
 PluginManager::PluginManager(StringManager& string_manager,
+                             ListView<ObjectDef> objects)
+    : m_string_manager(string_manager), m_objects(objects) {
+}
+
+PluginManager::PluginManager(StringManager& string_manager,
                              ListView<ObjectDef> objects,
                              ListView<Plugin> plugins)
     : m_string_manager(string_manager), m_objects(objects) {

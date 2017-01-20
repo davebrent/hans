@@ -1,9 +1,14 @@
 #ifndef HANS_PLUGINMANAGER_H_
 #define HANS_PLUGINMANAGER_H_
 
+#include <cereal/archives/portable_binary.hpp>
+#include <cereal/cereal.hpp>
+#include <cereal/external/base64.hpp>
 #include <functional>
 #include <iostream>
+#include <sstream>
 #include <vector>
+#include <cstring>
 #include "hans/common/StringManager.hpp"
 #include "hans/common/types.hpp"
 
@@ -15,6 +20,9 @@ namespace engine {
 class PluginManager {
  public:
   PluginManager(common::StringManager& string_manager,
+                common::ListView<ObjectDef> objects);
+
+  PluginManager(common::StringManager& string_manager,
                 common::ListView<ObjectDef> objects,
                 common::ListView<Plugin> plugins);
   ~PluginManager();
@@ -23,9 +31,17 @@ class PluginManager {
   bool add_object(const char* name) {
     auto size = sizeof(State);
 
-    auto create = [](ObjectDef::ID id, void* state) {
+    auto create = [](ObjectDef::ID id, const std::string& state) {
       auto instance = new Object(id);
-      instance->state = *reinterpret_cast<State*>(state);
+      std::memset(&instance->state, 0, sizeof(State));
+
+      if (state.size() != 0) {
+        auto buffer = cereal::base64::decode(state);
+        std::istringstream is(buffer, std::ios::binary);
+        cereal::PortableBinaryInputArchive ar(is);
+        ar(instance->state);
+      }
+
       return instance;
     };
 
@@ -35,7 +51,16 @@ class PluginManager {
 
     auto serialize = [](void* instance) {
       auto obj = static_cast<Object*>(instance);
-      return static_cast<void*>(&obj->state);
+      std::ostringstream os;
+
+      {
+        cereal::PortableBinaryOutputArchive ar(os);
+        ar(obj->state);
+      }
+
+      auto str = os.str();
+      auto ptr = reinterpret_cast<unsigned const char*>(str.c_str());
+      return cereal::base64::encode(ptr, str.size());
     };
 
     auto found = false;

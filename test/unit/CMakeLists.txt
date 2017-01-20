@@ -6,6 +6,7 @@ add_executable(hans-unittest
   engine/ParameterManager.cpp
   engine/ModulationManager.cpp
   engine/replay.cpp
+  engine/object.cpp
   common/smobs.cpp
   main.cpp)
 

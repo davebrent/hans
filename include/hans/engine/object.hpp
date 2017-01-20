@@ -1,6 +1,10 @@
 #ifndef HANS_ENGINE_OBJECT_H
 #define HANS_ENGINE_OBJECT_H
 
+#include <cereal/archives/binary.hpp>
+#include <cereal/archives/xml.hpp>
+#include <cereal/cereal.hpp>
+#include <cereal/types/vector.hpp>
 #include "hans/common/types.hpp"
 #include "hans/engine/Engine.hpp"
 #include "hans/engine/Patcher.hpp"

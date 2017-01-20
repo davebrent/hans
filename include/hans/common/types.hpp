@@ -66,9 +66,9 @@ struct Plugin {
 struct ObjectDef {
   enum Types { AUDIO, GRAPHICS };
   typedef uint32_t ID;
-  typedef std::function<void*(ID, void*)> Create;
+  typedef std::function<void*(ID, const std::string&)> Create;
   typedef std::function<void(void*)> Destroy;
-  typedef std::function<void*(void*)> Serialize;
+  typedef std::function<std::string(void*)> Serialize;
   ID id;
   Types type;
   hash name;
