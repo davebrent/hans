@@ -136,7 +136,7 @@
                     (out   `((object . ,(car data))
                              (name   . ,(hans-hash (parameter-name param)))
                              (size   . ,size)
-                             (offset . ,(parameter-components param)))))
+                             (offset . ,offset))))
                (set! offset (+ offset size))
                out))
            (%list-parameters programs)))
