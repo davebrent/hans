@@ -119,7 +119,7 @@
   (os-path-join (dirname (current-filename)) filename))
 
 (define (dump-file ng-data)
-  (let f (open-file path "w")
+  (let ((f (open-file path "w")))
     (display (hans-object-stringify ng-data) f)
     (close-output-port f)))
 
