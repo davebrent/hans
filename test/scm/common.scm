@@ -54,3 +54,8 @@
     (test-equal 2 (length objects))
     (test-equal 12 (assq-ref (list-ref objects 0) 'name))
     (test-equal 13 (assq-ref (list-ref objects 1) 'name))))
+
+(let* ((recs-data-primitive (make-hans-primitive 'recordings '()))
+       (recs-data           (hans-primitive-get recs-data-primitive)))
+  ;; An object that has a field with the word "value" (similar to cereal lists)
+  (test-equal (length (assq-ref recs-data 'values)) 0))

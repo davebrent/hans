@@ -1,4 +1,5 @@
 (define-module (hans common)
+  :use-module (ice-9 regex)
   :use-module (sxml simple)
   :use-module (hans extension)
   :export (hans-hash
@@ -23,7 +24,7 @@
       (cons tag child))))
 
 (define (list-tag? tag)
-  (string-prefix? "value" (symbol->string tag)))
+  (not (eq? #f (string-match "value[0-9]" (symbol->string tag)))))
 
 (define (contains-list? child)
   (and (not (null? child))
