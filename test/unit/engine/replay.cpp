@@ -7,36 +7,43 @@ using namespace hans::engine;
 
 TEST_CASE("replay recorder", "[replay]") {
   SECTION("recording and replaying parameters") {
-    /*
-    Parameter::Value data[2] = {10, 20};
-    auto values = std::vector<Parameter::Value>(&data[0], &data[1]);
+    std::vector<Parameter::Value> values = {10, 20};
+    Recordings recordings;
 
-    ReplayRecorder recorder(values);
+    ReplayRecorder recorder(values, recordings);
+    ReplayPlayer player(values, recordings);
 
     recorder.start();
-    recorder.update();
-    data[0] = 11.0f;
-    data[1] = 21.0f;
-    recorder.update();
+    recorder.tick();
+    values[0] = 11.f;
+    values[1] = 21.f;
+    recorder.tick();
     recorder.stop();
 
-    data[0] = 0;
-    data[1] = 0;
+    values[0] = 0;
+    values[1] = 0;
 
-    ReplayPlayer player(values);
-    player.reset_with_blob(recorder.to_blob());
-
+    player.start();
     player.tick();
-    REQUIRE(data[0] == 10.0f);
-    REQUIRE(data[1] == 20.0f);
+    REQUIRE(values[0] == 10.0f);
+    REQUIRE(values[1] == 20.0f);
     player.tick();
-    REQUIRE(data[0] == 11);
-    REQUIRE(data[1] == 21);
+    REQUIRE(values[0] == 11);
+    REQUIRE(values[1] == 21);
 
     // Ensure an error is not thrown
     player.tick();
-    REQUIRE(data[0] == 11);
-    REQUIRE(data[1] == 21);
-    */
+    REQUIRE(values[0] == 11);
+    REQUIRE(values[1] == 21);
+
+    player.set(1, 12);
+    player.tick();
+    REQUIRE(values[0] == 11);
+    REQUIRE(values[1] == 21);
+
+    player.set(0, 0);
+    player.tick();
+    REQUIRE(values[0] == 10);
+    REQUIRE(values[1] == 20);
   }
 }

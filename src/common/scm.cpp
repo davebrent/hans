@@ -46,6 +46,7 @@ void scm_init_common_module() {
   scm::smob<graphics::Shader>("shader");
   scm::smob<graphics::FBO::Attachment>("fbo-attachment");
   scm::smob<graphics::FBO>("fbo");
+  scm::smob<Recordings>("recordings");
   scm::smob<EngineData>("engine-data");
 
   scm::smob<Frame>("frame", [](void* bytes, SCM args) {

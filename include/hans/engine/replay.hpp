@@ -1,7 +1,6 @@
 #ifndef HANS_ENGINE_REPLAY_H_
 #define HANS_ENGINE_REPLAY_H_
 
-#include <sstream>
 #include <vector>
 #include "hans/common/primitives.hpp"
 
@@ -10,32 +9,35 @@ namespace engine {
 
 class ReplayRecorder {
  public:
-  explicit ReplayRecorder(const std::vector<Parameter::Value>& values);
-  ~ReplayRecorder();
+  ReplayRecorder(std::vector<Parameter::Value>& values, Recordings& recordings);
+
   void start();
-  void update();
+  void tick();
   void stop();
-  Blob to_blob();
 
  private:
-  Blob m_blob;
-  std::ostringstream m_stream;
-  const std::vector<Parameter::Value>& m_values;
+  Recordings& m_recordings;
+  std::vector<Parameter::Value>& m_values;
   bool m_recording;
 };
 
 class ReplayPlayer {
  public:
-  ReplayPlayer(EngineData& ng_data, std::vector<Parameter::Value>& values);
-  // ReplayPlayer(std::vector<Parameter::Value>& values);
-  void reset_with_blob(Blob blob);
+  ReplayPlayer(std::vector<Parameter::Value>& values,
+               const Recordings& recordings);
+
+  void start();
   void tick();
-  void set(uint64_t frameno);
+  void stop();
+  void set(size_t frameno);
+  void set(size_t recording, size_t frameno);
 
  private:
-  uint64_t m_frameno;
-  EngineData& m_ng_data;
   std::vector<Parameter::Value>& m_values;
+  const Recordings& m_recordings;
+  bool m_playing;
+  size_t m_recording;
+  size_t m_frameno;
 };
 
 } // namespace engine

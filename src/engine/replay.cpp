@@ -1,91 +1,92 @@
 #include "hans/engine/replay.hpp"
-#include <cassert>
-#include <cstdlib>
-#include <cstring>
+#include <algorithm>
 #include <iostream>
 
 using namespace hans;
 using namespace hans::engine;
 
-ReplayRecorder::ReplayRecorder(const std::vector<Parameter::Value>& values)
-    : m_values(values), m_stream(std::ostringstream::binary) {
-  m_blob.size = 0;
-  m_blob.data = nullptr;
+ReplayRecorder::ReplayRecorder(std::vector<Parameter::Value>& values,
+                               Recordings& recordings)
+    : m_values(values), m_recordings(recordings) {
   m_recording = false;
 }
 
-ReplayRecorder::~ReplayRecorder() {
-  if (m_blob.data != nullptr) {
-    std::free(m_blob.data);
-  }
-}
-
 void ReplayRecorder::start() {
-  m_stream.seekp(0);
+  if (m_recording) {
+    return;
+  }
+
   m_recording = true;
+  m_recordings.offsets.push_back(m_recordings.values.size());
 }
 
-void ReplayRecorder::update() {
-  if (m_recording) {
-    auto bytes = sizeof(Parameter::Value) * m_values.size();
-    m_stream.write(
-        reinterpret_cast<char*>(const_cast<Parameter::Value*>(&m_values[0])),
-        bytes);
+void ReplayRecorder::tick() {
+  if (!m_recording) {
+    return;
   }
+
+  m_recordings.values.insert(m_recordings.values.end(),
+                             std::make_move_iterator(m_values.begin()),
+                             std::make_move_iterator(m_values.end()));
 }
 
 void ReplayRecorder::stop() {
-  if (m_blob.data != nullptr) {
-    std::free(m_blob.data);
+  if (!m_recording) {
+    return;
   }
 
-  auto str = m_stream.str();
-  m_blob.size = str.size();
-  m_blob.data = std::calloc(m_blob.size, sizeof(char));
-  std::memcpy(m_blob.data, str.c_str(), m_blob.size);
+  auto offset = m_recordings.offsets.at(m_recordings.offsets.size() - 1);
+  auto total = m_recordings.values.size();
+  auto framesize = m_values.size();
+
+  auto length = (total - offset) / framesize;
+  m_recordings.lengths.push_back(length);
+  m_recording = false;
 }
 
-Blob ReplayRecorder::to_blob() {
-  return m_blob;
+ReplayPlayer::ReplayPlayer(std::vector<Parameter::Value>& values,
+                           const Recordings& recordings)
+    : m_values(values), m_recordings(recordings) {
+  m_frameno = 0;
+  m_recording = 0;
+  m_playing = false;
 }
 
-ReplayPlayer::ReplayPlayer(EngineData& ng_data,
-                           std::vector<Parameter::Value>& values)
-    : m_ng_data(ng_data), m_values(values) {
-  m_frameno = -1;
+void ReplayPlayer::start() {
+  m_playing = true;
 }
 
-// ReplayPlayer::ReplayPlayer(std::vector<Parameter::Value>& values)
-//     : m_values(values) {
-//   m_frameno = -1;
-// }
+void ReplayPlayer::stop() {
+  m_playing = false;
+}
 
-void ReplayPlayer::reset_with_blob(Blob blob) {
-  // assert(m_blob.type == DataFile::REPLAY);
-  // m_blob.data = blob.data;
-  // m_blob.size = blob.size;
-  // m_frameno = -1;
+void ReplayPlayer::set(size_t frameno) {
+  set(m_recording, frameno);
+}
+
+void ReplayPlayer::set(size_t recording, size_t frameno) {
+  m_recording = recording;
+  m_frameno = frameno;
 }
 
 void ReplayPlayer::tick() {
-  set(m_frameno + 1);
-}
+  if (!m_playing) {
+    return;
+  }
 
-void ReplayPlayer::set(uint64_t frameno) {
-  // if (m_blob.data == nullptr) {
-  //   return;
-  // }
+  if (m_recording >= m_recordings.offsets.size()) {
+    return;
+  }
 
-  // auto bytes = sizeof(Parameter::Value) * m_values.size();
-  // auto offset = frameno * bytes;
+  auto base = m_recordings.offsets.at(m_recording);
+  auto framesize = m_values.size();
+  auto offset = base + (framesize * m_frameno);
 
-  // if (offset >= m_blob.size) {
-  //   return;
-  // }
+  if (offset + framesize > m_recordings.values.size()) {
+    return;
+  }
 
-  // auto dest = &m_values[0];
-  // auto src = reinterpret_cast<void*>(static_cast<char*>(m_blob.data) +
-  // offset);
-  // std::memcpy(dest, src, bytes);
-  // m_frameno = frameno;
+  auto it = m_recordings.values.begin() + offset;
+  std::copy(it, it + framesize, m_values.begin());
+  m_frameno++;
 }

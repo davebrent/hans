@@ -59,8 +59,8 @@ struct EngineRunner {
         objects(ng.objects),
         chains(ng.chains),
         programs(ng.programs),
-        recorder(ng.parameters_values),
-        player(ng, ng.parameters_values) {
+        recorder(ng.parameters_values, ng.recordings),
+        player(ng.parameters_values, ng.recordings) {
     audio = nullptr;
     selected_program = 0;
   }
@@ -104,7 +104,8 @@ static SCM engine_frame(EngineRunner& runner, Engine& engine) {
     }
   }
 
-  runner.recorder.update();
+  runner.player.tick();
+  runner.recorder.tick();
 
   for (auto i = program.graphics.start; i < program.graphics.end; ++i) {
     auto id = runner.chains[i];
@@ -217,11 +218,22 @@ static SCM engine_record_start(SCM scm_runner) {
 static SCM engine_record_stop(SCM scm_runner) {
   auto& runner = scm::to_cpp<EngineRunner>(scm_runner);
   runner.recorder.stop();
-  runner.player.reset_with_blob(runner.recorder.to_blob());
   return SCM_BOOL_T;
 }
 
-static SCM engine_set_engine_frame(SCM scm_runner, SCM frameno) {
+static SCM engine_player_start(SCM scm_runner) {
+  auto& runner = scm::to_cpp<EngineRunner>(scm_runner);
+  runner.player.start();
+  return SCM_BOOL_T;
+}
+
+static SCM engine_player_stop(SCM scm_runner) {
+  auto& runner = scm::to_cpp<EngineRunner>(scm_runner);
+  runner.player.stop();
+  return SCM_BOOL_T;
+}
+
+static SCM engine_player_set(SCM scm_runner, SCM frameno) {
   auto& runner = scm::to_cpp<EngineRunner>(scm_runner);
   runner.player.set(scm_to_int(frameno));
   return SCM_BOOL_T;
@@ -252,7 +264,9 @@ void scm_init_engine_module() {
   scm::procedure<engine_capture>("engine-capture", 2, 0, 0);
   scm::procedure<engine_record_start>("engine-record-start", 1, 0, 0);
   scm::procedure<engine_record_stop>("engine-record-stop", 1, 0, 0);
-  scm::procedure<engine_set_engine_frame>("set-engine-frame!", 2, 0, 0);
+  scm::procedure<engine_player_start>("engine-player-start", 1, 0, 0);
+  scm::procedure<engine_player_stop>("engine-player-stop", 1, 0, 0);
+  scm::procedure<engine_player_set>("set-engine-player!", 2, 0, 0);
   scm::procedure<engine_set_parameter>("set-engine-parameter!", 5, 0, 0);
 }
 }

@@ -107,11 +107,16 @@ void serialize(Archive& ar, Arguments& d) {
 }
 
 template <class Archive>
+void serialize(Archive& ar, Recordings& d) {
+  ar(C(offsets), C(lengths), C(values));
+}
+
+template <class Archive>
 void serialize(Archive& ar, EngineData& d) {
   ar(C(settings), C(strings), C(plugins), C(objects), C(objects_state),
      C(parameters), C(parameters_values), C(programs), C(chains), C(modulators),
      C(registers), C(ring_buffers), C(shaders), C(fbos), C(fbos_attachments),
-     C(audio_buffers));
+     C(audio_buffers), C(recordings));
 }
 
 #undef C

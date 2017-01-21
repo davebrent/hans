@@ -195,6 +195,12 @@ struct Arguments {
   std::vector<size_t> offsets;
 };
 
+struct Recordings {
+  std::vector<size_t> offsets;
+  std::vector<size_t> lengths;
+  std::vector<Parameter::Value> values;
+};
+
 struct EngineData {
   Settings settings;
   Strings strings;
@@ -212,6 +218,7 @@ struct EngineData {
   std::vector<graphics::FBO> fbos;
   std::vector<graphics::FBO::Attachment> fbos_attachments;
   std::vector<audio::Buffer> audio_buffers;
+  Recordings recordings;
 };
 } // namespace hans
 
