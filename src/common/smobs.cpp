@@ -1,5 +1,6 @@
 #include "hans/common/smobs.hpp"
 #include <cstring>
+#include <fstream>
 #include <sstream>
 #include "hans/common/procedure.hpp"
 
@@ -101,6 +102,52 @@ static SCM hans_primitive_get(SCM smob) {
   return scm_from_utf8_stringn(str.c_str(), str.size());
 }
 
+static SCM hans_primitive_save(SCM smob, SCM filepath) {
+  auto& smobs = detail::Smobs::get();
+  if (SCM_SMOB_PREDICATE(smobs.tag, smob) == 0) {
+    return SCM_BOOL_F;
+  }
+
+  auto factory = smobs.lookup(SCM_SMOB_FLAGS(smob));
+  if (factory == nullptr) {
+    return SCM_BOOL_F;
+  }
+
+  auto path = scm_to_locale_string(filepath);
+  std::ofstream of(path, std::ios::binary);
+  std::free(path);
+
+  {
+    cereal::PortableBinaryOutputArchive ar(of);
+    auto bytes = reinterpret_cast<void*>(SCM_SMOB_DATA(smob));
+    factory->save(bytes, ar);
+  }
+
+  of.close();
+  return SCM_BOOL_T;
+}
+
+static SCM hans_primitive_load(SCM smob, SCM filepath) {
+  auto& smobs = detail::Smobs::get();
+  if (SCM_SMOB_PREDICATE(smobs.tag, smob) == 0) {
+    return SCM_BOOL_F;
+  }
+
+  auto factory = smobs.lookup(SCM_SMOB_FLAGS(smob));
+  if (factory == nullptr) {
+    return SCM_BOOL_F;
+  }
+
+  auto path = scm_to_locale_string(filepath);
+  std::ifstream is(path, std::ios::binary);
+  std::free(path);
+
+  cereal::PortableBinaryInputArchive ar(is);
+  auto bytes = reinterpret_cast<void*>(SCM_SMOB_DATA(smob));
+  factory->load(bytes, ar);
+  return SCM_BOOL_T;
+}
+
 static SCM hans_primitive_type(SCM smob) {
   auto& smobs = detail::Smobs::get();
   if (SCM_SMOB_PREDICATE(smobs.tag, smob) == 0) {
@@ -158,12 +205,16 @@ detail::Smobs::Factory::Factory(const char* _name, size_t _size,
                                 detail::Smobs::Create _create,
                                 detail::Smobs::Getter _get,
                                 detail::Smobs::Setter _set,
+                                detail::Smobs::Save _save,
+                                detail::Smobs::Load _load,
                                 detail::Smobs::Destroy _destroy)
     : name(_name),
       size(_size),
       create(_create),
       get(_get),
       set(_set),
+      save(_save),
+      load(_load),
       destroy(_destroy) {
 }
 
@@ -179,6 +230,8 @@ detail::Smobs::Smobs() {
   scm::procedure<hans_primitive_p>("hans-primitive?", 1, 1, 0);
   scm::procedure<hans_primitive_set>("%set-hans-primitive!", 2, 0, 0);
   scm::procedure<hans_primitive_get>("%hans-primitive-get", 1, 0, 0);
+  scm::procedure<hans_primitive_save>("hans-primitive->file", 2, 0, 0);
+  scm::procedure<hans_primitive_load>("file->hans-primitive", 2, 0, 0);
   scm::procedure<hans_primitive_type>("hans-primitive-type", 1, 1, 0);
   scm::procedure<hans_primitive_enum>("hans-primitive-enum", 2, 0, 0);
   scm::procedure<hans_primitives>("hans-primitives", 0, 0, 0);

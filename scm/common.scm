@@ -8,6 +8,8 @@
            hans-primitive-get
            set-hans-primitive!
            hans-primitive-enum
+           hans-primitive->file
+           file->hans-primitive
            hans-primitives))
 
 (hans-load-extension "libhanscommon" "scm_init_common_module")

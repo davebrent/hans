@@ -21,6 +21,8 @@ class Smobs {
   using Create = std::function<void(void*, SCM)>;
   using Getter = std::function<void(void*, cereal::XMLOutputArchive&)>;
   using Setter = std::function<void(void*, cereal::XMLInputArchive&)>;
+  using Save = std::function<void(void*, cereal::PortableBinaryOutputArchive&)>;
+  using Load = std::function<void(void*, cereal::PortableBinaryInputArchive&)>;
   using Destroy = std::function<void(void*)>;
 
   struct Factory {
@@ -31,9 +33,11 @@ class Smobs {
     Create create;
     Getter get;
     Setter set;
+    Save save;
+    Load load;
     Destroy destroy;
     Factory(const char* name, size_t size, Create create, Getter get,
-            Setter set, Destroy destroy);
+            Setter set, Save save, Load load, Destroy destroy);
   };
 
   Smobs(Smobs const&) = delete;
@@ -80,10 +84,21 @@ void smob(const char* name, detail::Smobs::Create create,
     ar(object);
   };
 
+  auto save = [](void* instance, cereal::PortableBinaryOutputArchive& ar) {
+    T& object = *reinterpret_cast<T*>(instance);
+    ar(object);
+  };
+
+  auto load = [](void* instance, cereal::PortableBinaryInputArchive& ar) {
+    T& object = *reinterpret_cast<T*>(instance);
+    ar(object);
+  };
+
   auto& smobs = detail::Smobs::get();
   auto size = sizeof(T);
 
-  detail::Smobs::Factory smob(name, size, create, get, set, destroy);
+  detail::Smobs::Factory smob(name, size, create, get, set, save, load,
+                              destroy);
   smobs.add(std::move(smob));
 }
 

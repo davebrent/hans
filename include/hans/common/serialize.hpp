@@ -1,7 +1,7 @@
 #ifndef HANS_COMMON_SERIALIZE_H_
 #define HANS_COMMON_SERIALIZE_H_
 
-#include <cereal/archives/binary.hpp>
+#include <cereal/archives/portable_binary.hpp>
 #include <cereal/archives/xml.hpp>
 #include <cereal/cereal.hpp>
 #include <cereal/types/string.hpp>
