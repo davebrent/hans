@@ -27,7 +27,7 @@
      ,(parameter 'seed 0 "Seed for random shape deformation")
      ,(parameter 'deform 0 "Shape deform amount")
      ,(parameter 'translate '(0 0 -1) "Shape translation")
-     ,(parameter 'rotation_speed 0.005 "The shapes rotation speed")
+     ,(parameter 'rotation 0 "Rotation value")
      ,(parameter 'rotation_axis '(1 1 1) "The shapes rotation speed")
      ,(parameter 'draw_mode 0 "GL draw mode"))
     (list

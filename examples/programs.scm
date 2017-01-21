@@ -118,11 +118,7 @@
 (define (base filename)
   (os-path-join (dirname (current-filename)) filename))
 
-(define (dump-file ng-data)
-  (let ((f (open-file path "w")))
-    (display (hans-object-stringify ng-data) f)
-    (close-output-port f)))
-
+;; Create a more compact representation of all the programs
 (define ng-data (hans-compile settings
                   `(,(make-pgm-fx "dotscreen" "filter/shader/dotscreen")
                     ,(make-pgm-attractors "attractors")
@@ -136,7 +132,37 @@
                     ,(make-pgm-pass "passthrough")
                     ,(make-pgm-ringbuffer "ringbuffer" "rb-foobar"))))
 
-(let ((engine (make-hans-primitive 'engine `(,ng-data))))
+(define (recording-demo engine frameno)
+  (cond ((eq? frameno 0)
+          ;; On the first frame start recording
+          (begin
+            (engine-record-start engine)
+            #t))
+        ((eq? frameno 600)
+          ;; After 10 seconds, stop the recording and play it back
+          (begin
+            (engine-record-stop engine)
+            (engine-player-start engine)
+            (set-engine-player! engine 0)
+            #t))
+        ((eq? frameno 1200)
+          ;; After another 10 seconds, stop the playback and save the recording
+          (begin
+            (engine-player-stop engine)
+            (hans-primitive->file ng-data "output.bin")
+            #f))
+        (else
+          ;; Update the rotation of the superformula shape
+          (let ((obj (hans-object-instance-id superformula))
+                (param (hans-hash 'rotation)))
+            (set-engine-parameter! engine obj param 0 (* frameno 0.005))
+            #t))))
+
+(let ((engine (make-hans-primitive 'engine `(,ng-data)))
+      (frameno 0))
   (engine-open engine)
-  (engine-run engine)
+  (engine-run engine (lambda ()
+                       (let ((res (recording-demo engine frameno)))
+                         (set! frameno (+ 1 frameno))
+                         res)))
   (engine-close engine))

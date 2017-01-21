@@ -4,23 +4,12 @@
 #include <glm/vec3.hpp>
 #include "hans/engine/object.hpp"
 
-#define PARAM_U 0x2c12422bb65022f
-#define PARAM_V 0xf3b2ca4cc58c9e66
-#define PARAM_ROTATION_AXIS 0x975878516616e3a4
-#define PARAM_N3 0x10f226f09e0c403f
-#define PARAM_N2 0x6a128100f09079c8
-#define PARAM_TRANSLATE 0xff8b6e0cf15e6b25
-#define PARAM_COLOR 0x925ede1160132c04
-#define PARAM_SEED 0xe4dae44a1a958be2
-#define PARAM_SCALE 0x7a1b16add5e6ccdc
-#define PARAM_DRAW_MODE 0x25c9c1a36cc45020
-#define PARAM_N1 0x7fe88897f5664746
-#define PARAM_B 0x80ae31540b0efedf
-#define PARAM_M 0x8284d9cc707424c3
-#define FRAG_SHADER 0x79b67a11a5e1e481
-#define PARAM_ROTATION_SPEED 0x63c148340d24589d
-#define VERT_SHADER 0x62fd67147cf1e377
-#define PARAM_A 0x7fc8bcdf01428509
+#define PARAM_ROTATION 0x2060566242789baa      /* rotation */
+#define PARAM_ROTATION_AXIS 0x975878516616e3a4 /* rotation_axis */
+#define PARAM_TRANSLATE 0xff8b6e0cf15e6b25     /* translate */
+#define PARAM_DRAW_MODE 0x25c9c1a36cc45020     /* draw_mode */
+#define FRAG_SHADER 0x79b67a11a5e1e481 /* superformula/shader/fragment */
+#define VERT_SHADER 0x62fd67147cf1e377 /* superformula/shader/vertex */
 
 using namespace hans;
 using namespace hans::engine;
@@ -158,7 +147,6 @@ static void update_uniforms(Engine& engine,
 
 struct FormulaState {
   int segments;
-  float rotation;
   graphics::FBO fbo;
   GLuint shape_vao;
   GLuint model_view_matrix;
@@ -169,7 +157,7 @@ struct FormulaState {
   Register outlet_depth;
   Parameter translation;
   Parameter rotation_axis;
-  Parameter rotation_speed;
+  Parameter rotation;
   Parameter draw_mode;
   std::vector<UniformParameter> uniforms;
 
@@ -186,7 +174,8 @@ class FormulaObject : protected GraphicsObject {
   using GraphicsObject::GraphicsObject;
   virtual void create(IPatcher& patcher) override;
   virtual void setup(Engine& engine) override;
-  virtual void update(Engine& engine) override;
+  virtual void update(Engine& engine) override {
+  }
   virtual void draw(Engine& engine) const override;
 
  private:
@@ -199,7 +188,6 @@ void FormulaObject::create(IPatcher& patcher) {
 
 void FormulaObject::setup(Engine& engine) {
   state.segments = 90;
-  state.rotation = 0;
 
 #define MAKE_UNIFORM_PARAM(SIZE, NAME) \
   state.uniforms.push_back({.size = SIZE, .name = engine.strings.intern(NAME)});
@@ -225,7 +213,7 @@ void FormulaObject::setup(Engine& engine) {
     uniform.parameter = engine.parameters.make(id, uniform.name);
   }
 
-  state.rotation_speed = engine.parameters.make(id, PARAM_ROTATION_SPEED);
+  state.rotation = engine.parameters.make(id, PARAM_ROTATION);
   state.rotation_axis = engine.parameters.make(id, PARAM_ROTATION_AXIS);
   state.translation = engine.parameters.make(id, PARAM_TRANSLATE);
   state.draw_mode = engine.parameters.make(id, PARAM_DRAW_MODE);
@@ -287,10 +275,6 @@ void FormulaObject::setup(Engine& engine) {
   engine.registers.write(state.outlet_depth, &depth_tex);
 }
 
-void FormulaObject::update(Engine& engine) {
-  state.rotation += engine.parameters.get(state.rotation_speed, 0);
-}
-
 void FormulaObject::draw(Engine& engine) const {
   auto translation = glm::vec3(engine.parameters.get(state.translation, 0),
                                engine.parameters.get(state.translation, 1),
@@ -305,7 +289,8 @@ void FormulaObject::draw(Engine& engine) const {
   auto aspect = (float)engine.settings.width / (float)engine.settings.height;
   auto projection_matrix = glm::perspective(45.0f, aspect, 0.1f, 100.f);
   model_view_matrix = glm::translate(model_view_matrix, translation);
-  model_view_matrix = glm::rotate(model_view_matrix, state.rotation, axis);
+  model_view_matrix = glm::rotate(
+      model_view_matrix, engine.parameters.get(state.rotation, 0), axis);
 
   glUseProgram(state.program.handle);
   glUniformMatrix4fv(state.model_view_matrix, 1, 0,
