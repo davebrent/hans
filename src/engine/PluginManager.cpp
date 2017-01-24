@@ -8,19 +8,13 @@ using namespace hans::engine;
 
 typedef void (*setup)(PluginManager*);
 
-PluginManager::PluginManager(StringManager& string_manager,
-                             std::vector<ObjectDef>& objects)
-    : m_string_manager(string_manager), m_objects(objects) {
+PluginManager::PluginManager(StringManager& strings) : m_strings(strings) {
 }
 
-PluginManager::PluginManager(StringManager& string_manager,
-                             std::vector<ObjectDef>& objects,
-                             const std::vector<Plugin>& plugins)
-    : m_string_manager(string_manager), m_objects(objects) {
-  for (auto i = 0; i < plugins.size(); ++i) {
-    const auto& plugin = plugins[i];
-    auto filepath = m_string_manager.lookup(plugin.filepath);
-    auto handle = dlopen(filepath, RTLD_NOW);
+PluginManager::PluginManager(StringManager& strings, const Plugins& plugins)
+    : m_strings(strings) {
+  for (const auto filepath : plugins.filepaths) {
+    auto handle = dlopen(m_strings.lookup(filepath), RTLD_NOW);
 
     if (handle != nullptr) {
       m_handles.push_back(handle);
@@ -34,47 +28,45 @@ PluginManager::PluginManager(StringManager& string_manager,
   }
 }
 
-void PluginManager::destroy(hash name, Object* instance) {
-  for (const auto& object : m_objects) {
-    if (name == object.name) {
-      object.destroy(instance);
-      break;
-    }
-  }
-}
-
-std::string PluginManager::serialize(hash name, Object* instance) {
-  for (const auto& object : m_objects) {
-    if (name == object.name) {
-      return object.serialize(instance);
-    }
-  }
-  throw std::runtime_error("Object not found");
-}
-
-Object* PluginManager::create(hash name, ObjectDef::ID id,
-                              const std::string& state) {
-  for (const auto& object : m_objects) {
-    if (name == object.name) {
-      return static_cast<Object*>(object.create(id, state));
-    }
-  }
-  return nullptr;
-}
-
-Object* PluginManager::create(hash name) {
-  return create(name, 0, "");
-}
-
 PluginManager::~PluginManager() {
-  for (auto& object : m_objects) {
-    object.size = 0;
-    object.create = nullptr;
-    object.destroy = nullptr;
-    object.serialize = nullptr;
-  }
+  m_constructors.clear();
+  m_destructors.clear();
+  m_serializers.clear();
+  m_sizes.clear();
+  m_objects.clear();
 
   for (auto& handle : m_handles) {
     dlclose(handle);
   }
+}
+
+static size_t find_or_throw(std::vector<hash>& objects, hash name) {
+  auto it = std::find(objects.begin(), objects.end(), name);
+  if (it == objects.end()) {
+    throw std::runtime_error("Object not found");
+  }
+  return it - objects.begin();
+}
+
+Object* PluginManager::construct(hash name, ObjectDef::ID id,
+                                 const std::string& state) {
+  auto i = find_or_throw(m_objects, name);
+  auto& constructor = m_constructors.at(i);
+  return static_cast<Object*>(constructor(id, state));
+}
+
+Object* PluginManager::construct(hash name) {
+  return construct(name, 0, "");
+}
+
+std::string PluginManager::serialize(hash name, Object* instance) {
+  auto i = find_or_throw(m_objects, name);
+  auto& serializer = m_serializers.at(i);
+  return serializer(instance);
+}
+
+void PluginManager::destruct(hash name, Object* instance) {
+  auto i = find_or_throw(m_objects, name);
+  auto& destructor = m_destructors.at(i);
+  destructor(instance);
 }

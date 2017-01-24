@@ -8,28 +8,34 @@
   :use-module (hans utils)
   :export (configure-objects-pass))
 
-(define (configure-objects-pass programs output options)
-  ;; Allow objects to request resources, from C++, based on their arguments
-  (let* ((engine-obj   (make-hans-primitive 'engine-data '()))
-         (args-obj     (make-hans-primitive 'arguments '()))
-         (engine-tpl   (hans-primitive-get engine-obj))
-         (library-data (emit-libraries programs))
-         (object-data  (emit-objects programs))
-         (args-data    (emit-arguments programs))
-         (libraries    (car library-data))
-         (objects      (car object-data))
-         (arguments    (car args-data))
-         (strings      (make-strings (append (cdr library-data)
-                                             (cdr object-data)
-                                             (cdr args-data)))))
+(define %graphics-object? (compose graphics-object? hans-object-rec))
+(define %audio-object? (compose audio-object? hans-object-rec))
 
-    (set! engine-tpl (assq-set! engine-tpl 'strings strings))
-    (set! engine-tpl (assq-set! engine-tpl 'objects objects))
-    (set! engine-tpl (assq-set! engine-tpl 'plugins libraries))
-    (set-hans-primitive! engine-obj engine-tpl)
-    (set-hans-primitive! args-obj arguments)
+(define (%configure-objects-pass programs emit-graphs object-filter)
+  (let* ((graphs-primitive (make-hans-primitive 'graphs '()))
+         (plugins-primitive (make-hans-primitive 'plugins '()))
+         (args-primitive (make-hans-primitive 'arguments '()))
+         (strings-primitive (make-hans-primitive 'strings '()))
 
-    (let ((states (%configure-objects engine-obj args-obj)))
+         (graphs-data (emit-graphs programs))
+         (libraries-data (emit-libraries programs))
+         (args-data (emit-arguments programs object-filter)))
+
+    (assq-set! (car graphs-data) 'states '())
+    (set-hans-primitive! graphs-primitive (car graphs-data))
+    (set-hans-primitive! plugins-primitive (car libraries-data))
+    (set-hans-primitive! args-primitive (car args-data))
+    (set-hans-primitive! strings-primitive (make-strings
+                                             (append
+                                               (cdr graphs-data)
+                                               (cdr libraries-data)
+                                               (cdr args-data))))
+
+    (let ((states (%configure-objects strings-primitive
+                                      args-primitive
+                                      graphs-primitive
+                                      plugins-primitive)))
+
       (for-each (lambda (data)
                   (let ((obj (car data))
                         (state-resources (cdr data)))
@@ -38,4 +44,10 @@
 
                     (set-hans-object-data! obj (car state-resources))
                     (set-hans-object-resources! obj (cdr state-resources))))
-                (map-in-order cons (list-objects programs) states)))))
+                (map-in-order cons
+                              (filter object-filter (list-objects programs))
+                              states)))))
+
+(define (configure-objects-pass programs output options)
+  (%configure-objects-pass programs emit-audio-graphs %audio-object?)
+  (%configure-objects-pass programs emit-graphics-graphs %graphics-object?))

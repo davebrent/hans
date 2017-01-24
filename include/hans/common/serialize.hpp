@@ -18,23 +18,13 @@ void serialize(Archive& ar, Settings& d) {
 }
 
 template <class Archive>
-void serialize(Archive& ar, Plugin& d) {
-  ar(C(filepath));
+void serialize(Archive& ar, Plugins& d) {
+  ar(C(filepaths));
 }
 
 template <class Archive>
 void serialize(Archive& ar, ObjectDef& d) {
-  ar(C(id), C(type), C(name));
-}
-
-template <class Archive>
-void serialize(Archive& ar, Chain& d) {
-  ar(C(id), C(start), C(end));
-}
-
-template <class Archive>
-void serialize(Archive& ar, Program& d) {
-  ar(C(name), C(graphics), C(audio));
+  ar(C(id), C(name));
 }
 
 template <class Archive>
@@ -112,11 +102,25 @@ void serialize(Archive& ar, Recordings& d) {
 }
 
 template <class Archive>
+void serialize(Archive& ar, Range& d) {
+  ar(C(start), C(end));
+}
+
+template <class Archive>
+void serialize(Archive& ar, Graphs& d) {
+  ar(C(objects), C(states), C(indices), C(ranges));
+}
+
+template <class Archive>
+void serialize(Archive& ar, Programs& d) {
+  ar(C(names), C(audio), C(graphics));
+}
+
+template <class Archive>
 void serialize(Archive& ar, EngineData& d) {
-  ar(C(settings), C(strings), C(plugins), C(objects), C(objects_state),
-     C(parameters), C(parameters_values), C(programs), C(chains), C(modulators),
-     C(registers), C(ring_buffers), C(shaders), C(fbos), C(fbos_attachments),
-     C(audio_buffers), C(recordings));
+  ar(C(settings), C(strings), C(plugins), C(parameters), C(parameters_values),
+     C(programs), C(modulators), C(registers), C(ring_buffers), C(shaders),
+     C(fbos), C(fbos_attachments), C(audio_buffers), C(recordings));
 }
 
 #undef C

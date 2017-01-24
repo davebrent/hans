@@ -2,6 +2,7 @@
 #define HANS_ENGINE_AUDIOSTREAM_H_
 
 #include <portaudio.h>
+#include <functional>
 #include "hans/common/primitives.hpp"
 #include "hans/engine/AudioBusManager.hpp"
 #include "hans/engine/AudioDevices.hpp"

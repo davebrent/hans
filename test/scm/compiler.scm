@@ -51,15 +51,16 @@
       ,(shader 'fragment "attractors/shaders/frag" "Some fragment code"))
     (fbo #t `(,(fbo-attachment 'color "Output data" 128 256 4)))))
 
-(define SETTINGS `((width  . 640)
-                   (height . 360)))
+(define SETTINGS `((width      . 640)
+                   (height     . 360)
+                   (channels   . 2)
+                   (samplerate . 44100)
+                   (blocksize  . 64)))
 
 (define OBJECTS `((test-object-1     . ,test-object-1)
                   (test-object-2     . ,test-object-2)
                   (test-gfx-object-1 . ,test-gfx-object-1)
                   (test-gfx-object-2 . ,test-gfx-object-2)))
-
-(define opts `((output . "test.hans")))
 
 (test-begin "test-compiler")
 
@@ -77,7 +78,7 @@
          (pgm-2   (make-program "foobar" graph-2))
 
          (ng (make-hans-primitive 'engine-data '())))
-    (assign-graph-id-pass `(,pgm-1 ,pgm-2) ng opts)
+    (assign-graph-id-pass `(,pgm-1 ,pgm-2) ng SETTINGS)
     (test-equal 0 (hans-graph-id (hans-program-audio-graph pgm-1)))
     (test-equal 1 (hans-graph-id (hans-program-graphics-graph pgm-1)))
     (test-equal 2 (hans-graph-id (hans-program-audio-graph pgm-2)))
@@ -91,7 +92,7 @@
          (graph (make-audio-graph (env 'connect obj-1 0 obj-2 0)))
          (pgm   (make-program "foobar" graph))
          (ng    (make-hans-primitive 'engine-data '())))
-    (normalize-args-pass `(,pgm) ng opts)
+    (normalize-args-pass `(,pgm) ng SETTINGS)
     (test-equal "bar" (assq-ref (hans-object-args obj-1) 'foo))))
 
 (begin
@@ -104,23 +105,12 @@
          (ng    (make-hans-primitive 'engine-data '()))
          (ex    #f))
     (catch 'compileerror (lambda ()
-                           (resolve-library-paths-pass `(,pgm) ng opts))
+                           (resolve-library-paths-pass `(,pgm) ng SETTINGS))
                          (lambda (key . args)
                            (test-equal #t (string-prefix? "Unable to find "
                                                           (car args)))
                            (set! ex #t)))
     (test-equal #t ex)))
-
-; (begin
-;   ;; Getting object resources
-;   (let ((p1 (make-test-program "test-1" `((foo . bar))))
-;         (ng (make-hans-primitive 'engine-data '()))
-;         (ex #f))
-;     (catch 'compileerror (lambda ()
-;                            (configure-objects-pass `(,p1) ng opts))
-;                          (lambda (key . args)
-;                            (set! ex #t)))
-;     (test-equal #t ex)))
 
 (begin
   ;; Register allocation pass
@@ -132,7 +122,7 @@
          (ng    (make-hans-primitive 'engine-data '())))
 
     (set-hans-graph-id! graph 999)
-    (register-allocation-pass `(,pgm) ng opts)
+    (register-allocation-pass `(,pgm) ng SETTINGS)
 
     (let ((c1 (car (hans-object-registers obj-1)))
           (c2 (car (hans-object-registers obj-2))))
@@ -157,7 +147,7 @@
                                   (env 'connect obj-1 0 obj-2 0)))
          (pgm   (make-program "foobar" graph))
          (ng    (make-hans-primitive 'engine-data '())))
-    (topological-sort-pass `(,pgm) ng opts)
+    (topological-sort-pass `(,pgm) ng SETTINGS)
     (let ((objs (map hans-object-instance-id (hans-graph-objects graph))))
       (test-equal `(,(hans-object-instance-id obj-1)
                     ,(hans-object-instance-id obj-2)
@@ -171,62 +161,46 @@
          (graph (make-audio-graph (env 'connect obj-1 0 obj-2 0)))
          (pgm   (make-program "foobar" graph)))
     (let ((res (emit-libraries `(,pgm))))
-      (test-equal `((filepath . 14377400405548874911))
-                  (caar res)))))
+      (test-equal `((filepaths 14377400405548874911))
+                  (car res)))))
 
 (begin
-  ;; Emitting objects
+  ;; Emitting programs
   (let* ((env   (make-environment SETTINGS OBJECTS))
-         (obj-1 (env 'create 'test-object-1 '() '(0 0)))
-         (obj-2 (env 'create 'test-object-2 '() '(0 0)))
-         (graph (make-audio-graph (env 'connect obj-1 0 obj-2 0)))
-         (pgm   (make-program "foobar" graph)))
-    (let ((res (emit-objects `(,pgm))))
-      (test-equal `((id   . ,(hans-object-instance-id obj-1))
-                    (type . 0)
-                    (name . 5602427413976156184))
-                  (caar res)))))
-
-(begin
-  ;; Emitting arguments
-  (let* ((env   (make-environment SETTINGS OBJECTS))
-         (obj-1 (env 'create 'test-object-1 `((foo . 100)) '(0 0)))
-         (obj-2 (env 'create 'test-object-2 `((baz . "bar")) '(0 0)))
-         (graph (make-audio-graph (env 'connect obj-1 0 obj-2 0)))
-         (pgm   (make-program "foobar" graph)))
-    (let* ((res (emit-arguments `(,pgm)))
-           (data (car res))
-           (strings (cdr res)))
-      (test-equal `(,"foo" ,"bar" ,"baz") strings)
-      (test-equal `(1 1) (assq-ref data 'lengths))
-      (test-equal `(0 1) (assq-ref data 'offsets))
-      (test-equal `(((type    . 1)
-                     (name    . 14834356025302342401)
-                     (boolean . #f)
-                     (number  . 100)
-                     (string  . 0))
-                    ((type    . 2)
-                     (name    . 10533334703418180981)
-                     (boolean . #f)
-                     (number  . 0)
-                     (string  . 17545852598994811774)))
-                  (assq-ref data 'arguments))))
-
-  ;; Emitting string arguments
-  (let* ((env   (make-environment SETTINGS OBJECTS))
-         (obj-1 (env 'create 'test-object-1 `((foo . "james")) '(0 0)))
-         (obj-2 (env 'create 'test-object-2 `((baz . "brown")) '(0 0)))
-         (graph (make-audio-graph (env 'connect obj-1 0 obj-2 0)))
-         (pgm-1 (make-program "foobar" graph)))
-
-      (let* ((res (emit-arguments `(,pgm-1)))
-             (data (car res)))
-        ;; `(brown james)
-        (test-equal `(15835153999929349215 7640303621047919708)
-                    (sort (map (lambda (arg)
-                                 (assq-ref arg 'string))
-                               (assq-ref data 'arguments))
-                          >)))))
+         (gfx-obj-1 (env 'create 'test-gfx-object-1 '() '(0 0)))
+         (gfx-obj-2 (env 'create 'test-gfx-object-1 '() '(0 0)))
+         (gfx-obj-3 (env 'create 'test-gfx-object-1 '() '(0 0)))
+         (snd-obj-1 (env 'create 'test-object-1 '() '(0 0)))
+         (snd-obj-2 (env 'create 'test-object-1 '() '(0 0)))
+         (snd-graph (make-audio-graph
+                      (env 'connect snd-obj-1 0 snd-obj-2 0)))
+         (gfx-graph (make-graphics-graph
+                      (env 'connect gfx-obj-1 0 gfx-obj-2 0)
+                      (env 'connect gfx-obj-2 0 gfx-obj-3 0)))
+         (pgm-1 (make-program "foobar" gfx-graph snd-graph))
+         (pgm-2 (make-program "bazbar" gfx-graph snd-graph)))
+    (let ((res (emit-programs `(,pgm-1 ,pgm-2))))
+      (test-equal `((names 15321041522486911382 7891287109127304821)
+                    (audio
+                      (objects ((id . 3) (name . 5602427413976156184))
+                               ((id . 4) (name . 5602427413976156184)))
+                      (indices 0 1 0 1)
+                      (ranges ((start . 0) (end . 2))
+                              ((start . 2) (end . 4)))
+                      (states #f #f))
+                    (graphics
+                      (objects ((id . 0) (name . 373542606194174761))
+                               ((id . 1) (name . 373542606194174761))
+                               ((id . 2) (name . 373542606194174761)))
+                      (indices 0 1 2 0 1 2)
+                      (ranges ((start . 0) (end . 3))
+                              ((start . 3) (end . 6)))
+                      (states #f #f #f)))
+                  (car res))
+      (test-equal `("foobar"
+                    "bazbar"
+                    "test-object-1"
+                    "test-gfx-object") (cdr res)))))
 
 (begin
   ;; Emitting shaders
@@ -354,52 +328,6 @@
       (test-equal `(0.08 1.39 0.43 2.08 2.39 2.43) (car res)))))
 
 (begin
-  ;; Emitting chains
-  (let* ((env   (make-environment SETTINGS OBJECTS))
-         (snd-1-1 (env 'create 'test-object-1 '() '(0 0)))
-         (snd-2-1 (env 'create 'test-object-2 '() '(0 0)))
-         (gfx-1-1 (env 'create 'test-gfx-object-1 '() '(0 0)))
-         (gfx-2-1 (env 'create 'test-gfx-object-1 '() '(0 0)))
-         (snd-g-1 (make-audio-graph    (env 'connect snd-1-1 0 snd-2-1 0)))
-         (gfx-g-1 (make-graphics-graph (env 'connect gfx-1-1 0 gfx-2-1 0)))
-         (pgm-1   (make-program "pg-1" snd-g-1 gfx-g-1))
-
-         (snd-1-2 (env 'create 'test-object-1 '() '(0 0)))
-         (snd-2-2 (env 'create 'test-object-2 '() '(0 0)))
-         (gfx-1-2 (env 'create 'test-gfx-object-1 '() '(0 0)))
-         (gfx-2-2 (env 'create 'test-gfx-object-1 '() '(0 0)))
-         (snd-g-2 (make-audio-graph    (env 'connect snd-1-2 0 snd-2-2 0)))
-         (gfx-g-2 (make-graphics-graph (env 'connect gfx-1-2 0 gfx-2-2 0)))
-         (pgm-2   (make-program "pg-2" snd-g-2 gfx-g-2)))
-    (let ((res (emit-chains `(,pgm-1 ,pgm-2))))
-      (test-equal `(,(hans-object-instance-id snd-1-1)
-                    ,(hans-object-instance-id snd-2-1)
-                    ,(hans-object-instance-id gfx-1-1)
-                    ,(hans-object-instance-id gfx-2-1)
-                    ,(hans-object-instance-id snd-1-2)
-                    ,(hans-object-instance-id snd-2-2)
-                    ,(hans-object-instance-id gfx-1-2)
-                    ,(hans-object-instance-id gfx-2-2)) (car res)))))
-
-(begin
-  ;; Emitting programs
-  (let* ((env   (make-environment SETTINGS OBJECTS))
-         (obj-1 (env 'create 'test-gfx-object-1 '() '(0 0)))
-         (obj-2 (env 'create 'test-gfx-object-1 '() '(0 0)))
-         (graph (make-graphics-graph (env 'connect obj-1 0 obj-2 0)))
-         (pgm   (make-program "foobar" graph)))
-    (set-hans-graph-id! graph 99)
-    (let ((res (emit-programs `(,pgm))))
-      (test-equal `((name . 15321041522486911382)
-                    (graphics (id    . 99)
-                              (start . 0)
-                              (end   . 2))
-                    (audio (id    . 0)
-                           (start . 3)
-                           (end   . 3)))
-                  (caar res)))))
-
-(begin
   ;; Emitting fbo attachments
   (let* ((env   (make-environment SETTINGS OBJECTS))
          (obj-1 (env 'create 'test-gfx-object-1 '() '(0 0)))
@@ -427,16 +355,17 @@
                     (end            . 1))
                   (caar res)))))
 
-; (begin
-;   ;; Backend pass
-;   (let* ((obj-1  (env 'create 'test-gfx-object-1 '() '(0 0)))
-;          (obj-2  (env 'create 'test-gfx-object-1 '() '(0 0)))
-;          (graph  (make-graphics-graph (env 'connect obj-1 0 obj-2 0)))
-;          (pgm    (make-program "foobar" graph))
-;          (output (make-hans-primitive 'engine-data '())))
-;     (set-hans-object-registers! obj-1 `((99 0 1 #f)))
-;     (set-hans-object-registers! obj-2 `((99 1 1 #t)))
-;     (set-hans-object-resources! obj-1 `((ring-buffer . "bar")))
-;     (set-hans-graph-id! graph 99)
-;     (let ((res (backend-pass `(,pgm) output opts)))
-;       (test-equal #t #t))))
+(begin
+  ;; Backend pass
+  (let* ((env   (make-environment SETTINGS OBJECTS))
+         (obj-1  (env 'create 'test-gfx-object-1 '() '(0 0)))
+         (obj-2  (env 'create 'test-gfx-object-1 '() '(0 0)))
+         (graph  (make-graphics-graph (env 'connect obj-1 0 obj-2 0)))
+         (pgm    (make-program "foobar" graph))
+         (output (make-hans-primitive 'engine-data '())))
+    (set-hans-object-registers! obj-1 `((99 0 1 #f)))
+    (set-hans-object-registers! obj-2 `((99 1 1 #t)))
+    (set-hans-object-resources! obj-1 `((ring-buffer . "bar")))
+    (set-hans-graph-id! graph 99)
+    (let ((res (backend-pass `(,pgm) output SETTINGS)))
+      (test-equal #t #t))))

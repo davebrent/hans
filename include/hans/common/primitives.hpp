@@ -4,12 +4,12 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <cstdlib>
-#include <functional>
+#include <string>
 #include <vector>
 
 namespace hans {
 
-typedef uint64_t hash;
+using hash = uint64_t;
 
 struct Settings {
   uint16_t channels;
@@ -24,36 +24,11 @@ struct Blob {
   void* data;
 };
 
-struct Plugin {
-  hash filepath;
-};
-
 struct ObjectDef {
   enum Types { AUDIO, GRAPHICS };
-  typedef uint32_t ID;
-  typedef std::function<void*(ID, const std::string&)> Create;
-  typedef std::function<void(void*)> Destroy;
-  typedef std::function<std::string(void*)> Serialize;
+  using ID = uint32_t;
   ID id;
-  Types type;
   hash name;
-  size_t size;
-  Create create;
-  Destroy destroy;
-  Serialize serialize;
-  void* instance;
-};
-
-struct Chain {
-  uint32_t id;
-  size_t start;
-  size_t end;
-};
-
-struct Program {
-  hash name;
-  Chain graphics;
-  Chain audio;
 };
 
 struct Register {
@@ -201,16 +176,35 @@ struct Recordings {
   std::vector<Parameter::Value> values;
 };
 
+struct Range {
+  size_t start;
+  size_t end;
+};
+
+struct Graphs {
+  std::vector<ObjectDef> objects;
+  std::vector<std::string> states;
+  std::vector<size_t> indices;
+  std::vector<Range> ranges;
+};
+
+struct Plugins {
+  std::vector<hash> filepaths;
+};
+
+struct Programs {
+  std::vector<hash> names;
+  Graphs audio;
+  Graphs graphics;
+};
+
 struct EngineData {
   Settings settings;
   Strings strings;
-  std::vector<Plugin> plugins;
-  std::vector<ObjectDef> objects;
-  std::vector<std::string> objects_state;
+  Plugins plugins;
+  Programs programs;
   std::vector<Parameter> parameters;
   std::vector<Parameter::Value> parameters_values;
-  std::vector<Program> programs;
-  std::vector<size_t> chains;
   std::vector<Modulator> modulators;
   std::vector<Register> registers;
   std::vector<RingBuffer> ring_buffers;

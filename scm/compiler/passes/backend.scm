@@ -6,14 +6,13 @@
   :use-module (hans objects)
   :use-module (hans utils)
   :export (emit-libraries
-           emit-objects
-           emit-objects-state
            emit-arguments
+           emit-audio-graphs
+           emit-graphics-graphs
+           emit-programs
            emit-parameters
            emit-parameters-values
            emit-modulators
-           emit-chains
-           emit-programs
            emit-registers
            emit-fbos
            emit-fbos-attachments
@@ -52,74 +51,9 @@
                         (if (eq? #f registers) '() registers))))
                  (list-objects programs))))
 
-;; Emitter functions have the signature:
-;;   (programs) -> (cons (list hans-primitive ...) (list string ...))
-
 (define (emit-libraries programs)
   (let ((libraries (list-libraries programs)))
-    (cons (map (lambda (lib)
-                 `((filepath . ,(hans-hash lib))))
-               libraries)
-          libraries)))
-
-(define (emit-objects programs)
-  (let ((objects (list-objects programs)))
-    (cons (map (lambda (obj)
-                 (let* ((rec (hans-object-rec obj))
-                        (id  (hans-object-instance-id obj))
-                        (type (object-record-type rec)))
-                   `((id   . ,id)
-                     (type . ,(hans-primitive-enum 'OBJECTS type))
-                     (name . ,(hans-hash (object-record-name rec))))))
-               objects)
-          (map (compose object-record-name hans-object-rec) objects))))
-
-(define (%tag-pair arg)
-  (cond ((or (string? (cdr arg)) (symbol? (cdr arg)))
-          `((type    . ,(hans-primitive-enum 'ARGUMENTS 'string))
-            (name    . ,(hans-hash (car arg)))
-            (boolean . #f)
-            (number  . 0)
-            (string  . ,(hans-hash (cdr arg)))))
-        ((number? (cdr arg))
-          `((type    . ,(hans-primitive-enum 'ARGUMENTS 'number))
-            (name    . ,(hans-hash (car arg)))
-            (boolean . #f)
-            (number  . ,(cdr arg))
-            (string  . 0)))
-        ((boolean? (cdr arg))
-          `((type    . ,(hans-primitive-enum 'ARGUMENTS 'boolean))
-            (name    . ,(hans-hash (car arg)))
-            (boolean . ,(cdr arg))
-            (number  . 0)
-            (string  . 0)))))
-
-(define (emit-arguments programs)
-  (cons (fold (lambda (obj result)
-                (let* ((arguments (assq-ref result 'arguments))
-                       (lengths (assq-ref result 'lengths))
-                       (offsets (assq-ref result 'offsets))
-                       (args (hans-object-args obj))
-                       (tags (map %tag-pair args)))
-                    `((arguments . ,(append arguments tags))
-                      (offsets   . ,(append offsets `(,(length arguments))))
-                      (lengths   . ,(append lengths `(,(length args)))))))
-          `((arguments . ())
-            (offsets   . ())
-            (lengths   . ()))
-          (list-objects programs))
-        (fold (lambda (obj strs)
-              (append strs (filter string? (map cdr (hans-object-args obj)))
-                            (map (compose symbol->string car)
-                                 (hans-object-args obj))))
-            '()
-            (list-objects programs))))
-
-(define (emit-objects-state programs)
-  (cons (map (lambda (obj)
-               (hans-object-data obj))
-             (list-objects programs))
-        '()))
+    (cons `((filepaths . ,(map hans-hash libraries))) libraries)))
 
 (define (emit-parameters-values programs)
   (cons (%flatten (map (lambda (data)
@@ -163,46 +97,122 @@
               programs)
         '()))
 
-(define (emit-chains programs)
-  (cons (%flatten (map (lambda (pgm)
-                         (append (map hans-object-instance-id
-                                      (hans-graph-objects
-                                        (hans-program-audio-graph pgm)))
-                                 (map hans-object-instance-id
-                                      (hans-graph-objects
-                                        (hans-program-graphics-graph pgm)))))
-                       programs))
-        '()))
+(define %graphics-object? (compose graphics-object? hans-object-rec))
+(define %audio-object? (compose audio-object? hans-object-rec))
+(define %object-name (compose object-record-name hans-object-rec))
+
+(define (%emit-objects programs object-filter)
+  (let ((objects (filter object-filter (list-objects programs))))
+    (cons (map (lambda (object)
+                 `((id   . ,(hans-object-instance-id object))
+                   (name . ,(hans-hash (%object-name object)))))
+               objects)
+          (delete-duplicates (map %object-name objects)))))
+
+(define (%index-of needle haystack)
+  (list-index (lambda (item)
+                (eq? needle item)) haystack))
+
+(define (%make-indices items table)
+  (map (lambda (item)
+         (%index-of item table)) items))
+
+(define (pophead lst)
+  (reverse (cdr (reverse lst))))
+
+(define (%make-offsets lst)
+  (append '(0) (pophead (fold (lambda (current memo)
+                                (let ((value (if (null? memo)
+                                               current
+                                               (+ current (last memo)))))
+                                  (append memo `(,value)))) '() lst))))
+
+(define (%graphs-indices programs graph-selector object-filter)
+  (let ((selector (compose hans-graph-objects graph-selector))
+        (ids (map hans-object-instance-id
+                  (filter object-filter (list-objects programs)))))
+    (fold (lambda (program indices)
+            (append indices (%make-indices (map hans-object-instance-id
+                                                (selector program)) ids)))
+          '() programs)))
+
+(define (%graphs-ranges programs graph-selector object-filter)
+  (let ((objects-num (map (compose length hans-graph-objects graph-selector)
+                      programs)))
+    (map (lambda (item)
+           `((start . ,(car item))
+             (end   . ,(+ (car item) (last item)))))
+         (zip (%make-offsets objects-num) objects-num))))
+
+(define (%emit-graphs programs graph-selector object-filter)
+  (let* ((objects        (filter object-filter (list-objects programs)))
+         (output-objects (%emit-objects programs object-filter)))
+    (cons `((objects . ,(car output-objects))
+            (indices . ,(%graphs-indices programs graph-selector object-filter))
+            (ranges  . ,(%graphs-ranges programs graph-selector object-filter))
+            (states  . ,(map hans-object-data
+                             (filter object-filter (list-objects programs)))))
+          (cdr output-objects))))
+
+(define %audio-object? (compose audio-object? hans-object-rec))
+(define %graphics-object? (compose graphics-object? hans-object-rec))
+
+(define (%tag-pair arg)
+  (cond ((or (string? (cdr arg)) (symbol? (cdr arg)))
+          `((type    . ,(hans-primitive-enum 'ARGUMENTS 'string))
+            (name    . ,(hans-hash (car arg)))
+            (boolean . #f)
+            (number  . 0)
+            (string  . ,(hans-hash (cdr arg)))))
+        ((number? (cdr arg))
+          `((type    . ,(hans-primitive-enum 'ARGUMENTS 'number))
+            (name    . ,(hans-hash (car arg)))
+            (boolean . #f)
+            (number  . ,(cdr arg))
+            (string  . 0)))
+        ((boolean? (cdr arg))
+          `((type    . ,(hans-primitive-enum 'ARGUMENTS 'boolean))
+            (name    . ,(hans-hash (car arg)))
+            (boolean . ,(cdr arg))
+            (number  . 0)
+            (string  . 0)))))
+
+(define (emit-arguments programs object-filter)
+  (let ((objects (filter object-filter (list-objects programs))))
+    (cons (fold (lambda (obj result)
+                  (let* ((arguments (assq-ref result 'arguments))
+                         (lengths (assq-ref result 'lengths))
+                         (offsets (assq-ref result 'offsets))
+                         (args (hans-object-args obj))
+                         (tags (map %tag-pair args)))
+                      `((arguments . ,(append arguments tags))
+                        (offsets   . ,(append offsets `(,(length arguments))))
+                        (lengths   . ,(append lengths `(,(length args)))))))
+                `((arguments . ())
+                  (offsets   . ())
+                  (lengths   . ())) objects)
+          (fold (lambda (obj strs)
+                  (append strs
+                          (filter string? (map cdr (hans-object-args obj)))
+                          (map (compose symbol->string car)
+                               (hans-object-args obj)))) '() objects))))
+
+(define (emit-audio-graphs programs)
+  (%emit-graphs programs hans-program-audio-graph %audio-object?))
+
+(define (emit-graphics-graphs programs)
+  (%emit-graphs programs hans-program-graphics-graph %graphics-object?))
 
 (define (emit-programs programs)
-  (define offset 0)
-
-  (define (push-graph graph)
-    (let* ((start offset)
-           (objects (hans-graph-objects graph))
-           (end (+ start (length objects))))
-      (set! offset (length objects))
-      (if (eq? (length objects) 0)
-        '()
-        `(,(hans-graph-id graph) ,start ,end))))
-
-  (define (graph->chain graph)
-    (if (eq? 0 (length graph))
-      `((id    . ,0)
-        (start . ,(+ 1 offset))
-        (end   . ,(+ 1 offset)))
-      `((id    . ,(list-ref graph 0))
-        (start . ,(list-ref graph 1))
-        (end   . ,(list-ref graph 2)))))
-
-  (cons (map (lambda (pgm)
-               (let ((snd-graph (push-graph (hans-program-audio-graph pgm)))
-                     (gfx-graph (push-graph (hans-program-graphics-graph pgm))))
-                 `((name     . ,(hans-hash (hans-program-name pgm)))
-                   (graphics . ,(graph->chain gfx-graph))
-                   (audio    . ,(graph->chain snd-graph)))))
-             programs)
-        (map hans-program-name programs)))
+  (let ((names (map hans-program-name programs))
+        (audio-data (emit-audio-graphs programs))
+        (graphics-data (emit-graphics-graphs programs)))
+    (cons `((names    . ,(map hans-hash names))
+            (audio    . ,(car audio-data))
+            (graphics . ,(car graphics-data)))
+          (append names
+                  (cdr audio-data)
+                  (cdr graphics-data)))))
 
 (define (emit-registers programs)
   (cons (map (lambda (data)
@@ -335,20 +345,22 @@
   (for-each (lambda (task)
               (set-engine-data! (car task) (cdr task)))
             `((plugins           . ,emit-libraries)
-              (objects           . ,emit-objects)
-              (objects_state     . ,emit-objects-state)
-              (arguments         . ,emit-arguments)
+              (programs          . ,emit-programs)
               (parameters        . ,emit-parameters)
               (parameters_values . ,emit-parameters-values)
               (modulators        . ,emit-modulators)
-              (chains            . ,emit-chains)
-              (programs          . ,emit-programs)
               (registers         . ,emit-registers)
               (fbos              . ,emit-fbos)
               (fbos_attachments  . ,emit-fbos-attachments)
               (shaders           . ,emit-shaders)
               (ring_buffers      . ,emit-ring-buffers)
-              (audio_buffers     . ,emit-audio-buffers)))
+              (audio_buffers     . ,emit-audio-buffers)
+              (snd-arguments     . ,(lambda (programs)
+                                      (emit-arguments
+                                        programs %audio-object?)))
+              (gfx-arguments     . ,(lambda (programs)
+                                      (emit-arguments
+                                        programs %graphics-object?)))))
 
   (set-hans-primitive! output (assq-set! out 'strings (make-strings strings)))
   output)

@@ -33,10 +33,10 @@ void scm_init_common_module() {
 
   scm::smob<Settings>("settings");
   scm::smob<Strings>("strings");
-  scm::smob<Plugin>("plugin");
+  scm::smob<Plugins>("plugins");
   scm::smob<ObjectDef>("object");
-  scm::smob<Chain>("chain");
-  scm::smob<Program>("program");
+  scm::smob<Graphs>("graphs");
+  scm::smob<Programs>("programs");
   scm::smob<Register>("register");
   scm::smob<Arguments>("arguments");
   scm::smob<Parameter>("parameter");

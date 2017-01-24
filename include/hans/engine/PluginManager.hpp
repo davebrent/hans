@@ -1,6 +1,7 @@
 #ifndef HANS_PLUGINMANAGER_H_
 #define HANS_PLUGINMANAGER_H_
 
+#include <algorithm>
 #include <cereal/archives/portable_binary.hpp>
 #include <cereal/cereal.hpp>
 #include <cereal/external/base64.hpp>
@@ -21,26 +22,29 @@ class Object;
 
 class PluginManager {
  public:
+  using Constructor = std::function<void*(ObjectDef::ID, const std::string&)>;
+  using Destructor = std::function<void(void*)>;
+  using Serializer = std::function<std::string(void*)>;
+
   PluginManager(const PluginManager& other) = delete;
-  PluginManager(common::StringManager& string_manager,
-                std::vector<ObjectDef>& objects);
-
-  PluginManager(common::StringManager& string_manager,
-                std::vector<ObjectDef>& objects,
-                const std::vector<Plugin>& plugins);
-
+  PluginManager(common::StringManager& strings);
+  PluginManager(common::StringManager& strings, const Plugins& plugins);
   ~PluginManager();
 
-  Object* create(hash name);
-  Object* create(hash name, ObjectDef::ID id, const std::string& state);
-  void destroy(hash name, Object* object);
+  Object* construct(hash name);
+  Object* construct(hash name, ObjectDef::ID id, const std::string& state);
+  void destruct(hash name, Object* object);
   std::string serialize(hash name, Object* object);
 
   template <typename State, typename Object>
   bool add_object(const char* name) {
-    auto size = sizeof(Object);
+    auto hash = m_strings.intern(name);
+    auto it = std::find(m_objects.begin(), m_objects.end(), hash);
+    if (it != m_objects.end()) {
+      return false;
+    }
 
-    auto create = [](ObjectDef::ID id, const std::string& state) {
+    auto constructor = [](ObjectDef::ID id, const std::string& state) {
       auto instance = new Object(id);
       std::memset(&instance->state, 0, sizeof(State));
 
@@ -54,12 +58,12 @@ class PluginManager {
       return instance;
     };
 
-    auto destroy = [](void* instance) {
+    auto destructor = [](void* instance) {
       auto object = static_cast<Object*>(instance);
       delete object;
     };
 
-    auto serialize = [](void* instance) {
+    auto serializer = [](void* instance) {
       auto obj = static_cast<Object*>(instance);
       std::ostringstream os;
 
@@ -73,26 +77,22 @@ class PluginManager {
       return cereal::base64::encode(ptr, str.size());
     };
 
-    auto found = false;
-    auto hash = m_string_manager.intern(name);
-
-    for (auto& object : m_objects) {
-      if (object.name == hash) {
-        object.size = size;
-        object.create = create;
-        object.serialize = serialize;
-        object.destroy = destroy;
-        found = true;
-      }
-    }
-
-    return found;
+    m_objects.push_back(hash);
+    m_sizes.push_back(sizeof(Object));
+    m_constructors.push_back(constructor);
+    m_destructors.push_back(destructor);
+    m_serializers.push_back(serializer);
+    return true;
   }
 
  private:
-  common::StringManager& m_string_manager;
+  common::StringManager& m_strings;
+  std::vector<hash> m_objects;
+  std::vector<Constructor> m_constructors;
+  std::vector<Destructor> m_destructors;
+  std::vector<Serializer> m_serializers;
+  std::vector<size_t> m_sizes;
   std::vector<void*> m_handles;
-  std::vector<ObjectDef>& m_objects;
 };
 
 } // namespace engine

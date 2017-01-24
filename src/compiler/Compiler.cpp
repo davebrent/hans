@@ -140,18 +140,22 @@ class GuilePatcher : public IPatcher {
   size_t m_current;
 };
 
-static SCM configure_objects(SCM scm_engine_data, SCM scm_arguments) {
-  auto args = scm::to_cpp<Arguments>(scm_arguments);
-  auto ng = scm::to_cpp<EngineData>(scm_engine_data);
+static SCM configure_objects(SCM scm_strings, SCM scm_arguments, SCM scm_graphs,
+                             SCM scm_plugins) {
+  auto args_data = scm::to_cpp<Arguments>(scm_arguments);
+  auto strings_data = scm::to_cpp<Strings>(scm_strings);
+  auto graphs_data = scm::to_cpp<Graphs>(scm_graphs);
+  auto plugins_data = scm::to_cpp<Plugins>(scm_plugins);
+
   auto output = SCM_EOL;
 
   {
-    StringManager strings(ng.strings);
-    PluginManager plugins(strings, ng.objects, ng.plugins);
-    GuilePatcher patcher(strings, ng.objects, args);
+    StringManager strings(strings_data);
+    PluginManager plugins(strings, plugins_data);
+    GuilePatcher patcher(strings, graphs_data.objects, args_data);
 
-    for (const auto& factory : ng.objects) {
-      auto object = plugins.create(factory.name);
+    for (const auto& factory : graphs_data.objects) {
+      auto object = plugins.construct(factory.name);
 
       auto resources = SCM_EOL;
       auto state = SCM_EOL;
@@ -168,7 +172,7 @@ static SCM configure_objects(SCM scm_engine_data, SCM scm_arguments) {
         }
       }
 
-      plugins.destroy(factory.name, object);
+      plugins.destruct(factory.name, object);
       patcher.advance();
       output = scm_cons(scm_cons(state, resources), output);
     }
@@ -180,6 +184,6 @@ static SCM configure_objects(SCM scm_engine_data, SCM scm_arguments) {
 extern "C" {
 void scm_init_hans_compiler_module() {
   scm::procedure<validate_shaders>("%validate-shaders", 1, 0, 0);
-  scm::procedure<configure_objects>("%configure-objects", 2, 0, 0);
+  scm::procedure<configure_objects>("%configure-objects", 4, 0, 0);
 }
 }

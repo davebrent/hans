@@ -26,13 +26,13 @@ class Object {
   const ObjectDef::ID id;
 };
 
-class AudioObject : protected Object {
+class AudioObject : public Object {
  public:
   using Object::Object;
   virtual void callback(Engine& engine) = 0;
 };
 
-class GraphicsObject : protected Object {
+class GraphicsObject : public Object {
  public:
   using Object::Object;
   virtual void update(Engine& engine) = 0;

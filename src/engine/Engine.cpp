@@ -1,5 +1,6 @@
 #include "hans/engine/Engine.hpp"
 #include <libguile.h>
+#include <algorithm>
 #include "hans/common/StringManager.hpp"
 #include "hans/common/procedure.hpp"
 #include "hans/common/smobs.hpp"
@@ -22,7 +23,7 @@ using namespace hans::engine;
 Engine::Engine(EngineData& ng)
     : settings(ng.settings),
       strings(ng.strings),
-      plugins(strings, ng.objects, ng.plugins),
+      plugins(strings, ng.plugins),
       registers(ng.settings, ng.registers),
       parameters(ng.parameters, ng.parameters_values),
       modulators(parameters, ng.modulators),
@@ -35,19 +36,54 @@ Engine::Engine(EngineData& ng)
       ring_buffers(ng.settings.blocksize, ng.ring_buffers) {
 }
 
+template <typename T>
+static void construct(std::vector<T>& output, Graphs& input, Engine& engine) {
+  std::vector<T> table;
+  table.reserve(input.objects.size());
+  output.reserve(input.indices.size());
+
+  for (auto i = 0; i < input.objects.size(); ++i) {
+    auto& object = input.objects.at(i);
+    auto& state = input.states.at(i);
+    auto instance = engine.plugins.construct(object.name, object.id, state);
+    instance->setup(engine);
+    table.push_back(static_cast<T>(instance));
+  }
+
+  for (const auto index : input.indices) {
+    output.push_back(table.at(index));
+  }
+}
+
+template <typename T>
+static void destruct(std::vector<T>& instances, Graphs& graph, Engine& engine) {
+  std::vector<T> table;
+  table.reserve(graph.objects.size());
+
+  for (const auto instance : instances) {
+    if (std::find(table.begin(), table.end(), instance) == table.end()) {
+      table.push_back(instance);
+    }
+  }
+
+  for (auto i = 0; i < graph.objects.size(); ++i) {
+    auto& object = graph.objects.at(i);
+    engine.plugins.destruct(object.name, table.at(i));
+  }
+
+  instances.clear();
+}
+
 struct EngineRunner {
-  uint16_t selected_program;
+  uint16_t program;
 
   Engine engine;
-  std::vector<std::string>& objects_state;
-  std::vector<ObjectDef>& objects;
-  std::vector<size_t>& chains;
-  std::vector<Program>& programs;
 
-  std::vector<ObjectDef*> graphics_objects;
-  std::vector<ObjectDef*> audio_objects;
+  Programs& programs;
+  std::vector<GraphicsObject*> graphics_objects;
+  std::vector<AudioObject*> audio_objects;
 
-  AudioStream* audio;
+  AudioStream* stream;
   ReplayRecorder recorder;
   ReplayPlayer player;
 
@@ -55,29 +91,25 @@ struct EngineRunner {
 
   EngineRunner(EngineData& ng)
       : engine(ng),
-        objects_state(ng.objects_state),
-        objects(ng.objects),
-        chains(ng.chains),
         programs(ng.programs),
         recorder(ng.parameters_values, ng.recordings),
         player(ng.parameters_values, ng.recordings) {
-    audio = nullptr;
-    selected_program = 0;
+    stream = nullptr;
+    program = 0;
   }
 
   void destroy() {
-    if (audio != nullptr) {
-      audio->close();
-      delete audio;
-      audio = nullptr;
+    if (stream != nullptr) {
+      stream->close();
+      delete stream;
+      stream = nullptr;
     }
+
+    destruct<AudioObject*>(audio_objects, programs.audio, engine);
+    destruct<GraphicsObject*>(graphics_objects, programs.graphics, engine);
 
     engine.fbos.destroy();
     engine.shaders.destroy();
-
-    for (const auto& object : objects) {
-      object.destroy(object.instance);
-    }
   }
 
   template <class Archive>
@@ -90,73 +122,23 @@ static SCM engine_set_program(SCM runner) {
 }
 
 static SCM engine_frame(EngineRunner& runner, Engine& engine) {
-  const auto& program = runner.programs[runner.selected_program];
-
   engine.modulators.begin();
 
-  for (auto i = program.graphics.start; i < program.graphics.end; ++i) {
-    auto id = runner.chains[i];
-    for (const auto& object : runner.objects) {
-      if (object.id == id) {
-        static_cast<GraphicsObject*>(object.instance)->update(engine);
-        break;
-      }
-    }
+  auto range = runner.programs.graphics.ranges.at(runner.program);
+  for (auto i = range.start; i < range.end; ++i) {
+    runner.graphics_objects.at(i)->update(engine);
   }
 
   runner.player.tick();
   runner.recorder.tick();
 
-  for (auto i = program.graphics.start; i < program.graphics.end; ++i) {
-    auto id = runner.chains[i];
-    for (const auto& object : runner.objects) {
-      if (object.id == id) {
-        static_cast<GraphicsObject*>(object.instance)->draw(engine);
-        break;
-      }
-    }
+  for (auto i = range.start; i < range.end; ++i) {
+    runner.graphics_objects.at(i)->draw(engine);
   }
 
   engine.modulators.end();
   engine.ring_buffers.advance_all();
   engine.window.update();
-  return SCM_BOOL_T;
-}
-
-static SCM engine_open__inner(EngineRunner& runner, Engine& engine,
-                              Settings& settings) {
-  engine.fbos.setup();
-
-  for (auto i = 0; i < runner.objects.size(); ++i) {
-    auto& object = runner.objects.at(i);
-    auto& state = runner.objects_state.at(i);
-    object.instance = object.create(object.id, state);
-    static_cast<Object*>(object.instance)->setup(engine);
-  }
-
-  auto audio_callback = [&]() {
-    const auto& program = runner.programs[runner.selected_program];
-    const auto& chain = program.audio;
-    for (auto i = chain.start; i < chain.end; ++i) {
-      auto id = runner.chains[i];
-      for (const auto& object : runner.objects) {
-        if (object.id == id) {
-          static_cast<AudioObject*>(object.instance)->callback(engine);
-          break;
-        }
-      }
-    }
-  };
-
-  runner.audio = new AudioStream(settings, engine.audio_devices,
-                                 engine.audio_buses, audio_callback);
-
-  if (!runner.audio->open()) {
-    std::cerr << "[HANS] Unable to open audio stream" << std::endl;
-    return SCM_BOOL_F;
-  }
-
-  runner.audio->start();
   return SCM_BOOL_T;
 }
 
@@ -170,7 +152,29 @@ static SCM engine_open(SCM scm_runner) {
     return SCM_BOOL_F;
   }
 
-  return engine_open__inner(runner, engine, settings);
+  engine.fbos.setup();
+
+  construct<AudioObject*>(runner.audio_objects, runner.programs.audio, engine);
+  construct<GraphicsObject*>(runner.graphics_objects, runner.programs.graphics,
+                             engine);
+
+  auto audio_callback = [&]() {
+    auto range = runner.programs.audio.ranges.at(runner.program);
+    for (auto i = range.start; i < range.end; ++i) {
+      runner.audio_objects.at(i)->callback(engine);
+    }
+  };
+
+  runner.stream = new AudioStream(settings, engine.audio_devices,
+                                  engine.audio_buses, audio_callback);
+
+  if (!runner.stream->open()) {
+    std::cerr << "[HANS] Unable to open audio stream" << std::endl;
+    return SCM_BOOL_F;
+  }
+
+  runner.stream->start();
+  return SCM_BOOL_T;
 }
 
 static SCM engine_close(SCM scm_runner) {

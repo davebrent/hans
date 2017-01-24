@@ -5,7 +5,7 @@
   :export (hans-hash
            make-hans-primitive
            hans-primitive?
-           hans-primitive-stringify
+           hans-primitive->string
            hans-primitive-get
            set-hans-primitive!
            hans-primitive-enum
@@ -111,7 +111,7 @@
       (call-with-output-string (lambda (port)
                                  (sxml->xml body port))))))
 
-(define hans-primitive-stringify %hans-primitive-get)
+(define hans-primitive->string %hans-primitive-get)
 
 (define (hans-primitive-get obj)
   (deserialize-primitive (%hans-primitive-get obj)))
