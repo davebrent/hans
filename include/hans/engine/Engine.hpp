@@ -4,7 +4,6 @@
 #include "hans/common/StringManager.hpp"
 #include "hans/engine/AudioBufferManager.hpp"
 #include "hans/engine/AudioBusManager.hpp"
-#include "hans/engine/AudioDevices.hpp"
 #include "hans/engine/FrameBufferManager.hpp"
 #include "hans/engine/ModulationManager.hpp"
 #include "hans/engine/ParameterManager.hpp"
@@ -28,7 +27,6 @@ struct Engine {
   Window window;
   ShaderManager shaders;
   FrameBufferManager fbos;
-  AudioDevices audio_devices;
   AudioBufferManager audio_buffers;
   AudioBusManager audio_buses;
   RingBufferManager ring_buffers;

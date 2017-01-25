@@ -1,13 +1,12 @@
 #include "hans/engine/Engine.hpp"
 #include <libguile.h>
 #include <algorithm>
+#include "./AudioBackendPortAudio.hpp"
 #include "hans/common/StringManager.hpp"
 #include "hans/common/procedure.hpp"
 #include "hans/common/smobs.hpp"
 #include "hans/engine/AudioBufferManager.hpp"
 #include "hans/engine/AudioBusManager.hpp"
-#include "hans/engine/AudioDevices.hpp"
-#include "hans/engine/AudioStream.hpp"
 #include "hans/engine/ParameterManager.hpp"
 #include "hans/engine/PluginManager.hpp"
 #include "hans/engine/RegisterManager.hpp"
@@ -30,7 +29,6 @@ Engine::Engine(EngineData& ng)
       window(),
       shaders(strings, ng.shaders),
       fbos(ng.fbos, ng.fbos_attachments),
-      audio_devices(),
       audio_buffers(ng.audio_buffers),
       audio_buses(ng.settings, 1),
       ring_buffers(ng.settings.blocksize, ng.ring_buffers) {
@@ -83,7 +81,7 @@ struct EngineRunner {
   std::vector<GraphicsObject*> graphics_objects;
   std::vector<AudioObject*> audio_objects;
 
-  AudioStream* stream;
+  AudioBackendPortAudio* stream;
   ReplayRecorder recorder;
   ReplayPlayer player;
 
@@ -165,8 +163,8 @@ static SCM engine_open(SCM scm_runner) {
     }
   };
 
-  runner.stream = new AudioStream(settings, engine.audio_devices,
-                                  engine.audio_buses, audio_callback);
+  runner.stream =
+      new AudioBackendPortAudio(settings, engine.audio_buses, audio_callback);
 
   if (!runner.stream->open()) {
     std::cerr << "[HANS] Unable to open audio stream" << std::endl;
