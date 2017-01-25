@@ -5,6 +5,8 @@
 #include <iostream>
 
 IMRenderer::IMRenderer() {
+  // XXX: Fixes "Error 00000500 after init" being printed to the console
+  glGetError();
   m_nvg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
   m_width = 0;
   m_height = 0;
