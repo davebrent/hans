@@ -40,7 +40,9 @@ void scm_init_common_module() {
   scm::smob<Register>("register");
   scm::smob<Arguments>("arguments");
   scm::smob<Parameter>("parameter");
+  scm::smob<Parameters>("parameters");
   scm::smob<Modulator>("modulator");
+  scm::smob<Modulation>("modulators");
   scm::smob<RingBuffer>("ring-buffer");
   scm::smob<audio::Buffer>("audio-buffer");
   scm::smob<graphics::Shader>("shader");

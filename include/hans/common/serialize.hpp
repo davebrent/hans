@@ -43,16 +43,6 @@ void serialize(Archive& ar, Parameter& d) {
 }
 
 template <class Archive>
-void serialize(Archive& ar, Modulator::Port& d) {
-  ar(C(object), C(parameter), C(component));
-}
-
-template <class Archive>
-void serialize(Archive& ar, Modulator& d) {
-  ar(C(source), C(dest), C(offset), C(scale));
-}
-
-template <class Archive>
 void serialize(Archive& ar, RingBuffer& d) {
   ar(C(producer), C(name), C(index));
 }
@@ -117,10 +107,30 @@ void serialize(Archive& ar, Programs& d) {
 }
 
 template <class Archive>
+void serialize(Archive& ar, Parameters& d) {
+  ar(C(split), C(handles), C(buffer));
+}
+
+template <class Archive>
+void serialize(Archive& ar, Modulator& d) {
+  ar(C(source), C(destination), C(offset), C(scale));
+}
+
+template <class Archive>
+void serialize(Archive& ar, Modulation::Thread& d) {
+  ar(C(local), C(cross));
+}
+
+template <class Archive>
+void serialize(Archive& ar, Modulation& d) {
+  ar(C(audio), C(graphics));
+}
+
+template <class Archive>
 void serialize(Archive& ar, EngineData& d) {
-  ar(C(settings), C(strings), C(plugins), C(parameters), C(parameters_values),
-     C(programs), C(modulators), C(registers), C(ring_buffers), C(shaders),
-     C(fbos), C(fbos_attachments), C(audio_buffers), C(recordings));
+  ar(C(settings), C(strings), C(plugins), C(parameters), C(programs),
+     C(modulators), C(registers), C(ring_buffers), C(shaders), C(fbos),
+     C(fbos_attachments), C(audio_buffers), C(recordings));
 }
 
 #undef C

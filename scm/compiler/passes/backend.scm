@@ -11,7 +11,6 @@
            emit-graphics-graphs
            emit-programs
            emit-parameters
-           emit-parameters-values
            emit-modulators
            emit-registers
            emit-fbos
@@ -22,16 +21,23 @@
            make-strings
            backend-pass))
 
+(define %graphics-object? (compose graphics-object? hans-object-rec))
+(define %audio-object? (compose audio-object? hans-object-rec))
+(define %object-name (compose object-record-name hans-object-rec))
+
 (define (%flatten lst)
   (fold (lambda (item out) (append out item)) '() lst))
 
 (define (%list-parameters programs)
+  ;; To simplify modulation, parameters are sorted by their object type, so
+  ;; that a parameter buffer may be split into types at a single point
   (%flatten (map (lambda (obj)
                    (map (lambda (parameter)
-                          (cons (hans-object-instance-id obj)
-                                parameter))
+                          (cons (hans-object-instance-id obj) parameter))
                         (object-record-parameters (hans-object-rec obj))))
-                  (list-objects programs))))
+                 (stable-sort (list-objects programs)
+                              (lambda (a b)
+                                (%audio-object? a))))))
 
 (define (%list-fbos programs)
   (fold (lambda (obj fbos)
@@ -55,13 +61,13 @@
   (let ((libraries (list-libraries programs)))
     (cons `((filepaths . ,(map hans-hash libraries))) libraries)))
 
-(define (emit-parameters-values programs)
+(define (%emit-parameters-values programs)
   (cons (%flatten (map (lambda (data)
                          (parameter-value (cdr data)))
                        (%list-parameters programs)))
         '()))
 
-(define (emit-parameters programs)
+(define (%emit-parameters programs)
   (cons
     (let ((offset 0))
       (map (lambda (data)
@@ -77,29 +83,69 @@
     (delete-duplicates (map (compose symbol->string parameter-name cdr)
                             (%list-parameters programs)))))
 
+(define (%parameters-split programs)
+  (let ((audio-objects (map hans-object-instance-id
+                            (filter %audio-object? (list-objects programs)))))
+    (fold (lambda (data split)
+            (if (not (find (lambda (a)
+                             (eq? (car data) a)) audio-objects))
+              split
+              (+ split (length (parameter-value (cdr data))))))
+          0
+          (%list-parameters programs))))
+
+(define (emit-parameters programs)
+  (let ((handles (%emit-parameters programs))
+        (buffer  (%emit-parameters-values programs)))
+    (cons `((handles . ,(car handles))
+            (buffer  . ,(car buffer))
+            (split   . ,(%parameters-split programs)))
+          (append (cdr handles) (cdr buffer)))))
+
+(define (%list-modulators programs)
+  (fold (lambda (program modulators)
+          (append modulators (hans-program-modulators program))) '() programs))
+
+(define (%mod->idx object pname pcomponent programs)
+  (cdr (fold (lambda (data memo)
+               (let ((id (car data))
+                     (parameter (cdr data)))
+                 (if (car memo)
+                   memo
+                   (if (and (eq? id (hans-object-instance-id object))
+                            (eq? (parameter-name parameter) pname))
+                     (cons #t (+ (cdr memo) pcomponent))
+                     (cons #f (+ (cdr memo)
+                                 (length (parameter-value parameter))))))))
+        (cons #f 0)
+        (%list-parameters programs))))
+
+(define (%emit-modulator mod programs)
+  `((scale       . ,(list-ref mod 7))
+    (offset      . ,(list-ref mod 6))
+    (source      . ,(%mod->idx (list-ref mod 0)
+                               (list-ref mod 1) (list-ref mod 2) programs))
+    (destination . ,(%mod->idx (list-ref mod 3)
+                               (list-ref mod 4) (list-ref mod 5) programs))))
+
+(define (%make-emit-modulators predicate)
+  (lambda (programs)
+    (let* ((modulators (%list-modulators programs))
+           (local (filter (lambda (mod)
+                            (and (predicate (list-ref mod 0))
+                                 (predicate (list-ref mod 3))))
+                          modulators))
+           (cross (filter (lambda (mod)
+                            (and (predicate (list-ref mod 0))
+                                 (not (predicate (list-ref mod 3)))))
+                          modulators)))
+      `((local . ,(map (lambda (mod) (%emit-modulator mod programs)) local))
+        (cross . ,(map (lambda (mod) (%emit-modulator mod programs)) cross))))))
+
 (define (emit-modulators programs)
-  (define (transform-mod mod)
-    `((source . (
-        (object    . ,(hans-object-instance-id (list-ref mod 0)))
-        (parameter . ,(hans-hash (list-ref mod 1)))
-        (component . ,(list-ref mod 2))))
-      (dest   . (
-        (object    . ,(hans-object-instance-id (list-ref mod 3)))
-        (parameter . ,(hans-hash (list-ref mod 4)))
-        (component . ,(list-ref mod 5))))
-      (offset . ,(list-ref mod 6))
-      (scale  . ,(list-ref mod 7))))
-
-  (cons (fold (lambda (program prev)
-                (let ((modulators (hans-program-modulators program)))
-                  (append prev (map transform-mod modulators))))
-              '()
-              programs)
+  (cons `((audio    . ,((%make-emit-modulators %audio-object?) programs))
+          (graphics . ,((%make-emit-modulators %graphics-object?) programs)))
         '()))
-
-(define %graphics-object? (compose graphics-object? hans-object-rec))
-(define %audio-object? (compose audio-object? hans-object-rec))
-(define %object-name (compose object-record-name hans-object-rec))
 
 (define (%emit-objects programs object-filter)
   (let ((objects (filter object-filter (list-objects programs))))
@@ -153,9 +199,6 @@
             (states  . ,(map hans-object-data
                              (filter object-filter (list-objects programs)))))
           (cdr output-objects))))
-
-(define %audio-object? (compose audio-object? hans-object-rec))
-(define %graphics-object? (compose graphics-object? hans-object-rec))
 
 (define (%tag-pair arg)
   (cond ((or (string? (cdr arg)) (symbol? (cdr arg)))
@@ -347,7 +390,6 @@
             `((plugins           . ,emit-libraries)
               (programs          . ,emit-programs)
               (parameters        . ,emit-parameters)
-              (parameters_values . ,emit-parameters-values)
               (modulators        . ,emit-modulators)
               (registers         . ,emit-registers)
               (fbos              . ,emit-fbos)

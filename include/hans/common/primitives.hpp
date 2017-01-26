@@ -60,19 +60,6 @@ struct Parameter {
   size_t offset;
 };
 
-struct Modulator {
-  struct Port {
-    ObjectDef::ID object;
-    hash parameter;
-    uint8_t component;
-  };
-
-  Port source;
-  Port dest;
-  float offset;
-  float scale;
-};
-
 struct RingBuffer {
   ObjectDef::ID producer;
   hash name;
@@ -198,14 +185,39 @@ struct Programs {
   Graphs graphics;
 };
 
+struct Parameters {
+  size_t split;
+  std::vector<Parameter> handles;
+  std::vector<Parameter::Value> buffer;
+};
+
+struct Modulator {
+  size_t source;
+  size_t destination;
+  float offset;
+  float scale;
+};
+
+struct Modulation {
+  struct Thread {
+    // Modulation local to the thread (eg. audio->audio modulation)
+    std::vector<Modulator> local;
+    // Cross thread modulation (eg. audio->graphics). The 'source' must be local
+    // to the thread and the 'destination' be on the other thread.
+    std::vector<Modulator> cross;
+  };
+
+  Thread audio;
+  Thread graphics;
+};
+
 struct EngineData {
   Settings settings;
   Strings strings;
   Plugins plugins;
   Programs programs;
-  std::vector<Parameter> parameters;
-  std::vector<Parameter::Value> parameters_values;
-  std::vector<Modulator> modulators;
+  Parameters parameters;
+  Modulation modulators;
   std::vector<Register> registers;
   std::vector<RingBuffer> ring_buffers;
   std::vector<graphics::Shader> shaders;

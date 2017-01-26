@@ -1,6 +1,7 @@
 #include "hans/engine/Engine.hpp"
 #include <libguile.h>
 #include <algorithm>
+#include "./AudioBackendJack.hpp"
 #include "./AudioBackendPortAudio.hpp"
 #include "hans/common/StringManager.hpp"
 #include "hans/common/procedure.hpp"
@@ -24,8 +25,8 @@ Engine::Engine(EngineData& ng)
       strings(ng.strings),
       plugins(strings, ng.plugins),
       registers(ng.settings, ng.registers),
-      parameters(ng.parameters, ng.parameters_values),
-      modulators(parameters, ng.modulators),
+      parameters(ng.parameters.handles, ng.parameters.buffer),
+      modulators(ng.modulators, ng.parameters),
       window(),
       shaders(strings, ng.shaders),
       fbos(ng.fbos, ng.fbos_attachments),
@@ -81,7 +82,7 @@ struct EngineRunner {
   std::vector<GraphicsObject*> graphics_objects;
   std::vector<AudioObject*> audio_objects;
 
-  AudioBackendPortAudio* stream;
+  AudioBackendJack* stream;
   ReplayRecorder recorder;
   ReplayPlayer player;
 
@@ -90,8 +91,8 @@ struct EngineRunner {
   EngineRunner(EngineData& ng)
       : engine(ng),
         programs(ng.programs),
-        recorder(ng.parameters_values, ng.recordings),
-        player(ng.parameters_values, ng.recordings) {
+        recorder(ng.parameters.buffer, ng.recordings),
+        player(ng.parameters.buffer, ng.recordings) {
     stream = nullptr;
     program = 0;
   }
@@ -120,7 +121,7 @@ static SCM engine_set_program(SCM runner) {
 }
 
 static SCM engine_frame(EngineRunner& runner, Engine& engine) {
-  engine.modulators.begin();
+  engine.modulators.gfx_modulate();
 
   auto range = runner.programs.graphics.ranges.at(runner.program);
   for (auto i = range.start; i < range.end; ++i) {
@@ -129,13 +130,13 @@ static SCM engine_frame(EngineRunner& runner, Engine& engine) {
 
   runner.player.tick();
   runner.recorder.tick();
+  engine.ring_buffers.advance_all();
 
   for (auto i = range.start; i < range.end; ++i) {
     runner.graphics_objects.at(i)->draw(engine);
   }
 
-  engine.modulators.end();
-  engine.ring_buffers.advance_all();
+  engine.modulators.gfx_restore();
   engine.window.update();
   return SCM_BOOL_T;
 }
@@ -158,13 +159,15 @@ static SCM engine_open(SCM scm_runner) {
 
   auto audio_callback = [&]() {
     auto range = runner.programs.audio.ranges.at(runner.program);
+    runner.engine.modulators.snd_modulate();
     for (auto i = range.start; i < range.end; ++i) {
       runner.audio_objects.at(i)->callback(engine);
     }
+    runner.engine.modulators.snd_restore();
   };
 
   runner.stream =
-      new AudioBackendPortAudio(settings, engine.audio_buses, audio_callback);
+      new AudioBackendJack(settings, engine.audio_buses, audio_callback);
 
   if (!runner.stream->open()) {
     std::cerr << "[HANS] Unable to open audio stream" << std::endl;

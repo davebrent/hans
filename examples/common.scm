@@ -19,8 +19,8 @@
 (define settings `(
   (width      . 640)
   (height     . 360)
-  (blocksize  . 64)
-  (samplerate . 44100)
+  (blocksize  . 128)
+  (samplerate . 48000)
   (channels   . 2)))
 
 (define hans (make-environment settings
