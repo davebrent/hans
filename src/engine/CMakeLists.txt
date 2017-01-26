@@ -1,4 +1,5 @@
 add_library(hansengine SHARED
+  AudioBackendJack.cpp
   AudioBackendPortAudio.cpp
   AudioBufferManager.cpp
   AudioBusManager.cpp
