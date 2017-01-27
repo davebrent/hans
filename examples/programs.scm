@@ -164,6 +164,10 @@
             (set-engine-parameter! engine obj param 0 (* frameno 0.005))
             #t))))
 
+(let ((f (open-file "programs.xml" "w")))
+  (display (hans-primitive->string ng-data) f)
+  (close f))
+
 (let ((engine (make-hans-primitive 'engine `(,ng-data)))
       (frameno 0))
   (engine-open engine)
