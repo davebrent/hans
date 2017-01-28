@@ -11,12 +11,18 @@
 
 (define (make-pgm-fx name shader)
   ;; Apply a filter to another graphics object
-  (let ((effect (hans-create 'gfx-filter `((name . ,shader))))
+  (let ((adc    (hans-create 'snd-in `((channel . 0))))
+        (feat   (hans-create 'snd-feature `((method . "centroid"))))
+        (effect (hans-create 'gfx-filter `((name . ,shader))))
         (window (hans-create 'gfx-quad)))
     (make-program name
+      (make-audio-graph
+        (hans-connect adc 0 feat 0))
       (make-graphics-graph
         (hans-connect superformula 0 effect 0)
-        (hans-connect effect 0 window 0)))))
+        (hans-connect effect 0 window 0))
+      (make-modulation
+        (hans-modulate feat 'centroid 0 superformula 'scale 0 0 0.0001)))))
 
 (define (make-pgm-sine name)
   ;; Creating audio signals
