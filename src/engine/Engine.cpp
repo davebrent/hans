@@ -121,12 +121,13 @@ static SCM engine_set_program(SCM runner) {
 }
 
 static SCM engine_frame(EngineRunner& runner, Engine& engine) {
-  engine.modulators.gfx_modulate();
-
   auto range = runner.programs.graphics.ranges.at(runner.program);
+
   for (auto i = range.start; i < range.end; ++i) {
     runner.graphics_objects.at(i)->update(engine);
   }
+
+  engine.modulators.gfx_modulate();
 
   runner.player.tick();
   runner.recorder.tick();
@@ -159,6 +160,11 @@ static SCM engine_open(SCM scm_runner) {
 
   auto audio_callback = [&]() {
     auto range = runner.programs.audio.ranges.at(runner.program);
+
+    for (auto i = range.start; i < range.end; ++i) {
+      runner.audio_objects.at(i)->update(engine);
+    }
+
     runner.engine.modulators.snd_modulate();
     for (auto i = range.start; i < range.end; ++i) {
       runner.audio_objects.at(i)->callback(engine);

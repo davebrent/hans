@@ -2,4 +2,5 @@
 *.bin
 *.log
 *.mp4
+*.trace
 build/

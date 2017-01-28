@@ -1,10 +1,6 @@
 #ifndef HANS_ENGINE_MODULATIONMANAGER_H_
 #define HANS_ENGINE_MODULATIONMANAGER_H_
 
-#include <algorithm>
-#include <atomic>
-#include <iostream>
-#include <stdexcept>
 #include <vector>
 #include "hans/common/primitives.hpp"
 #include "hans/engine/ParameterManager.hpp"

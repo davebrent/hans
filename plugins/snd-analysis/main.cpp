@@ -52,6 +52,8 @@ class FFTObject : protected AudioObject {
   ~FFTObject();
   virtual void create(IPatcher& patcher) override;
   virtual void setup(Engine& engine) override;
+  virtual void update(Engine& engine) override {
+  }
   virtual void callback(Engine& engine) override;
 
  private:
@@ -150,6 +152,8 @@ class IFFTObject : protected AudioObject {
   ~IFFTObject();
   virtual void create(IPatcher& patcher) override;
   virtual void setup(Engine& engine) override;
+  virtual void update(Engine& engine) override {
+  }
   virtual void callback(Engine& engine) override;
 
  private:
@@ -218,7 +222,9 @@ class FeatureObject : protected AudioObject {
   ~FeatureObject();
   virtual void create(IPatcher& patcher) override;
   virtual void setup(Engine& engine) override;
-  virtual void callback(Engine& engine) override;
+  virtual void update(Engine& engine) override;
+  virtual void callback(Engine& engine) override {
+  }
 
  private:
   FeatureState state;
@@ -275,7 +281,7 @@ void FeatureObject::setup(Engine& engine) {
   state.pvoc = new_aubio_pvoc(winsize, winsize);
 }
 
-void FeatureObject::callback(Engine& engine) {
+void FeatureObject::update(Engine& engine) {
   const auto sig =
       static_cast<audio::sample*>(engine.registers.read(state.signal));
 

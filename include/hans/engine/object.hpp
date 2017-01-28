@@ -29,6 +29,7 @@ class Object {
 class AudioObject : public Object {
  public:
   using Object::Object;
+  virtual void update(Engine& engine) = 0;
   virtual void callback(Engine& engine) = 0;
 };
 

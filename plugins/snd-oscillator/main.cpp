@@ -35,6 +35,8 @@ class OscObject : protected AudioObject {
   using AudioObject::AudioObject;
   virtual void create(IPatcher& patcher) override;
   virtual void setup(Engine& engine) override;
+  virtual void update(Engine& engine) override {
+  }
   virtual void callback(Engine& engine) override;
 
  private:

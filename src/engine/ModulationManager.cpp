@@ -1,5 +1,4 @@
 #include "hans/engine/ModulationManager.hpp"
-#include <cmath>
 
 using namespace hans;
 using namespace hans::engine;
