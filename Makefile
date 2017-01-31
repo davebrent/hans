@@ -1,7 +1,7 @@
 .PHONY: check lint format clean
 
 BUILD_DIR=build
-SRC_DIRS=src include plugins test
+SRC_DIRS=src include test
 
 all: $(BUILD_DIR)
 
@@ -11,7 +11,7 @@ $(BUILD_DIR):
 
 check: $(BUILD_DIR)
 	@find test/scm/*.scm -exec guile {} \;
-	@cd $(BUILD_DIR) && ./test/unit/hans-unittest
+	@cd $(BUILD_DIR) && ./test/hans-test
 
 lint:
 	@cppcheck --quiet --enable=warning,performance -I include $(SRC_DIRS)

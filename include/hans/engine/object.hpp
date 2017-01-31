@@ -5,9 +5,8 @@
 #include <cereal/archives/xml.hpp>
 #include <cereal/cereal.hpp>
 #include <cereal/types/vector.hpp>
-#include "hans/common/primitives.hpp"
-#include "hans/engine/Engine.hpp"
-#include "hans/engine/Patcher.hpp"
+#include "hans/engine/configurator.hpp"
+#include "hans/engine/context.hpp"
 #include "hans/engine/gl.hpp"
 
 namespace hans {
@@ -19,8 +18,8 @@ class Object {
   }
   virtual ~Object() {
   }
-  virtual void create(IPatcher& patcher) = 0;
-  virtual void setup(Engine& engine) = 0;
+  virtual void create(Configurator& config) = 0;
+  virtual void setup(context& ctx) = 0;
 
  protected:
   const ObjectDef::ID id;
@@ -29,15 +28,15 @@ class Object {
 class AudioObject : public Object {
  public:
   using Object::Object;
-  virtual void update(Engine& engine) = 0;
-  virtual void callback(Engine& engine) = 0;
+  virtual void update(context& ctx) = 0;
+  virtual void callback(context& ctx) = 0;
 };
 
 class GraphicsObject : public Object {
  public:
   using Object::Object;
-  virtual void update(Engine& engine) = 0;
-  virtual void draw(Engine& engine) const = 0;
+  virtual void update(context& ctx) = 0;
+  virtual void draw(context& ctx) const = 0;
 };
 
 } // namespace engine

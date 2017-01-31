@@ -2,7 +2,7 @@
 #define HANS_ENGINE_REPLAY_H_
 
 #include <vector>
-#include "hans/common/primitives.hpp"
+#include "hans/engine/primitives.hpp"
 
 namespace hans {
 namespace engine {

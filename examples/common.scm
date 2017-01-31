@@ -1,20 +1,20 @@
 (define-module (examples common)
   :use-module (hans patcher)
+  :use-module (hans plugin gfx-attractors objects)
+  :use-module (hans plugin gfx-quad objects)
+  :use-module (hans plugin gfx-scopes objects)
+  :use-module (hans plugin gfx-script objects)
+  :use-module (hans plugin gfx-superformula objects)
+  :use-module (hans plugin gfx-sndtex objects)
+  :use-module (hans plugin gfx-filter objects)
   :use-module (hans plugin snd-analysis objects)
   :use-module (hans plugin snd-io objects)
   :use-module (hans plugin snd-oscillator objects)
   :use-module (hans plugin snd-ringbuffer objects)
-  :use-module (hans plugin gfx-attractors objects)
-  :use-module (hans plugin gfx-superformula objects)
-  :use-module (hans plugin gfx-quad objects)
-  :use-module (hans plugin gfx-scopes objects)
-  :use-module (hans plugin gfx-script objects)
-  :use-module (hans plugin gfx-sndtex objects)
-  :use-module (hans plugin gfx-filter objects)
   :export (settings
-           hans-create
            hans-connect
-           hans-modulate))
+           hans-modulate
+           hans-create))
 
 (define settings `(
   (width      . 640)
