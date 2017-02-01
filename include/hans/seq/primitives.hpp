@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <atomic>
+#include <functional>
 #include <vector>
 
 namespace hans {
@@ -11,6 +12,11 @@ namespace seq {
 struct Cycle {
   std::atomic<float> duration;
   std::atomic<size_t> number;
+
+  Cycle() {
+    duration.store(0);
+    number.store(0);
+  }
 
   Cycle(float duration_, size_t number_) {
     duration.store(duration_);

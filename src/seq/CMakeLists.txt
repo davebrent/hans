@@ -1,5 +1,6 @@
 add_library(hansseq SHARED
   sequencer_realtime.cpp
+  interpreter.cpp
   midi.cpp)
 
 include_directories(${RTMIDI_INCLUDE_DIRS})
