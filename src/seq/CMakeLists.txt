@@ -1,5 +1,5 @@
 add_library(hansseq SHARED
-  sequencer_realtime.cpp
+  sequencer.cpp
   interpreter.cpp
   midi.cpp)
 

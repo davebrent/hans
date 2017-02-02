@@ -1,28 +1,30 @@
-#ifndef HANS_SEQ_SEQUENCER_REALTIME_H_
-#define HANS_SEQ_SEQUENCER_REALTIME_H_
+#ifndef HANS_SEQ_SEQUENCER_H_
+#define HANS_SEQ_SEQUENCER_H_
 
 #include <atomic>
 #include <chrono>
+#include <functional>
 #include <thread>
-#include "hans/seq/sequencer_base.hpp"
+#include "hans/seq/primitives.hpp"
 
 namespace hans {
 namespace seq {
 namespace detail {
 
+using Callback = std::function<EventList(Cycle&)>;
+using Handler = std::function<void(size_t, size_t, bool)>;
+
 struct GlobalState {
   std::atomic<bool> stop;
   std::atomic<bool> ready;
-
-  SequencerBase::Handler handler;
-  GlobalState(SequencerBase::Handler handler);
+  detail::Handler handler;
+  GlobalState(detail::Handler handler);
 };
 
 class DoubleBuffer {
  public:
   enum class Caller { READER, WRITER };
   std::atomic<bool> swap;
-
   EventList& get(Caller caller);
   DoubleBuffer();
   DoubleBuffer(const DoubleBuffer& other);
@@ -37,14 +39,12 @@ class CycleClock {
  public:
   // Elapsed time since start of the cycle (milliseconds)
   float elapsed;
-
-  CycleClock(float cycle_duration);
   void start();
   void tick();
+  CycleClock();
 
  private:
   std::chrono::high_resolution_clock::time_point m_start;
-  float m_cycle_duration;
 };
 
 struct Track {
@@ -52,35 +52,33 @@ struct Track {
   Cycle cycle;
   CycleClock clock;
   DoubleBuffer buffer;
-  SequencerBase::Callback producer;
+  detail::Callback producer;
   EventList future;
   EventList off_events;
   uint64_t next_cycle;
   uint64_t dispatched;
-
-  Track(uint64_t _id, float duration, SequencerBase::Callback callback);
+  Track(uint64_t _id, detail::Callback callback);
 };
 
 } // namespace detail
 
-class SequencerRealtime : public SequencerBase {
+class Sequencer {
  public:
-  detail::GlobalState global;
-  std::vector<detail::Track> tracks;
-
-  SequencerRealtime(SequencerBase::Handler handler);
-  ~SequencerRealtime();
-  virtual size_t add_track(float duration, Callback track) override;
-  virtual bool start(SequencerBase::Processor producer,
-                     SequencerBase::Processor consumer) override;
-  virtual bool stop() override;
+  Sequencer(detail::Handler handler);
+  ~Sequencer();
+  size_t add_track(detail::Callback track);
+  bool run_forever();
+  bool stop();
+  bool join();
 
  private:
-  std::thread* m_producer;
-  std::thread* m_consumer;
+  detail::GlobalState global;
+  std::vector<detail::Track> tracks;
+  std::thread* m_producer = nullptr;
+  std::thread* m_consumer = nullptr;
 };
 
 } // namespace seq
 } // namespace hans
 
-#endif // HANS_SEQ_SEQUENCER_REALTIME_H_
+#endif // HANS_SEQ_SEQUENCER_H_

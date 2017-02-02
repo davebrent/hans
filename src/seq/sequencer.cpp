@@ -1,10 +1,9 @@
-#include "hans/seq/sequencer_realtime.hpp"
+#include "hans/seq/sequencer.hpp"
 #include <algorithm>
 #include <atomic>
 #include <cmath>
 #include <functional>
 #include <new>
-#include "hans/seq/primitives.hpp"
 
 using namespace hans::seq;
 using namespace hans::seq::detail;
@@ -14,7 +13,7 @@ static void sleep_thread(float ms) {
   std::this_thread::sleep_for(microseconds(static_cast<long>(ms * 1000)));
 }
 
-GlobalState::GlobalState(SequencerBase::Handler handler_) : handler(handler_) {
+GlobalState::GlobalState(Handler handler_) : handler(handler_) {
   stop.store(false);
   ready.store(false);
 }
@@ -43,8 +42,7 @@ void DoubleBuffer::clear() {
   m_back.clear();
 }
 
-CycleClock::CycleClock(float cycle_duration) {
-  m_cycle_duration = cycle_duration;
+CycleClock::CycleClock() {
   m_start = high_resolution_clock::now();
   elapsed = 0;
 }
@@ -59,8 +57,8 @@ void CycleClock::tick() {
   elapsed = duration_cast<microseconds>(now - m_start).count() / 1000.f;
 }
 
-Track::Track(uint64_t _id, float duration, SequencerBase::Callback callback)
-    : id(_id), cycle(duration, 0), clock(duration), producer(callback) {
+Track::Track(uint64_t _id, Callback callback)
+    : id(_id), cycle(0), producer(callback) {
   dispatched = 0;
   next_cycle = 0;
 }
@@ -180,7 +178,7 @@ static void produce_events(GlobalState& global, std::vector<Track>& tracks) {
 
 // Dispatch all start-events, adding them to the end-event list if needed
 static void process_on_events(EventList& on_events, Track& track,
-                              SequencerBase::Handler& handler) {
+                              Handler& handler) {
   auto length = on_events.size();
 
   while (track.dispatched < length) {
@@ -200,8 +198,7 @@ static void process_on_events(EventList& on_events, Track& track,
 }
 
 // Tick and dispatch end-events
-static void process_off_events(Track& track, float delta,
-                               SequencerBase::Handler& handler) {
+static void process_off_events(Track& track, float delta, Handler& handler) {
   auto removed = 0;
 
   std::sort(track.off_events.begin(), track.off_events.end(), sort_by_duration);
@@ -271,23 +268,20 @@ static void consume_events(GlobalState& global, std::vector<Track>& tracks) {
   }
 }
 
-SequencerRealtime::SequencerRealtime(SequencerBase::Handler handler)
-    : global(handler) {
+Sequencer::Sequencer(Handler handler) : global(handler) {
 }
 
-SequencerRealtime::~SequencerRealtime() {
+Sequencer::~Sequencer() {
   stop();
 }
 
-size_t SequencerRealtime::add_track(float duration,
-                                    SequencerBase::Callback callback) {
+size_t Sequencer::add_track(Callback callback) {
   auto id = tracks.size();
-  tracks.push_back(std::move(Track(id, duration, callback)));
+  tracks.push_back(std::move(Track(id, callback)));
   return id;
 }
 
-bool SequencerRealtime::start(SequencerBase::Processor producer_processor,
-                              SequencerBase::Processor consumer_processor) {
+bool Sequencer::run_forever() {
   if (m_producer != nullptr || m_consumer != nullptr) {
     return false;
   }
@@ -298,26 +292,34 @@ bool SequencerRealtime::start(SequencerBase::Processor producer_processor,
     track.dispatched = 0;
   }
 
-  m_producer = new std::thread(producer_processor, this);
-  m_consumer = new std::thread(consumer_processor, this);
+  m_producer =
+      new std::thread(produce_events, std::ref(global), std::ref(tracks));
+  m_consumer =
+      new std::thread(consume_events, std::ref(global), std::ref(tracks));
   return true;
 }
 
-bool SequencerRealtime::stop() {
-  global.stop.store(true);
-
+bool Sequencer::join() {
   m_producer->join();
   m_consumer->join();
-
   delete m_producer;
   delete m_consumer;
-
   m_producer = nullptr;
   m_consumer = nullptr;
+  return true;
+}
+
+bool Sequencer::stop() {
+  global.stop.store(true);
 
   for (auto& track : tracks) {
     track.buffer.clear();
   }
 
+  if (m_producer == nullptr && m_consumer == nullptr) {
+    return false;
+  }
+
+  join();
   return true;
 }

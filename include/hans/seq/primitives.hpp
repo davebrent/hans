@@ -18,8 +18,8 @@ struct Cycle {
     number.store(0);
   }
 
-  Cycle(float duration_, size_t number_) {
-    duration.store(duration_);
+  Cycle(size_t number_) {
+    duration.store(2000);
     number.store(number_);
   }
 

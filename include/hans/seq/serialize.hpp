@@ -6,7 +6,7 @@
 #include <cereal/types/string.hpp>
 #include <cereal/types/vector.hpp>
 #include "hans/seq/midi.hpp"
-#include "hans/seq/sequencer_realtime.hpp"
+#include "hans/seq/sequencer.hpp"
 
 namespace hans {
 namespace seq {
@@ -29,7 +29,7 @@ void serialize(Archive& ar, Cycle& d) {
 }
 
 template <class Archive>
-void serialize(Archive& ar, SequencerRealtime& d) {
+void serialize(Archive& ar, Sequencer& d) {
 }
 
 #undef C
