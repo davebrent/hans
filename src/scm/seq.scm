@@ -1,7 +1,10 @@
-(define-module (hans connect)
+(define-module (hans seq)
   :use-module (srfi srfi-9)
   :use-module (hans extension)
-  :export (make-midi-out
+  :use-module (hans utils)
+  :export (bpm->ms
+
+           make-midi-out
            midi-out-ports
            midi-out-open
            midi-out-send
@@ -17,9 +20,21 @@
            midi-note-on?
            midi-note-on->off
            midi-note-off
-           midi-ctrl))
+           midi-ctrl
 
-(hans-load-extension "libhansconnect" "scm_init_connect_module")
+           make-sequencer
+           sequencer-track
+           sequencer-handler
+           sequencer-start
+           sequencer-stop
+           sequencer-destroy))
+
+;; Tree based pattern generation
+
+(hans-load-extension "libhans.scm.seq" "init_scm_hans_seq")
+
+(define* (bpm->ms beats #:optional pulses)
+  (* (if (not pulses) 4 pulses) (/ 60000 beats)))
 
 (define-record-type <midi>
   (midi status byte-1 byte-2)

@@ -11,8 +11,8 @@ set(SCM_FILES
   compiler/passes/validate-plugins.scm
   compiler/passes/validate-shaders.scm
   compiler/shared.scm
-  seq/connect.scm
   seq/elektron.scm
+  seq.scm
   sys.scm
   compiler.scm
   engine.scm
@@ -20,7 +20,6 @@ set(SCM_FILES
   objects.scm
   os.scm
   patcher.scm
-  sequencer.scm
   utils.scm)
 
 foreach(SCM_FILE ${SCM_FILES})

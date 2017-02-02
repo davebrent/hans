@@ -1,6 +1,6 @@
-(define-module (hans connect elektron)
+(define-module (hans seq elektron)
   :use-module (srfi srfi-1)
-  :use-module (hans connect)
+  :use-module (hans seq)
   :export (md-trigger
            md-ctrl-change))
 
