@@ -1,6 +1,6 @@
-#version 150
+#version 400
 
-in vec2 position;
+layout (location = 0) in vec2 position;
 out vec2 uv;
 
 void main () {

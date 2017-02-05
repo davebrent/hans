@@ -1,145 +1,234 @@
 #include "hans/engine/object.hpp"
 
-#define FILTER_AMOUNT 0x11ed734ddeee006c
-#define FILTER_HALFTONE_SHADER 0x5b44d05452629d5a
-#define FILTER_SOBEL_SHADER 0x52938ee09e9f277a
-#define FILTER_INVERT_SHADER 0xb7c4e0bff104a4bf
-#define FILTER_ZOOMBLUR_SHADER 0x5ef3fc01a1325fe9
-#define FILTER_ARG_NAME 0xd4c943cba60c270b
-#define FILTER_RGBSPLIT_SHADER 0xaf8de3558a198d7a
-#define FILTER_PIXELATE_SHADER 0x41eb10bf4db253f7
-#define FILTER_ARG_SHADER 0xcce8d5b5f5ae333f
-#define FILTER_PASSTHROUGH_SHADER 0x56b3ebbf4277fe64
-#define FILTER_VERT_SHADER 0x349e8c3fc580b1cc
-#define FILTER_DOTSCREEN_SHADER 0x897d66aa1c0e88ae
-#define FILTER_CGADISPLAY_SHADER 0x261d3c19febd7f25
-#define FILTER_GAMMA_SHADER 0xf1eedb418e8f6683
-#define FILTER_SEPIA_SHADER 0x104a242028d65dc6
-#define FILTER_GREYSCALE_SHADER 0x18ae8a6b858ebee
+#define FILTER 0x357ddc26b51af2ba        /* filter */
+#define AMOUNT 0x11ed734ddeee006c        /* amount */
+#define SHADER_VERT 0xac2fc0d7c2793744   /* filter/shader/vert */
+#define SHADER_FRAG 0x28c5dced1d35512b   /* filter/shader/frag */
+#define PASSTHROUGH 0x56b3ebbf4277fe64   /* passthrough */
+#define PIXELATE 0x5b44d05452629d5a      /* pixelate */
+#define GREYSCALE 0x52938ee09e9f277a     /* greyscale */
+#define INVERT 0xb7c4e0bff104a4bf        /* invert */
+#define RGB2YUV 0x5ef3fc01a1325fe9       /* rgb2yuv */
+#define RGBSPLIT 0xd4c943cba60c270b      /* rgbsplit */
+#define GAUSBLUR 0xaf8de3558a198d7a      /* gausblur */
+#define BARRELDISTORT 0xfb8d958c0930c70a /* barreldistort */
+
+#define MAX_SUBROUTINE_PASSES 2
+#define NUM_SUBROUTINES 9
+#define NUM_FILTERS 8
 
 using namespace hans;
 using namespace hans::engine;
 
-static const float VERTICES[] = {-1, 1, -1, -1, 1, -1, 1, 1};
-static const int INDEX[] = {0, 1, 2, 2, 3, 0};
+struct Filter {
+  const uint16_t passes;
+  const uint16_t subroutines[MAX_SUBROUTINE_PASSES];
+};
+
+struct FilterInfo {
+  const hash names[NUM_FILTERS];
+  const Filter filters[NUM_FILTERS];
+};
+
+// clang-format off
+static constexpr char const* SUBROUTINES[] = {
+  "passthrough_filter",
+  "pixelate_filter",
+  "greyscale_filter",
+  "invert_filter",
+  "rgb_to_yuv_filter",
+  "rgbsplit_filter",
+  "barrel_distort_filter",
+  "gaus_filter_1",
+  "gaus_filter_2"
+};
+
+static constexpr const FilterInfo FILTER_INFO = {
+  {
+    PASSTHROUGH,
+    PIXELATE,
+    GREYSCALE,
+    INVERT,
+    RGB2YUV,
+    RGBSPLIT,
+    BARRELDISTORT,
+    GAUSBLUR,
+  },
+  {
+    {1, {0}},
+    {1, {1}},
+    {1, {2}},
+    {1, {3}},
+    {1, {4}},
+    {1, {5}},
+    {1, {6}},
+    {2, {7, 8}},
+  }
+};
+// clang-format on
+
+struct Uniforms {
+  GLuint texture;
+  GLuint center;
+  GLuint resolution;
+  GLuint amount;
+  GLuint weights;
+  GLuint subroutines[NUM_SUBROUTINES];
+};
 
 struct FilterState {
-  graphics::FBO fbo;
-  GLuint vao;
-  GLuint texture;
-  hash shader;
-  graphics::ShaderProgram program;
-  Register inlet_texture;
-  Register outlet_texture;
   Parameter amount;
-  GLuint u_center_loc;
-  GLuint u_resolution_loc;
-  GLuint u_amount_loc;
-  uint32_t texture_value;
+  Parameter filter;
+  graphics::FBO fbo;
+  graphics::ShaderProgram program;
+  Register inlet;
+  Register outlet;
+  Uniforms uniforms;
+  GLuint vao;
+  uint32_t texture;
 
   template <class Archive>
   void serialize(Archive& ar) {
-    ar(shader);
   }
 };
+
+float gauss(float x, float sigma2) {
+  double two_pi = 6.283185307179586;
+  double coeff = 1.0 / (two_pi * sigma2);
+  double expon = -(x * x) / (2.0 * sigma2);
+  return (float)(coeff * exp(expon));
+}
 
 class FilterObject : protected GraphicsObject {
   friend class hans::engine::PluginManager;
 
  public:
   using GraphicsObject::GraphicsObject;
-  virtual void create(Configurator& patcher) override;
-  virtual void setup(context& ctx) override;
+
+  virtual void create(Configurator& configurator) override {
+    configurator.request(Configurator::Resources::INLET, 1);
+    configurator.request(Configurator::Resources::OUTLET, 1);
+  }
+
+  virtual void setup(context& ctx) override {
+    state.filter = ctx.parameters.make(id, FILTER);
+    state.amount = ctx.parameters.make(id, AMOUNT);
+    state.fbo = ctx.fbos.make(id);
+    state.inlet = ctx.registers.make(id, Register::Types::INLET, 0);
+    state.outlet = ctx.registers.make(id, Register::Types::OUTLET, 0);
+    state.program = ctx.shaders.create(ctx.shaders.create(SHADER_VERT),
+                                       ctx.shaders.create(SHADER_FRAG));
+
+    // Buffers
+    float vertices[] = {-1, 1, -1, -1, 1, -1, 1, 1};
+    int indices[] = {0, 1, 2, 2, 3, 0};
+
+    glGenVertexArrays(1, &state.vao);
+    glBindVertexArray(state.vao);
+
+    GLuint vbo;
+    glGenBuffers(1, &vbo);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    GLuint ebo;
+    glGenBuffers(1, &ebo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices,
+                 GL_STATIC_DRAW);
+
+    glBindVertexArray(state.vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+
+    // Shaders
+    glUseProgram(state.program.handle);
+
+    auto pgm = state.program.handle;
+    auto shdr = GL_FRAGMENT_SHADER;
+
+    state.uniforms.resolution = glGetUniformLocation(pgm, "resolution");
+    state.uniforms.center = glGetUniformLocation(pgm, "center");
+    state.uniforms.texture = glGetUniformLocation(pgm, "image");
+    state.uniforms.amount = glGetUniformLocation(pgm, "amount");
+    state.uniforms.weights = glGetUniformLocation(pgm, "weights");
+
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+
+    auto num = glGetSubroutineIndex(pgm, shdr, "FilterEffect");
+    auto loc = glGetSubroutineUniformLocation(pgm, shdr, "FilterEffect");
+
+    if (loc == GL_INVALID_INDEX) {
+      throw std::runtime_error("gfx-filter, invalid subroutine uniform loc");
+    }
+
+    for (auto i = 0; i < NUM_SUBROUTINES; ++i) {
+      auto name = SUBROUTINES[i];
+      state.uniforms.subroutines[i] = glGetSubroutineIndex(pgm, shdr, name);
+    }
+
+    // Registers
+    auto input = ctx.registers.read(state.inlet);
+    state.texture = *static_cast<uint32_t*>(input);
+    auto output = ctx.fbos.get_color_attachment(state.fbo, 0);
+    ctx.registers.write(state.outlet, &output);
+  }
+
   virtual void update(context& ctx) override {
   }
-  virtual void draw(context& ctx) const override;
+
+  virtual void draw(context& ctx) const override {
+    auto amount = ctx.parameters.get(state.amount, 0);
+
+    // Compute weights for gausian blur filter
+    float weights[5];
+    weights[0] = gauss(0, amount);
+    auto sum = weights[0];
+    for (auto i = 1; i < 5; i++) {
+      weights[i] = gauss(i, amount);
+      sum += 2 * weights[i];
+    }
+    for (auto i = 0; i < 5; i++) {
+      weights[i] = weights[i] / sum;
+    }
+
+    glUseProgram(state.program.handle);
+
+    // Activate & bind input texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, state.texture);
+    glUniform1i(state.uniforms.texture, 0);
+
+    // Calculate uniforms from input texture
+    int width, height;
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
+    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
+
+    glUniform2f(state.uniforms.resolution, width, height);
+    glUniform2f(state.uniforms.center, width / 2.f, height / 2.f);
+    glUniform1f(state.uniforms.amount, amount);
+    glUniform1fv(state.uniforms.weights, 5, weights);
+
+    ctx.fbos.bind_fbo(state.fbo);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glBindVertexArray(state.vao);
+
+    // Make the filter passes
+    auto fltr = ctx.parameters.get(state.filter, 0);
+    fltr = std::min<float>(std::max<float>(fltr, 0), NUM_FILTERS);
+    auto info = FILTER_INFO.filters[std::lround(fltr)];
+
+    for (auto i = 0; i < info.passes; ++i) {
+      auto location = state.uniforms.subroutines[info.subroutines[i]];
+      glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &location);
+      glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+    }
+  }
 
  private:
   FilterState state;
 };
-
-void FilterObject::create(Configurator& patcher) {
-  patcher.request(Configurator::Resources::INLET, 1);
-  patcher.request(Configurator::Resources::OUTLET, 1);
-
-  state.shader = FILTER_PASSTHROUGH_SHADER;
-  for (const auto& arg : patcher.arguments()) {
-    if (arg.type == Argument::Types::STRING && arg.name == FILTER_ARG_NAME) {
-      state.shader = arg.string;
-    }
-  }
-}
-
-void FilterObject::setup(context& ctx) {
-  state.amount = ctx.parameters.make(id, FILTER_AMOUNT);
-  state.inlet_texture = ctx.registers.make(id, Register::Types::INLET, 0);
-  state.outlet_texture = ctx.registers.make(id, Register::Types::OUTLET, 0);
-  state.fbo = ctx.fbos.make(id);
-
-  GLuint vbo;
-  GLuint ebo;
-
-  glGenVertexArrays(1, &state.vao);
-  glBindVertexArray(state.vao);
-
-  glGenBuffers(1, &vbo);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(VERTICES), VERTICES, GL_STATIC_DRAW);
-
-  glGenBuffers(1, &ebo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(INDEX), INDEX, GL_STATIC_DRAW);
-
-  glBindVertexArray(state.vao);
-  glBindBuffer(GL_ARRAY_BUFFER, vbo);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-
-  auto v_shader = ctx.shaders.create(FILTER_VERT_SHADER);
-  auto f_shader = ctx.shaders.create(state.shader);
-  state.program = ctx.shaders.create(v_shader, f_shader);
-  glUseProgram(state.program.handle);
-
-  state.u_resolution_loc =
-      glGetUniformLocation(state.program.handle, "u_resolution");
-  state.u_center_loc = glGetUniformLocation(state.program.handle, "u_center");
-  state.texture = glGetUniformLocation(state.program.handle, "u_texture");
-  state.u_amount_loc = glGetUniformLocation(state.program.handle, "u_amount");
-
-  GLint pos_attrib = glGetAttribLocation(state.program.handle, "position");
-  glVertexAttribPointer(pos_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
-  glEnableVertexAttribArray(pos_attrib);
-
-  auto register_value = ctx.registers.read(state.inlet_texture);
-  state.texture_value = *static_cast<uint32_t*>(register_value);
-
-  // Send the textures we will be writing to to the outlet
-  auto out_tex = ctx.fbos.get_color_attachment(state.fbo, 0);
-  ctx.registers.write(state.outlet_texture, &out_tex);
-}
-
-void FilterObject::draw(context& ctx) const {
-  glUseProgram(state.program.handle);
-
-  glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, state.texture_value);
-  glUniform1i(state.texture, 0);
-
-  int input_width;
-  int input_height;
-
-  glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &input_width);
-  glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &input_height);
-
-  glUniform2f(state.u_resolution_loc, input_width, input_height);
-  glUniform2f(state.u_center_loc, input_width / 2.f, input_height / 2.f);
-  glUniform1f(state.u_amount_loc, ctx.parameters.get(state.amount, 0));
-
-  ctx.fbos.bind_fbo(state.fbo);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  glBindVertexArray(state.vao);
-  glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-}
 
 HANS_PLUGIN_INIT(PluginManager* manager) {
   manager->add_object<FilterState, FilterObject>("gfx-filter");
