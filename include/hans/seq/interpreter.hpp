@@ -30,7 +30,7 @@ enum Code {
   PALINDROME = 0x1000E,
 };
 
-static const std::vector<std::string> Words = {
+static const std::vector<const char*> Words = {
   ".",
   "[",
   "]",
