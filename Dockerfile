@@ -40,6 +40,10 @@ RUN cd /app && \
   git clone https://github.com/USCiLab/cereal.git --depth=1 && \
   mv cereal/include/cereal/ /usr/include/cereal/
 
+RUN cd /app && \
+  git clone https://github.com/skystrife/cpptoml.git --depth=1 && \
+  mv cpptoml/include/cpptoml.h /usr/include/cpptoml.h
+
 COPY . /app
 RUN mkdir -p /app/build && cd /app/build && cmake .. && make install
 

@@ -1,0 +1,19 @@
+[library]
+name = "libhans.gfx.noise"
+
+[[objects]]
+name = "gfx-perlin"
+type = "graphics"
+
+[[objects.parameters]]
+name = "frequency"
+value = [10]
+help = "Number of cycles per unit length that the noise function outputs"
+[[objects.parameters]]
+name = "lacunarity"
+value = [2]
+help = "Multiplier determining how quickly frequency increases for each octave"
+[[objects.parameters]]
+name = "octavecount"
+value = [8]
+help = "Number of octaves in the noise function"

@@ -1,0 +1,44 @@
+[library]
+name = "libhans.gfx.scopes"
+
+#
+
+[[objects]]
+name = "gfx-oscilloscope"
+type = "graphics"
+
+[[objects.shaders]]
+name = "scopes/shaders/oscilloscope"
+type = "vertex"
+path = "oscilloscope.vert"
+[[objects.shaders]]
+name = "scopes/shaders/fragment"
+type = "fragment"
+path = "oscilloscope.frag"
+
+[objects.fbo]
+stencil = true
+[[objects.fbo.attachments]]
+type = "color"
+components = 4
+
+#
+
+[[objects]]
+name = "gfx-phasescope"
+type = "graphics"
+
+[[objects.shaders]]
+name = "scopes/shaders/phasescope"
+type = "vertex"
+path = "phasescope.vert"
+[[objects.shaders]]
+name = "scopes/shaders/fragment"
+type = "fragment"
+path = "phasescope.frag"
+
+[objects.fbo]
+stencil = true
+[[objects.fbo.attachments]]
+type = "color"
+components = 4

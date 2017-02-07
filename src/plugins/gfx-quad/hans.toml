@@ -1,0 +1,21 @@
+[library]
+name = "libhans.gfx.quad"
+
+[[objects]]
+name = "gfx-quad"
+type = "graphics"
+
+[[objects.shaders]]
+name = "quad/shader/vertex"
+type = "vertex"
+path = "quad.vert"
+[[objects.shaders]]
+name = "quad/shader/fragment"
+type = "fragment"
+path = "quad.frag"
+
+[objects.fbo]
+stencil = true
+[[objects.fbo.attachments]]
+type = "color"
+components = 4

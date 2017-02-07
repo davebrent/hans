@@ -44,6 +44,11 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wall")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib")
 set(SCM_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/hans")
 
+configure_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/include/hans/pipeline/config.hpp.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/include/hans/pipeline/config.hpp")
+
 include_directories(include)
+include_directories("${CMAKE_CURRENT_BINARY_DIR}/include")
 add_subdirectory(src)
 add_subdirectory(test)

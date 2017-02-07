@@ -1,0 +1,18 @@
+[library]
+name = "libhans.snd.io"
+
+[[objects]]
+name = "snd-in"
+type = "audio"
+
+[[objects.audio-buffers]]
+name = "snd/in/buffer"
+
+#
+
+[[objects]]
+name = "snd-out"
+type = "audio"
+
+[[objects.audio-buffers]]
+name = "snd/out/buffer"

@@ -1,0 +1,7 @@
+[library]
+name = "libhans.snd.ringbuffer"
+
+[[objects]]
+name = "snd-ringbuffer"
+type = "audio"
+help = "Write samples to a ring buffer"

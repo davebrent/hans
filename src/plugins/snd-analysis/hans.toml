@@ -1,0 +1,78 @@
+[library]
+name = "libhans.snd.analysis"
+
+[[objects]]
+name = "snd-fft"
+type = "audio"
+
+[[objects.audio-buffers]]
+name = "snd/fft/real"
+channels = 1
+[[objects.audio-buffers]]
+name = "snd/fft/imag"
+channels = 1
+
+#
+
+[[objects]]
+name = "snd-ifft"
+type = "audio"
+
+[[objects.audio-buffers]]
+name = "snd/ifft/signal"
+channels = 1
+
+#
+
+[[objects]]
+name = "snd-feature"
+type = "audio"
+
+[[objects.parameters]]
+name = "energy"
+help = "Calculates the local energy of the spectral frame"
+[[objects.parameters]]
+name = "hfc"
+help = "Computes High Frequency Content of the spectral frame"
+[[objects.parameters]]
+name = "complex"
+help = "Complex Domain Method onset detection function"
+[[objects.parameters]]
+name = "phase"
+help = "Phase Based Method onset detection function"
+[[objects.parameters]]
+name = "specdiff"
+help = "Spectral difference method onset detection"
+[[objects.parameters]]
+name = "kl"
+help = "Kullback-Liebler onset detection"
+[[objects.parameters]]
+name = "mkl"
+help = "Modified Kullback-Liebler onset detection"
+[[objects.parameters]]
+name = "rms"
+help = "Loudness estimate in (dB)"
+[[objects.parameters]]
+name = "specflux"
+help = "Measure of how quickly power spectrum has changed"
+[[objects.parameters]]
+name = "centroid"
+help = "Represents the barycenter of the spectrum (hZ)"
+[[objects.parameters]]
+name = "spread"
+help = "Spectral distribution variance around the centroid"
+[[objects.parameters]]
+name = "skewness"
+help = "Computed from the third order moment of spectrum"
+[[objects.parameters]]
+name = "kurtosis"
+help = "Measure of flatness of the spectrum"
+[[objects.parameters]]
+name = "slope"
+help = "Decreasing rate of the spectral amplitude"
+[[objects.parameters]]
+name = "decrease"
+help = "Decreasing rate, based on perceptual criteria"
+[[objects.parameters]]
+name = "rolloff"
+help = "Bin below which 95% of spectrum energy is found"

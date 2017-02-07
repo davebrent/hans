@@ -24,6 +24,8 @@ struct ObjectDef {
   using ID = uint32_t;
   ID id;
   hash name;
+  hash variable;
+  hash program;
 };
 
 struct Register {

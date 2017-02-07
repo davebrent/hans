@@ -1,0 +1,20 @@
+[library]
+name = "libhans.snd.oscillator"
+
+[[objects]]
+name = "snd-oscillator"
+type = "audio"
+help = "An audio oscillator supporting multiple waveforms"
+
+[[objects.audio-buffers]]
+name = "snd/osc/buffer"
+channels = 1
+
+[[objects.parameters]]
+name = "frequency"
+value = [440]
+help = "Oscillator frequency"
+[[objects.parameters]]
+name = "waveform"
+value = [1]
+help = "Oscillator waveform"

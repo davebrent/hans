@@ -1,0 +1,82 @@
+[library]
+name = "libhans.gfx.superformula"
+
+[[objects]]
+name = "gfx-superformula"
+type = "graphics"
+
+[[objects.parameters]]
+name = "m"
+value = [5.7, 10]
+[[objects.parameters]]
+name = "n1"
+value = [0.5, 0.3]
+[[objects.parameters]]
+name = "n2"
+value = [1.0, 0.2]
+[[objects.parameters]]
+name = "n3"
+value = [2.5, 1.0]
+[[objects.parameters]]
+name = "a"
+value = [1, 1]
+[[objects.parameters]]
+name = "b"
+value = [1, 1]
+[[objects.parameters]]
+name = "u"
+value = [-3.14159265, 3.14159265]
+[[objects.parameters]]
+name = "v"
+value = [-1.57079632, 1.57079632]
+[[objects.parameters]]
+name = "u_color"
+value = [0.85, 0.9, 0.95]
+[[objects.parameters]]
+name = "scale"
+value = [0.5]
+[[objects.parameters]]
+name = "segments"
+value = [90]
+[[objects.parameters]]
+name = "seed"
+value = [0]
+[[objects.parameters]]
+name = "deform"
+value = [0]
+[[objects.parameters]]
+name = "translate"
+value = [0, 0, -1]
+[[objects.parameters]]
+name = "rotation"
+value = [0]
+[[objects.parameters]]
+name = "rotation_axis"
+value = [1, 1, 1]
+[[objects.parameters]]
+name = "draw_mode"
+value = [0]
+
+[[objects.shaders]]
+name = "superformula/shader/vertex"
+type = "vertex"
+path = "superformula.vert"
+[[objects.shaders]]
+name = "superformula/shader/fragment"
+type = "fragment"
+path = "superformula.frag"
+
+[objects.fbo]
+stencil = true
+[[objects.fbo.attachments]]
+type = "depth"
+components = 4
+help = "Depth buffer"
+[[objects.fbo.attachments]]
+type = "color"
+components = 4
+help = "Color buffer"
+[[objects.fbo.attachments]]
+type = "color"
+components = 4
+help = "Normal buffer"

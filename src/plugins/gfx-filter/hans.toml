@@ -1,0 +1,30 @@
+[library]
+name = "libhans.gfx.filter"
+
+[[objects]]
+name = "gfx-filter"
+type = "graphics"
+
+[[objects.parameters]]
+name = "amount"
+value = [0.1]
+help = "The amount of filter to apply"
+[[objects.parameters]]
+name = "filter"
+value = [7]
+help = "The selected filter"
+
+[[objects.shaders]]
+name = "filter/shader/vert"
+type = "vertex"
+path = "filter.vert.glsl"
+[[objects.shaders]]
+name = "filter/shader/frag"
+type = "fragment"
+path = "filter.frag.glsl"
+
+[objects.fbo]
+stencil = true
+[[objects.fbo.attachments]]
+type = "color"
+components = 4

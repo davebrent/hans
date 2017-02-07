@@ -1,0 +1,221 @@
+plugins = [
+  "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-attractors",
+  "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-filter",
+  "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-noise",
+  "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-quad",
+  "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-scopes",
+  "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-sndtex",
+  "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-superformula",
+  "/home/dave/Workspace/davebrent/hans/src/plugins/snd-analysis",
+  "/home/dave/Workspace/davebrent/hans/src/plugins/snd-io",
+  "/home/dave/Workspace/davebrent/hans/src/plugins/snd-oscillator",
+  "/home/dave/Workspace/davebrent/hans/src/plugins/snd-ringbuffer",
+]
+
+# Global settings
+
+[settings]
+width = 960
+height = 540
+samplerate = 44100
+blocksize = 512
+channels = 2
+
+### A program showing the superformula being manipulated by an audio signal
+
+[[programs]]
+name = "superformula"
+[programs.objects]
+adc    = { object = "snd-in", args = [ { channel = 1 } ] }
+feat   = { object = "snd-feature", args = [ { method = "centroid" } ] }
+shape  = { object = "gfx-superformula" }
+effect = { object = "gfx-filter" }
+window = { object = "gfx-quad" }
+[[programs.audio]]
+source = "adc"
+outlet = 0
+sink   = "feat"
+inlet  = 0
+[[programs.graphics]]
+source = "shape"
+outlet = 0
+sink   = "effect"
+inlet  = 0
+[[programs.graphics]]
+source = "effect"
+outlet = 0
+sink   = "window"
+inlet  = 0
+[[programs.modulators]]
+source = {object = "feat", parameter = "centroid", component = 0}
+target = {object = "shape", parameter = "scale", component = 0}
+scale  = 0.0001
+offset = 0
+
+# A program that outputs a noise texture
+
+[[programs]]
+name = "noise"
+[programs.objects]
+noise  = { object = "gfx-perlin" }
+window = { object = "gfx-quad" }
+[[programs.graphics]]
+source = "noise"
+outlet = 0
+sink   = "window"
+inlet  = 0
+
+# A program that passes audio in to audio out
+
+[[programs]]
+name = "passthrough"
+[programs.objects]
+adc    = { object = "snd-in", args = [ { channel = 0 }, { channel = 1 } ] }
+dac    = { object = "snd-out", args = [ { channel = 0 }, { channel = 1 } ] }
+[[programs.audio]]
+source = "adc"
+outlet = 0
+sink   = "dac"
+inlet  = 0
+[[programs.audio]]
+source = "adc"
+outlet = 1
+sink   = "dac"
+inlet  = 1
+
+# A program that outputs a sine wave
+
+[[programs]]
+name = "sinewave"
+[programs.objects]
+osc    = { object = "snd-oscillator", args = [ { channels = 2 } ] }
+dac    = { object = "snd-out", args = [ { channel = 0 }, { channel = 1 } ] }
+[[programs.audio]]
+source = "osc"
+outlet = 0
+sink   = "dac"
+inlet  = 0
+[[programs.audio]]
+source = "osc"
+outlet = 1
+sink   = "dac"
+inlet  = 1
+
+# Sharing audio data with graphics objects
+
+[[programs]]
+name = "ringbuffers"
+[programs.objects]
+adc    = { object = "snd-in", args = [ { channel = 0 } ] }
+ring   = { object = "snd-ringbuffer", args = [ { name = "my-ring" } ] }
+dac    = { object = "snd-out", args = [ { channel = 0 } ] }
+tex    = { object = "gfx-sndtex", args = [ { name = "my-ring" } ] }
+window = { object = "gfx-quad" }
+[[programs.audio]]
+source = "adc"
+outlet = 0
+sink   = "ring"
+inlet  = 0
+[[programs.audio]]
+source = "ring"
+outlet = 0
+sink   = "dac"
+inlet  = 0
+[[programs.graphics]]
+source = "tex"
+outlet = 0
+sink   = "window"
+inlet  = 0
+
+# Using audio scopes
+
+[[programs]]
+name = "oscilloscope"
+[programs.objects]
+adc    = { object = "snd-in", args = [ { channel = 0 } ] }
+ring   = { object = "snd-ringbuffer", args = [ { name = "my-ring" } ] }
+dac    = { object = "snd-out", args = [ { channel = 0 } ] }
+scope  = { object = "gfx-oscilloscope", args = [ { left = "my-ring" },
+                                                 { right = "my-ring" } ] }
+window = { object = "gfx-quad" }
+[[programs.audio]]
+source = "adc"
+outlet = 0
+sink   = "ring"
+inlet  = 0
+[[programs.audio]]
+source = "ring"
+outlet = 0
+sink   = "dac"
+inlet  = 0
+[[programs.graphics]]
+source = "scope"
+outlet = 0
+sink   = "window"
+
+# Modulating attractors
+
+[[programs]]
+name = "attractors"
+[programs.objects]
+attrs  = { object = "gfx-attractors" }
+window = { object = "gfx-quad" }
+[[programs.graphics]]
+source = "attrs"
+outlet = 0
+sink   = "window"
+inlet  = 0
+[[programs.modulators]]
+source = {object = "attrs", parameter = "a", component = 0}
+target = {object = "attrs", parameter = "b", component = 0}
+scale  = 1
+offset = 0
+[[programs.modulators]]
+source = {object = "attrs", parameter = "b", component = 0}
+target = {object = "attrs", parameter = "a", component = 0}
+scale  = 1
+offset = 0
+
+# Real-time FFT
+
+[[programs]]
+name = "fft"
+[programs.objects]
+adc    = { object = "snd-in", args = [ { channel = 0 } ] }
+ring   = { object = "snd-ringbuffer", args = [ { name = "my-fft-ring" } ] }
+fft    = { object = "snd-fft" }
+ifft   = { object = "snd-ifft" }
+dac    = { object = "snd-out", args = [ { channel = 0 } ] }
+scope  = { object = "gfx-oscilloscope", args = [ { left = "my-fft-ring" },
+                                                 { right = "my-fft-ring" } ] }
+window = { object = "gfx-quad" }
+[[programs.audio]]
+source = "adc"
+outlet = 0
+sink   = "fft"
+inlet  = 0
+[[programs.audio]]
+source = "fft"
+outlet = 0
+sink   = "ifft"
+inlet  = 0
+[[programs.audio]]
+source = "fft"
+outlet = 1
+sink   = "ifft"
+inlet  = 1
+[[programs.audio]]
+source = "ifft"
+outlet = 0
+sink   = "ring"
+inlet  = 0
+[[programs.audio]]
+source = "ring"
+outlet = 0
+sink   = "dac"
+inlet  = 0
+[[programs.graphics]]
+source = "scope"
+outlet = 0
+sink   = "window"
+inlet  = 0

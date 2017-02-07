@@ -25,7 +25,7 @@ void serialize(Archive& ar, Plugins& d) {
 
 template <class Archive>
 void serialize(Archive& ar, ObjectDef& d) {
-  ar(C(id), C(name));
+  ar(C(id), C(name), C(variable), C(program));
 }
 
 template <class Archive>
