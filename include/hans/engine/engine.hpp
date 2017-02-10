@@ -4,6 +4,7 @@
 #include <functional>
 #include "hans/engine/audio_backend_base.hpp"
 #include "hans/engine/context.hpp"
+#include "hans/engine/graphics_debug.hpp"
 #include "hans/engine/modulation.hpp"
 #include "hans/engine/object.hpp"
 #include "hans/engine/primitives.hpp"
@@ -44,6 +45,7 @@ class Engine {
   ReplayRecorder m_recorder;
   ReplayPlayer m_player;
   AudioBackendBase* m_stream;
+  GraphicsDebug m_debug;
   std::vector<GraphicsObject*> m_graphics_objects;
   std::vector<AudioObject*> m_audio_objects;
 

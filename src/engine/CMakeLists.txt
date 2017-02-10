@@ -1,6 +1,7 @@
 add_library(hansengine SHARED
   audio_backend_jack.cpp
   audio_backend_portaudio.cpp
+  graphics_debug.cpp
   image.cpp
   video.cpp
   window.cpp

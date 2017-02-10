@@ -1,5 +1,6 @@
 #include "hans/engine/engine.hpp"
 #include <algorithm>
+#include <string>
 #include "./audio_backend_jack.hpp"
 #include "./audio_backend_portaudio.hpp"
 #include "hans/engine/audio_buffers.hpp"
@@ -24,7 +25,8 @@ Engine::Engine(EngineData ng)
       m_plugins(m_ctx.strings, m_data.plugins),
       m_modulators(m_data.modulators, m_data.parameters),
       m_recorder(m_data.parameters.buffer, m_data.recordings),
-      m_player(m_data.parameters.buffer, m_data.recordings) {
+      m_player(m_data.parameters.buffer, m_data.recordings),
+      m_debug(m_ctx.strings, true) {
   m_stream = nullptr;
   m_selected_program = 0;
 };
@@ -47,10 +49,12 @@ bool Engine::setup() {
     return false;
   }
 
+  m_debug.push("setup");
   m_ctx.fbos.setup();
 
   construct<AudioObject*>(m_audio_objects, m_data.programs.audio);
   construct<GraphicsObject*>(m_graphics_objects, m_data.programs.graphics);
+  m_debug.pop();
 
   m_stream = new AudioBackendPortAudio(m_ctx.settings, m_ctx.audio_buses,
                                        [&]() { tick_audio(); });
@@ -97,9 +101,14 @@ void Engine::tick_audio() {
 void Engine::tick_graphics() {
   auto range = m_data.programs.graphics.ranges.at(m_selected_program);
 
+  m_debug.push("update");
   for (auto i = range.start; i < range.end; ++i) {
-    m_graphics_objects.at(i)->update(m_ctx);
+    auto& object = m_graphics_objects.at(i);
+    m_debug.push(std::to_string(i).c_str());
+    object->update(m_ctx);
+    m_debug.pop();
   }
+  m_debug.pop();
 
   m_modulators.gfx_modulate();
 
@@ -107,9 +116,14 @@ void Engine::tick_graphics() {
   m_recorder.tick();
   m_ctx.ring_buffers.advance_all();
 
+  m_debug.push("draw");
   for (auto i = range.start; i < range.end; ++i) {
-    m_graphics_objects.at(i)->draw(m_ctx);
+    auto& object = m_graphics_objects.at(i);
+    m_debug.push(std::to_string(i).c_str());
+    object->draw(m_ctx);
+    m_debug.pop();
   }
+  m_debug.pop();
 
   m_modulators.gfx_restore();
   m_window.update();
