@@ -1,6 +1,7 @@
 set(PLUGINS
   gfx-attractors
   gfx-filter
+  gfx-noise
   gfx-quad
   gfx-scopes
   gfx-script

@@ -26,6 +26,14 @@
       (make-modulation
         (hans-modulate feat 'centroid 0 superformula 'scale 0 0 0.0001)))))
 
+(define (make-pgm-noise name)
+  ;; Noise textures
+  (let ((perlin (hans-create 'gfx-perlin '()))
+        (window (hans-create 'gfx-quad)))
+    (make-program name
+      (make-graphics-graph
+        (hans-connect perlin 0 window 0)))))
+
 (define (make-pgm-sine name)
   ;; Creating audio signals
   (let ((osc (hans-create 'snd-oscillator `((channels . 2))))
@@ -128,7 +136,8 @@
 
 ;; Create a more compact representation of all the programs
 (define ng-data (hans-compile settings
-                  `(,(make-pgm-fx "dotscreen" "filter/shader/dotscreen")
+                  `(,(make-pgm-noise "perlin")
+                    ,(make-pgm-fx "dotscreen" "filter/shader/dotscreen")
                     ,(make-pgm-attractors "attractors")
                     ,(make-pgm-fx "cga" "filter/shader/cgadisplay")
                     ,(make-pgm-script "script" (base "sketches/concentric.scm"))
