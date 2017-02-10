@@ -19,11 +19,6 @@ struct Settings {
   uint16_t height;
 };
 
-struct Blob {
-  size_t size;
-  void* data;
-};
-
 struct ObjectDef {
   enum Types { AUDIO, GRAPHICS };
   using ID = uint32_t;
@@ -35,7 +30,6 @@ struct Register {
   enum Types { INLET, OUTLET };
   ObjectDef::ID object;
   ObjectDef::Types type;
-  uint32_t graph;
   uint8_t index;
   uint16_t bin;
   bool readonly;

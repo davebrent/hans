@@ -30,7 +30,7 @@ void serialize(Archive& ar, ObjectDef& d) {
 
 template <class Archive>
 void serialize(Archive& ar, Register& d) {
-  ar(C(object), C(type), C(graph), C(index), C(bin), C(readonly));
+  ar(C(object), C(type), C(index), C(bin), C(readonly));
 }
 
 template <class Archive>
