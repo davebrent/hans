@@ -1,11 +1,11 @@
-#ifndef HANS_SEQ_MIDI_H_
-#define HANS_SEQ_MIDI_H_
+#ifndef HANS_SEQUENCER_MIDI_H_
+#define HANS_SEQUENCER_MIDI_H_
 
 #include <RtMidi.h>
 #include <string>
 
 namespace hans {
-namespace seq {
+namespace sequencer {
 
 class MidiOut {
  public:
@@ -24,7 +24,7 @@ class MidiOut {
   std::vector<unsigned char> m_message;
 };
 
-} // namespace seq
+} // namespace sequencer
 } // namespace hans
 
-#endif // HANS_SEQ_MIDI_H_
+#endif // HANS_SEQUENCER_MIDI_H_

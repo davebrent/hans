@@ -1,12 +1,12 @@
-#include "hans/seq/sequencer.hpp"
+#include "hans/sequencer/sequencer.hpp"
 #include <algorithm>
 #include <atomic>
 #include <cmath>
 #include <functional>
 #include <new>
 
-using namespace hans::seq;
-using namespace hans::seq::detail;
+using namespace hans::sequencer;
+using namespace hans::sequencer::detail;
 using namespace std::chrono;
 
 static void sleep_thread(float ms) {

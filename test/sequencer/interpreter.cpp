@@ -1,21 +1,21 @@
-#include "hans/seq/interpreter.hpp"
+#include "hans/sequencer/interpreter.hpp"
 #include <catch.hpp>
 #include <iostream>
-#include "hans/seq/primitives.hpp"
+#include "hans/sequencer/primitives.hpp"
 
-using namespace hans::seq;
+using namespace hans::sequencer;
 
 TEST_CASE("Stack interpreter", "[interpreter]") {
   SECTION("Compiling/lexing?") {
     std::istringstream ss("[ 12 2 3 ] [ 2 3 ] 50 degrade");
-    auto tokens = hans::seq::compile(ss);
+    auto tokens = hans::sequencer::compile(ss);
     IStack expected = {BEGIN, 12, 2, 3, END, BEGIN, 2, 3, END, 50, DEGRADE};
     REQUIRE(tokens == expected);
   }
 
   SECTION("Compiling/lexing with newlines") {
     std::istringstream ss("[ 12 2 3 ] \n [ 2 3 ] 50 degrade");
-    auto tokens = hans::seq::compile(ss);
+    auto tokens = hans::sequencer::compile(ss);
     IStack expected = {BEGIN, 12, 2, 3, END, BEGIN, 2, 3, END, 50, DEGRADE};
     REQUIRE(tokens == expected);
   }

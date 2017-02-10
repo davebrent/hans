@@ -1,14 +1,14 @@
-#ifndef HANS_SEQ_SEQUENCER_H_
-#define HANS_SEQ_SEQUENCER_H_
+#ifndef HANS_SEQUENCER_SEQUENCER_H_
+#define HANS_SEQUENCER_SEQUENCER_H_
 
 #include <atomic>
 #include <chrono>
 #include <functional>
 #include <thread>
-#include "hans/seq/primitives.hpp"
+#include "hans/sequencer/primitives.hpp"
 
 namespace hans {
-namespace seq {
+namespace sequencer {
 namespace detail {
 
 using Callback = std::function<EventList(Cycle&)>;
@@ -78,7 +78,7 @@ class Sequencer {
   std::thread* m_consumer = nullptr;
 };
 
-} // namespace seq
+} // namespace sequencer
 } // namespace hans
 
-#endif // HANS_SEQ_SEQUENCER_H_
+#endif // HANS_SEQUENCER_SEQUENCER_H_

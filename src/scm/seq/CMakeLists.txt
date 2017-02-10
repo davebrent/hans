@@ -3,6 +3,6 @@ add_library(hans.scm.seq SHARED
 
 target_link_libraries(hans.scm.seq
   hansscm
-  hansseq)
+  hanssequencer)
 
 install(TARGETS hans.scm.seq DESTINATION lib)

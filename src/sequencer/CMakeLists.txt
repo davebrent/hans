@@ -1,4 +1,4 @@
-add_library(hansseq SHARED
+add_library(hanssequencer SHARED
   sequencer.cpp
   interpreter.cpp
   midi.cpp)
@@ -6,7 +6,7 @@ add_library(hansseq SHARED
 include_directories(${RTMIDI_INCLUDE_DIRS})
 link_directories(${RTMIDI_LIBRARY_DIRS})
 
-target_link_libraries(hansseq
+target_link_libraries(hanssequencer
   ${RTMIDI_LIBRARIES})
 
-install(TARGETS hansseq DESTINATION lib)
+install(TARGETS hanssequencer DESTINATION lib)

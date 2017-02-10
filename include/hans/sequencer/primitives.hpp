@@ -1,5 +1,5 @@
-#ifndef HANS_SEQ_PRIMITIVES_H_
-#define HANS_SEQ_PRIMITIVES_H_
+#ifndef HANS_SEQUENCER_PRIMITIVES_H_
+#define HANS_SEQUENCER_PRIMITIVES_H_
 
 #include <stddef.h>
 #include <atomic>
@@ -7,7 +7,7 @@
 #include <vector>
 
 namespace hans {
-namespace seq {
+namespace sequencer {
 
 struct Cycle {
   std::atomic<float> duration;
@@ -42,7 +42,7 @@ struct Event {
 
 using EventList = std::vector<Event>;
 
-} // namespace seq
+} // namespace sequencer
 } // namespace hans
 
-#endif // HANS_SEQ_PRIMITIVES_H_
+#endif // HANS_SEQUENCER_PRIMITIVES_H_

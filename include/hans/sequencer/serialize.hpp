@@ -1,15 +1,15 @@
-#ifndef HANS_SEQ_SERIALIZE_H_
-#define HANS_SEQ_SERIALIZE_H_
+#ifndef HANS_SEQUENCER_SERIALIZE_H_
+#define HANS_SEQUENCER_SERIALIZE_H_
 
 #include <cereal/archives/xml.hpp>
 #include <cereal/cereal.hpp>
 #include <cereal/types/string.hpp>
 #include <cereal/types/vector.hpp>
-#include "hans/seq/midi.hpp"
-#include "hans/seq/sequencer.hpp"
+#include "hans/sequencer/midi.hpp"
+#include "hans/sequencer/sequencer.hpp"
 
 namespace hans {
-namespace seq {
+namespace sequencer {
 
 #define C(T) cereal::make_nvp(#T, d.T)
 
@@ -34,7 +34,7 @@ void serialize(Archive& ar, Sequencer& d) {
 
 #undef C
 
-} // namespace seq
+} // namespace sequencer
 } // namespace hans
 
-#endif // HANS_SEQ_SERIALZIE_H_
+#endif // HANS_SEQUENCER_SERIALZIE_H_

@@ -1,10 +1,10 @@
 #include <iostream>
 #include <sstream>
-#include "hans/seq/interpreter.hpp"
-#include "hans/seq/midi.hpp"
-#include "hans/seq/sequencer.hpp"
+#include "hans/sequencer/interpreter.hpp"
+#include "hans/sequencer/midi.hpp"
+#include "hans/sequencer/sequencer.hpp"
 
-using namespace hans::seq;
+using namespace hans::sequencer;
 
 static void print(const Tree& tree) {
   if (tree.children.size() == 0) {

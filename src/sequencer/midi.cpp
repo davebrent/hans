@@ -1,6 +1,6 @@
-#include "hans/seq/midi.hpp"
+#include "hans/sequencer/midi.hpp"
 
-using namespace hans::seq;
+using namespace hans::sequencer;
 
 MidiOut::MidiOut() : m_message(3, 0) {
   auto len = m_midi_out.getPortCount();

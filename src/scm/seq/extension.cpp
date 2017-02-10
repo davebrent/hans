@@ -6,11 +6,11 @@
 
 #include "hans/scm/procedure.hpp"
 #include "hans/scm/smobs.hpp"
-#include "hans/seq/midi.hpp"
-#include "hans/seq/sequencer.hpp"
+#include "hans/sequencer/midi.hpp"
+#include "hans/sequencer/sequencer.hpp"
 
 using namespace hans;
-using namespace hans::seq;
+using namespace hans::sequencer;
 
 static SCM midi_out_open(SCM device, SCM index) {
   if (scm_is_false(scm_integer_p(index))) {

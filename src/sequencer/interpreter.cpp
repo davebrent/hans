@@ -1,10 +1,10 @@
-#include "hans/seq/interpreter.hpp"
+#include "hans/sequencer/interpreter.hpp"
 #include <algorithm>
 #include <istream>
 #include <iterator>
 #include <random>
 
-using namespace hans::seq;
+using namespace hans::sequencer;
 
 Value::Value() : type(UNDEFINED){};
 Value::Value(size_t number) : type(NUMBER), number(number){};
@@ -194,7 +194,7 @@ static void palindrome(Interpreter& itp, uint32_t code) {
   }
 }
 
-IStack hans::seq::compile(std::istream& is) {
+IStack hans::sequencer::compile(std::istream& is) {
   // XXX: Be more forgiving with input, dont use exceptions for control flow
   //      rethink this function some...
   IStack istack;
@@ -219,7 +219,7 @@ IStack hans::seq::compile(std::istream& is) {
   return istack;
 }
 
-void hans::seq::interpret(Interpreter& itp) {
+void hans::sequencer::interpret(Interpreter& itp) {
   while (!itp.istack.empty()) {
     auto code = itp.istack.front();
     itp.istack.pop_front();
@@ -284,7 +284,7 @@ struct Time {
   Time(float start, float duration) : start(start), duration(duration){};
 };
 
-EventList hans::seq::to_events(const Cycle& cycle, const Tree& tree) {
+EventList hans::sequencer::to_events(const Cycle& cycle, const Tree& tree) {
   EventList events;
   std::deque<std::pair<Time, Tree>> visit;
   Time start(0, cycle.duration);

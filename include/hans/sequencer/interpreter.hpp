@@ -1,13 +1,13 @@
-#ifndef HANS_SEQ_INTERPRETER_H_
-#define HANS_SEQ_INTERPRETER_H_
+#ifndef HANS_SEQUENCER_INTERPRETER_H_
+#define HANS_SEQUENCER_INTERPRETER_H_
 
 #include <stddef.h>
 #include <deque>
 #include <vector>
-#include "hans/seq/primitives.hpp"
+#include "hans/sequencer/primitives.hpp"
 
 namespace hans {
-namespace seq {
+namespace sequencer {
 
 static const auto REST_VALUE = 0xffff;
 
@@ -90,7 +90,7 @@ IStack compile(std::istream& is);
 void interpret(Interpreter& interpreter);
 EventList to_events(const Cycle& cycle, const Tree& tree);
 
-} // namespace seq
+} // namespace sequencer
 } // namespace hans
 
-#endif // HANS_SEQ_INTERPRETER_H_
+#endif // HANS_SEQUENCER_INTERPRETER_H_

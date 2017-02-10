@@ -10,7 +10,7 @@
 #include "hans/engine/hasher.hpp"
 #include "hans/engine/primitives.hpp"
 #include "hans/engine/serialize.hpp"
-#include "hans/seq/serialize.hpp"
+#include "hans/sequencer/serialize.hpp"
 
 namespace hans {
 namespace scm {
