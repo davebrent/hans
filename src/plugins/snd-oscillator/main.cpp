@@ -1,6 +1,6 @@
 #include <math.h>
 #include <cstdlib>
-#include "./buffers.h"
+#include "./buffers.hpp"
 #include "hans/engine/object.hpp"
 
 #define SND_OSC_MAX_CHANNELS 8
