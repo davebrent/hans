@@ -10,7 +10,6 @@ $(BUILD_DIR):
 	@cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Release .. && make
 
 check: $(BUILD_DIR)
-	@find test/scm/*.scm -exec guile {} \;
 	@cd $(BUILD_DIR) && ./test/hans-test
 
 lint:

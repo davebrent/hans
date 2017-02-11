@@ -1,23 +1,23 @@
 pkg_search_module(NANOVG QUIET libnanovg)
+find_package(Guile QUIET)
+include(FindGuile)
 
 if(NANOVG_FOUND)
-  set(RESOURCES objects.scm)
+  if(GUILE_FOUND)
+    include_directories(${NANOVG_INCLUDE_DIRS})
+    include_directories(${GUILE_INCLUDE_DIRS})
+    link_directories(${NANOVG_LIBRARY_DIRS})
+    link_directories(${GUILE_LIBRARY_DIRS})
 
-  foreach(RESOURCE ${RESOURCES})
-    configure_file("${PLUGIN_PATH}/${RESOURCE}" "${PLUGIN_DEST}/${RESOURCE}")
-  endforeach(RESOURCE)
+    add_library(hans.gfx.script SHARED
+      IMRenderer.cpp
+      main.cpp)
 
-  include_directories(${NANOVG_INCLUDE_DIRS})
-  link_directories(${NANOVG_LIBRARY_DIRS})
+    target_link_libraries(hans.gfx.script
+      hansplugin
+      ${GUILE_LIBRARIES}
+      ${NANOVG_LIBRARIES})
 
-  add_library(hans.gfx.script SHARED
-    IMRenderer.cpp
-    main.cpp)
-
-  target_link_libraries(hans.gfx.script
-    hansplugin
-    ${GUILE_LIBRARIES}
-    ${NANOVG_LIBRARIES})
-
-  install(TARGETS hans.gfx.script DESTINATION lib)
+    install(TARGETS hans.gfx.script DESTINATION lib)
+  endif(GUILE_FOUND)
 endif(NANOVG_FOUND)

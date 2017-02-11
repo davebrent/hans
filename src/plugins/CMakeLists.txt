@@ -1,19 +1,12 @@
-set(PLUGINS
-  gfx-attractors
-  gfx-filter
-  gfx-noise
-  gfx-quad
-  gfx-scopes
-  gfx-script
-  gfx-sndtex
-  gfx-superformula
-  snd-analysis
-  snd-io
-  snd-oscillator
-  snd-ringbuffer)
-
-foreach(PLUGIN_DIR ${PLUGINS})
-  set(PLUGIN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${PLUGIN_DIR}")
-  set(PLUGIN_DEST "${SCM_OUTPUT_DIRECTORY}/plugin/${PLUGIN_DIR}")
-  add_subdirectory(${PLUGIN_DIR})
-endforeach(PLUGIN_DIR)
+add_subdirectory(gfx-attractors)
+add_subdirectory(gfx-filter)
+add_subdirectory(gfx-noise)
+add_subdirectory(gfx-quad)
+add_subdirectory(gfx-scopes)
+add_subdirectory(gfx-script)
+add_subdirectory(gfx-sndtex)
+add_subdirectory(gfx-superformula)
+add_subdirectory(snd-analysis)
+add_subdirectory(snd-io)
+add_subdirectory(snd-oscillator)
+add_subdirectory(snd-ringbuffer)

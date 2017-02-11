@@ -16,8 +16,6 @@ RUN apt-get clean && apt-get update && \
   libxinerama-dev \
   libxi-dev \
   libxcursor-dev \
-  guile-2.0 \
-  guile-2.0-dev \
   librtmidi-dev \
   libglm-dev \
   libaubio-dev
@@ -46,8 +44,5 @@ RUN cd /app && \
 
 COPY . /app
 RUN mkdir -p /app/build && cd /app/build && cmake .. && make install
-
-# Activate readline when in the REPL
-RUN echo "(use-modules (ice-9 readline)) (activate-readline)" > ~/.guile
 
 CMD /bin/bash

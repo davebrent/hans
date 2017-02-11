@@ -7,12 +7,10 @@ add_executable(hans-test
   engine/replay.cpp
   engine/ring_buffers.cpp
   engine/strings.cpp
-  scm/smobs.cpp
   sequencer/interpreter.cpp
   main.cpp)
 
 target_link_libraries(hans-test
   hansengine
   hansplugin
-  hanssequencer
-  ${GUILE_LIBRARIES})
+  hanssequencer)
