@@ -10,8 +10,7 @@ set(PLUGINS
   snd-analysis
   snd-io
   snd-oscillator
-  snd-ringbuffer
-  snd-utils)
+  snd-ringbuffer)
 
 foreach(PLUGIN_DIR ${PLUGINS})
   set(PLUGIN_PATH "${CMAKE_CURRENT_SOURCE_DIR}/${PLUGIN_DIR}")
