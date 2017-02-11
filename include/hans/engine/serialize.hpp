@@ -56,7 +56,7 @@ void serialize(Archive& ar, Frame& d) {
 namespace audio {
 template <class Archive>
 void serialize(Archive& ar, audio::Buffer& d) {
-  ar(C(object), C(name), C(channels), C(size));
+  ar(C(object), C(name), C(channels), C(size), C(offset));
 }
 }
 

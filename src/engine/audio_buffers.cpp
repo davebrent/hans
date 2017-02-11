@@ -8,15 +8,11 @@ using namespace hans::engine;
 AudioBuffers::AudioBuffers(std::vector<audio::Buffer>& buffers)
     : m_buffers(buffers) {
   size_t total = 0;
-
   for (auto& buffer : buffers) {
-    auto samples = buffer.size * buffer.channels;
-    auto bytes = sizeof(audio::sample) * samples;
-    buffer.offset = total;
-    total += bytes;
+    total += buffer.size * buffer.channels;
   }
 
-  m_allocator.reset(total);
+  m_allocator.reset(total * sizeof(audio::sample));
   auto data = m_allocator.allocate(total, alignof(audio::sample));
   m_base = static_cast<char*>(data);
 }
@@ -32,7 +28,7 @@ audio::Buffer AudioBuffers::make(ObjectDef::ID id, hash name) {
 
 audio::sample* AudioBuffers::get(const audio::Buffer& buff,
                                  uint8_t channel) const {
-  char* base = m_base + buff.offset;
+  char* base = m_base + (buff.offset * sizeof(audio::sample));
   return reinterpret_cast<audio::sample*>(
       base + (sizeof(audio::sample) * buff.size * channel));
 }
