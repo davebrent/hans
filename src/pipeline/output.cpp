@@ -329,6 +329,8 @@ static bool configure_graph(hans::engine::PluginManager& plugins,
       return report(os.str());
     }
   }
+
+  return true;
 }
 
 static bool configure_task(const user_data& input, EngineData& output,
@@ -619,6 +621,9 @@ static bool modulators_task(const user_data& input, EngineData& output,
       auto src_name = hans::engine::hasher(modulator.source.object.c_str());
       auto dst_name = hans::engine::hasher(modulator.target.object.c_str());
 
+      auto src_param = hans::engine::hasher(modulator.source.parameter.c_str());
+      auto dst_param = hans::engine::hasher(modulator.target.parameter.c_str());
+
       auto src_id = find_object(output, pgm, src_name);
       auto dst_id = find_object(output, pgm, dst_name);
 
@@ -639,8 +644,22 @@ static bool modulators_task(const user_data& input, EngineData& output,
       auto s_comp = modulator.source.component;
       auto d_comp = modulator.target.component;
 
-      auto src_offset = parameter_offset(src_id, src_name, s_comp, output);
-      auto dst_offset = parameter_offset(dst_id, dst_name, d_comp, output);
+      auto src_offset = parameter_offset(src_id, src_param, s_comp, output);
+      auto dst_offset = parameter_offset(dst_id, dst_param, d_comp, output);
+
+      if (src_offset == -1) {
+        std::ostringstream os;
+        os << "Failed to find modulation source in " << program.name << " ";
+        os << modulator.source.object;
+        return report(os.str());
+      }
+
+      if (src_offset == -1) {
+        std::ostringstream os;
+        os << "Failed to find modulation destination in ";
+        os << program.name << " " << modulator.target.object;
+        return report(os.str());
+      }
 
       Modulator m;
       m.offset = modulator.offset;
