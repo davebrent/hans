@@ -15,6 +15,7 @@ using table = cpptoml::table;
 static bool read_settings(const shared_ptr<table>, user_data&);
 static bool read_plugins(const shared_ptr<table>, user_data&);
 static bool read_programs(const shared_ptr<table>, user_data&);
+static bool read_watchers(const shared_ptr<table>, user_data&);
 
 static bool read_parameters(const shared_ptr<table>, user_object_template&);
 static bool read_shaders(const shared_ptr<table>, user_object_template&);
@@ -35,6 +36,7 @@ static const top_fn top_tasks[] = {
   read_settings,
   read_plugins,
   read_programs,
+  read_watchers,
 };
 
 static const obj_fn obj_tasks[] = {
@@ -537,7 +539,26 @@ static bool read_programs(const shared_ptr<table> input, user_data& output) {
   return true;
 }
 
+static bool read_watchers(const shared_ptr<table> input, user_data& output) {
+  auto watchers = input->get_array_of<std::string>("watchers");
+  if (!watchers) {
+    return true;
+  }
+
+  for (const auto watcher : *watchers) {
+    output.watchers.push_back(watcher);
+  }
+
+  return true;
+}
+
 bool hans::pipeline::input(const char* filepath, user_data& output) {
+  if (!file_exists(filepath)) {
+    std::ostringstream os;
+    os << "File does not exist '" << filepath << "'";
+    return report(os.str());
+  }
+
   auto table = cpptoml::parse_file(filepath);
 
   for (const auto& task : top_tasks) {

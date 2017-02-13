@@ -7,4 +7,5 @@ add_executable(hans main.cpp)
 target_link_libraries(hans
   hansengine
   hanspipeline
-  hanssequencer)
+  hanssequencer
+  ${LIBEFSW_LIBRARIES})

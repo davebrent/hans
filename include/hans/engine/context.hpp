@@ -23,10 +23,10 @@ struct context {
   ShaderManager shaders;
   FrameBufferManager fbos;
   AudioBuffers audio_buffers;
-  AudioBuses audio_buses;
+  AudioBuses& audio_buses;
   RingBufferManager ring_buffers;
 
-  context(EngineData& data);
+  context(EngineData& data, AudioBuses& buses);
   context(const context& other) = delete;
 };
 

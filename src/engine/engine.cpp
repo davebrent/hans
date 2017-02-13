@@ -1,5 +1,4 @@
 #include "hans/engine/engine.hpp"
-#include <algorithm>
 #include <string>
 #include "./audio_backend_jack.hpp"
 #include "./audio_backend_portaudio.hpp"
@@ -13,23 +12,37 @@
 #include "hans/engine/replay.hpp"
 #include "hans/engine/ring_buffers.hpp"
 #include "hans/engine/strings.hpp"
-#include "hans/engine/window.hpp"
 
 using namespace hans;
 using namespace hans::engine;
 
-Engine::Engine(EngineData ng)
+Engine::Engine(EngineData ng, AudioBuses& audio_buses)
     : m_data(ng),
-      m_ctx(m_data),
-      m_window(),
+      m_ctx(m_data, audio_buses),
       m_plugins(m_ctx.strings, m_data.plugins),
       m_modulators(m_data.modulators, m_data.parameters),
       m_recorder(m_data.parameters.buffer, m_data.recordings),
       m_player(m_data.parameters.buffer, m_data.recordings),
-      m_debug(m_ctx.strings, true) {
-  m_stream = nullptr;
+      m_debug(m_ctx.strings, true),
+      m_should_stop(false) {
   m_selected_program = 0;
+  m_debug.push("setup");
+  m_ctx.fbos.setup();
+  construct<AudioObject*>(m_audio_objects, m_data.programs.audio);
+  construct<GraphicsObject*>(m_graphics_objects, m_data.programs.graphics);
+  m_debug.pop();
 };
+
+Engine::~Engine() {
+  destruct<AudioObject*>(m_audio_objects, m_data.programs.audio);
+  destruct<GraphicsObject*>(m_graphics_objects, m_data.programs.graphics);
+  m_ctx.fbos.destroy();
+  m_ctx.shaders.destroy();
+}
+
+const EngineData& Engine::data() {
+  return m_data;
+}
 
 bool Engine::set_program(size_t index) {
   m_selected_program = index;
@@ -41,45 +54,6 @@ bool Engine::set_parameter(ObjectDef::ID object, const hash name,
                            const Parameter::Value value) {
   // FIXME: This needs to be double buffered, then swappend at begin frame
   return m_ctx.parameters.set(object, name, component, value);
-}
-
-bool Engine::setup() {
-  if (!m_window.make("Hans", m_ctx.settings.width, m_ctx.settings.height)) {
-    std::cerr << "[HANS] Unable to open window" << std::endl;
-    return false;
-  }
-
-  m_debug.push("setup");
-  m_ctx.fbos.setup();
-
-  construct<AudioObject*>(m_audio_objects, m_data.programs.audio);
-  construct<GraphicsObject*>(m_graphics_objects, m_data.programs.graphics);
-  m_debug.pop();
-
-  m_stream = new AudioBackendPortAudio(m_ctx.settings, m_ctx.audio_buses,
-                                       [&]() { tick_audio(); });
-  if (!m_stream->open()) {
-    std::cerr << "[HANS] Unable to open audio stream" << std::endl;
-    return false;
-  }
-
-  m_stream->start();
-  return true;
-}
-
-void Engine::run_forever() {
-  while (!m_window.should_close()) {
-    tick_graphics();
-  }
-}
-
-void Engine::run_forever(std::function<bool()> callback) {
-  while (!m_window.should_close()) {
-    if (!callback()) {
-      break;
-    }
-    tick_graphics();
-  }
 }
 
 void Engine::tick_audio() {
@@ -126,27 +100,6 @@ void Engine::tick_graphics() {
   m_debug.pop();
 
   m_modulators.gfx_restore();
-  m_window.update();
-}
-
-bool Engine::destroy() {
-  if (m_stream != nullptr) {
-    m_stream->close();
-    delete m_stream;
-    m_stream = nullptr;
-  }
-
-  destruct<AudioObject*>(m_audio_objects, m_data.programs.audio);
-  destruct<GraphicsObject*>(m_graphics_objects, m_data.programs.graphics);
-
-  m_ctx.fbos.destroy();
-  m_ctx.shaders.destroy();
-  return true;
-}
-
-bool Engine::capture(Frame& frame) {
-  m_window.capture(frame);
-  return true;
 }
 
 bool Engine::record_start() {

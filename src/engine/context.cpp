@@ -1,6 +1,7 @@
 #include "hans/engine/context.hpp"
 
-hans::engine::context::context(hans::EngineData& data)
+hans::engine::context::context(hans::EngineData& data,
+                               hans::engine::AudioBuses& buses)
     : settings(data.settings),
       strings(data.strings),
       registers(data.settings, data.registers),
@@ -8,6 +9,6 @@ hans::engine::context::context(hans::EngineData& data)
       shaders(strings, data.shaders),
       fbos(data.fbos, data.fbos_attachments),
       audio_buffers(data.audio_buffers),
-      audio_buses(data.settings, 1),
+      audio_buses(buses),
       ring_buffers(data.settings.blocksize, data.ring_buffers) {
 }

@@ -7,6 +7,7 @@ RUN apt-get clean && apt-get update && \
   premake4 \
   ca-certificates \
   git \
+  mercurial \
   valgrind \
   portaudio19-dev \
   libepoxy-dev \
@@ -41,6 +42,12 @@ RUN cd /app && \
 RUN cd /app && \
   git clone https://github.com/skystrife/cpptoml.git --depth=1 && \
   mv cpptoml/include/cpptoml.h /usr/include/cpptoml.h
+
+RUN cd /app && \
+  hg clone https://davebrent@bitbucket.org/SpartanJ/efsw && \
+  cd /app/efsw && premake4 gmake && cd make/linux && make config=release && \
+  mv ../../lib/libefsw.so /usr/local/lib/libefsw.so && \
+  mv ../../include/efsw/ /usr/include/efsw/
 
 COPY . /app
 RUN mkdir -p /app/build && cd /app/build && cmake .. && make install

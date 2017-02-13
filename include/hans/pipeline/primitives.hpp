@@ -104,6 +104,7 @@ struct user_data {
   std::vector<user_plugin> plugins;
   std::vector<user_program> programs;
   std::vector<user_object> objects;
+  std::vector<std::string> watchers;
 };
 
 } // pipeline

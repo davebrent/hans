@@ -1,3 +1,7 @@
+watchers = [
+  "/home/dave/Workspace/davebrent/hans",
+]
+
 plugins = [
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-attractors",
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-filter",
@@ -15,8 +19,8 @@ plugins = [
 # Global settings
 
 [settings]
-width = 960
-height = 540
+width = 480
+height = 270
 samplerate = 44100
 blocksize = 512
 channels = 2

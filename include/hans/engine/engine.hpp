@@ -1,6 +1,7 @@
 #ifndef HANS_ENGINE_ENGINE_H
 #define HANS_ENGINE_ENGINE_H
 
+#include <atomic>
 #include <functional>
 #include "hans/engine/audio_backend_base.hpp"
 #include "hans/engine/context.hpp"
@@ -9,7 +10,6 @@
 #include "hans/engine/object.hpp"
 #include "hans/engine/primitives.hpp"
 #include "hans/engine/replay.hpp"
-#include "hans/engine/window.hpp"
 
 namespace hans {
 namespace engine {
@@ -17,19 +17,15 @@ namespace engine {
 class Engine {
  public:
   Engine(const Engine& other) = delete;
-  Engine(EngineData data);
-
+  Engine(EngineData data, AudioBuses& buses);
+  ~Engine();
+  const EngineData& data();
   bool set_program(size_t index);
   bool set_parameter(ObjectDef::ID object, const hash name,
                      const Parameter::Length component,
                      const Parameter::Value value);
-  bool setup();
-  void run_forever();
-  void run_forever(std::function<bool()> callback);
   void tick_graphics();
   void tick_audio();
-  bool destroy();
-  bool capture(Frame& frame);
   bool record_start();
   bool record_stop();
   bool player_start();
@@ -39,13 +35,12 @@ class Engine {
  private:
   EngineData m_data;
   context m_ctx;
-  Window m_window;
   PluginManager m_plugins;
   ModulationManager m_modulators;
   ReplayRecorder m_recorder;
   ReplayPlayer m_player;
-  AudioBackendBase* m_stream;
   GraphicsDebug m_debug;
+  std::atomic<bool> m_should_stop;
   std::vector<GraphicsObject*> m_graphics_objects;
   std::vector<AudioObject*> m_audio_objects;
 
