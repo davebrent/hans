@@ -4,4 +4,6 @@
 *.xml
 *.mp4
 *.trace
+*.ivf
+*.webm
 build/

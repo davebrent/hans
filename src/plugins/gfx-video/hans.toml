@@ -1,0 +1,21 @@
+[library]
+name = "libhans.gfx.video"
+
+[[objects]]
+name = "gfx-video"
+type = "graphics"
+
+[[objects.shaders]]
+name = "video/shader/vertex"
+type = "vertex"
+path = "decoder.vert.glsl"
+[[objects.shaders]]
+name = "video/shader/fragment"
+type = "fragment"
+path = "decoder.frag.glsl"
+
+[objects.fbo]
+stencil = true
+[[objects.fbo.attachments]]
+type = "color"
+components = 4

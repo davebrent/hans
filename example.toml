@@ -10,6 +10,7 @@ plugins = [
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-scopes",
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-sndtex",
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-superformula",
+  "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-video",
   "/home/dave/Workspace/davebrent/hans/src/plugins/snd-analysis",
   "/home/dave/Workspace/davebrent/hans/src/plugins/snd-io",
   "/home/dave/Workspace/davebrent/hans/src/plugins/snd-oscillator",
@@ -24,6 +25,19 @@ height = 270
 samplerate = 44100
 blocksize = 512
 channels = 2
+
+# Video playing
+
+[[programs]]
+name = "video"
+[programs.objects]
+video  = { object = "gfx-video", args = [ { filepath = "/home/dave/Workspace/davebrent/hans/output.ivf" } ] }
+window = { object = "gfx-quad" }
+[[programs.graphics]]
+source = "video"
+outlet = 0
+sink   = "window"
+inlet  = 0
 
 ### A program showing the superformula being manipulated by an audio signal
 
