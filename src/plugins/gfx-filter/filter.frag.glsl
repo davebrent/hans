@@ -9,7 +9,7 @@ subroutine uniform FilterFunc FilterEffect;
 uniform sampler2D image;
 uniform vec2 resolution;
 uniform vec2 center;
-uniform float amount;
+uniform vec2 amount;
 uniform float weights[5];
 
 subroutine(FilterFunc)
@@ -28,12 +28,12 @@ subroutine(FilterFunc)
 vec4 pixelate_filter(vec2 uv) {
   // amount ranges from resolution.x -> 0, the larger the number the
   // clearer the image.
-  float pixel_size = 1.0 / amount;
+  float pixel_size = 1.0 / amount.x;
   float aspect = resolution.x / resolution.y;
 
   // Round to the nearest interval of pixel_size
   uv.x = floor(uv.x / pixel_size) * pixel_size;
-  pixel_size = aspect / amount;
+  pixel_size = aspect / amount.x;
   uv.y = floor(uv.y / pixel_size) * pixel_size;
   return texture(image, uv);
 }
@@ -86,7 +86,7 @@ vec4 rgbsplit_filter(vec2 uv) {
 subroutine(FilterFunc)
 vec4 barrel_distort_filter(vec2 uv) {
   vec2 cc = uv - 0.5;
-  uv = uv + (cc * dot(cc, cc) * amount);
+  uv = uv + (cc * dot(cc, cc) * amount.x);
   return texture(image, clamp(uv, 0.0, 1.0));
 }
 
@@ -116,6 +116,20 @@ vec4 gaus_filter_2(vec2 uv) {
   }
 
   return sum;
+}
+
+subroutine(FilterFunc)
+vec4 horizontal_clamp_filter(vec2 uv) {
+  float x = max(uv.x, amount.x);
+  x = min(x, amount.y);
+  return texture(image, vec2(x, uv.y));
+}
+
+subroutine(FilterFunc)
+vec4 vertical_clamp_filter(vec2 uv) {
+  float y = max(uv.y, amount.x);
+  y = min(y, amount.y);
+  return texture(image, vec2(uv.x, y));
 }
 
 void main () {

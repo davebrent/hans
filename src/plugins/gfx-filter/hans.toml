@@ -7,7 +7,7 @@ type = "graphics"
 
 [[objects.parameters]]
 name = "amount"
-value = [0.1]
+value = [0.1, 0]
 help = "The amount of filter to apply"
 [[objects.parameters]]
 name = "filter"

@@ -1,21 +1,23 @@
 #include "hans/engine/object.hpp"
 
-#define FILTER 0x357ddc26b51af2ba        /* filter */
-#define AMOUNT 0x11ed734ddeee006c        /* amount */
-#define SHADER_VERT 0xac2fc0d7c2793744   /* filter/shader/vert */
-#define SHADER_FRAG 0x28c5dced1d35512b   /* filter/shader/frag */
-#define PASSTHROUGH 0x56b3ebbf4277fe64   /* passthrough */
-#define PIXELATE 0x5b44d05452629d5a      /* pixelate */
-#define GREYSCALE 0x52938ee09e9f277a     /* greyscale */
-#define INVERT 0xb7c4e0bff104a4bf        /* invert */
-#define RGB2YUV 0x5ef3fc01a1325fe9       /* rgb2yuv */
-#define RGBSPLIT 0xd4c943cba60c270b      /* rgbsplit */
-#define GAUSBLUR 0xaf8de3558a198d7a      /* gausblur */
-#define BARRELDISTORT 0xfb8d958c0930c70a /* barreldistort */
+#define FILTER 0x357ddc26b51af2ba           /* filter */
+#define AMOUNT 0x11ed734ddeee006c           /* amount */
+#define SHADER_VERT 0xac2fc0d7c2793744      /* filter/shader/vert */
+#define SHADER_FRAG 0x28c5dced1d35512b      /* filter/shader/frag */
+#define PASSTHROUGH 0x56b3ebbf4277fe64      /* passthrough */
+#define PIXELATE 0x5b44d05452629d5a         /* pixelate */
+#define GREYSCALE 0x52938ee09e9f277a        /* greyscale */
+#define INVERT 0xb7c4e0bff104a4bf           /* invert */
+#define RGB2YUV 0x5ef3fc01a1325fe9          /* rgb2yuv */
+#define RGBSPLIT 0xd4c943cba60c270b         /* rgbsplit */
+#define GAUSBLUR 0xaf8de3558a198d7a         /* gausblur */
+#define BARRELDISTORT 0xfb8d958c0930c70a    /* barreldistort */
+#define HORIZONTAL_CLAMP 0xb98672f1d40f31af /* horizontalclamp */
+#define VERTICAL_CLAMP 0x63e452a2f47da7e8   /* verticalclamp */
 
 #define MAX_SUBROUTINE_PASSES 2
-#define NUM_SUBROUTINES 9
-#define NUM_FILTERS 8
+#define NUM_SUBROUTINES 11
+#define NUM_FILTERS 10
 
 using namespace hans;
 using namespace hans::engine;
@@ -40,7 +42,9 @@ static constexpr char const* SUBROUTINES[] = {
   "rgbsplit_filter",
   "barrel_distort_filter",
   "gaus_filter_1",
-  "gaus_filter_2"
+  "gaus_filter_2",
+  "horizontal_clamp_filter",
+  "vertical_clamp_filter",
 };
 
 static constexpr const FilterInfo FILTER_INFO = {
@@ -53,6 +57,8 @@ static constexpr const FilterInfo FILTER_INFO = {
     RGBSPLIT,
     BARRELDISTORT,
     GAUSBLUR,
+    HORIZONTAL_CLAMP,
+    VERTICAL_CLAMP,
   },
   {
     {1, {0}},
@@ -63,6 +69,8 @@ static constexpr const FilterInfo FILTER_INFO = {
     {1, {5}},
     {1, {6}},
     {2, {7, 8}},
+    {1, {9}},
+    {1, {10}},
   }
 };
 // clang-format on
@@ -207,7 +215,8 @@ class FilterObject : protected GraphicsObject {
 
     glUniform2f(state.uniforms.resolution, width, height);
     glUniform2f(state.uniforms.center, width / 2.f, height / 2.f);
-    glUniform1f(state.uniforms.amount, amount);
+    glUniform2f(state.uniforms.amount, amount,
+                ctx.parameters.get(state.amount, 1));
     glUniform1fv(state.uniforms.weights, 5, weights);
 
     ctx.fbos.bind_fbo(state.fbo);
