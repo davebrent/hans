@@ -2,12 +2,11 @@
 #include <cstdlib>
 #include "./IMRenderer.hpp"
 #include "./types.hpp"
-#include "hans/engine/object.hpp"
+#include "hans/object.hpp"
 
 #define ARG_PATH 0xae70259f6415b584
 
 using namespace hans;
-using namespace hans::engine;
 
 static SCM size(SCM w, SCM h) {
   auto& renderer = IMRenderer::get_instance();
@@ -163,12 +162,12 @@ static SCM script_draw(SCM proc) {
 }
 
 class ScriptObject : protected GraphicsObject {
-  friend class hans::engine::PluginManager;
+  friend class hans::PluginManager;
 
  public:
   using GraphicsObject::GraphicsObject;
   ~ScriptObject();
-  virtual void create(Configurator& patcher) override;
+  virtual void create(IConfigurator& configurator) override;
   virtual void setup(context& ctx) override;
   virtual void update(context& ctx) override {
   }
@@ -183,11 +182,11 @@ ScriptObject::~ScriptObject() {
   // IMRenderer::get_instance().destroy();
 }
 
-void ScriptObject::create(Configurator& patcher) {
-  patcher.request(Configurator::Resources::INLET, 1);
-  patcher.request(Configurator::Resources::OUTLET, 1);
+void ScriptObject::create(IConfigurator& configurator) {
+  configurator.request(IConfigurator::Resources::INLET, 1);
+  configurator.request(IConfigurator::Resources::OUTLET, 1);
 
-  for (const auto& arg : patcher.arguments()) {
+  for (const auto& arg : configurator.arguments()) {
     if (arg.name == ARG_PATH && arg.type == Argument::Types::STRING) {
       state.path = arg.string;
     }

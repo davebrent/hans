@@ -1,8 +1,7 @@
 #include <cstring>
-#include "hans/engine/object.hpp"
+#include "hans/object.hpp"
 
 using namespace hans;
-using namespace hans::engine;
 
 #define MAX_FRAMES 30
 #define ARG_NAME 0xd4c943cba60c270b /* name */
@@ -21,12 +20,12 @@ struct SndTexState {
 };
 
 class SndTexObject : protected GraphicsObject {
-  friend class hans::engine::PluginManager;
+  friend class hans::PluginManager;
 
  public:
   using GraphicsObject::GraphicsObject;
   ~SndTexObject();
-  virtual void create(Configurator& patcher) override;
+  virtual void create(IConfigurator& configurator) override;
   virtual void setup(context& ctx) override;
   virtual void update(context& ctx) override;
   virtual void draw(context& ctx) const override {
@@ -40,14 +39,14 @@ SndTexObject::~SndTexObject() {
   delete[] state.samples;
 }
 
-void SndTexObject::create(Configurator& patcher) {
-  for (const auto& arg : patcher.arguments()) {
+void SndTexObject::create(IConfigurator& configurator) {
+  for (const auto& arg : configurator.arguments()) {
     if (arg.name == ARG_NAME && arg.type == Argument::Types::STRING) {
       state.name = arg.string;
     }
   }
 
-  patcher.request(Configurator::Resources::OUTLET, 1);
+  configurator.request(IConfigurator::Resources::OUTLET, 1);
 }
 
 void SndTexObject::setup(context& ctx) {

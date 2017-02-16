@@ -1,8 +1,7 @@
 #include <cstring>
-#include "hans/engine/object.hpp"
+#include "hans/object.hpp"
 
 using namespace hans;
-using namespace hans::engine;
 
 #define MAX_FRAMES 30
 #define ARG_LEFT 0xe7add5f891f566b       /* left */
@@ -31,11 +30,11 @@ struct ScopeState {
 };
 
 class OscScopeObject : protected GraphicsObject {
-  friend class hans::engine::PluginManager;
+  friend class hans::PluginManager;
 
  public:
   using GraphicsObject::GraphicsObject;
-  virtual void create(Configurator& patcher) override;
+  virtual void create(IConfigurator& configurator) override;
   virtual void setup(context& ctx) override;
   virtual void update(context& ctx) override;
   virtual void draw(context& ctx) const override;
@@ -45,11 +44,11 @@ class OscScopeObject : protected GraphicsObject {
 };
 
 class PhaseScopeObject : protected GraphicsObject {
-  friend class hans::engine::PluginManager;
+  friend class hans::PluginManager;
 
  public:
   using GraphicsObject::GraphicsObject;
-  virtual void create(Configurator& patcher) override;
+  virtual void create(IConfigurator& configurator) override;
   virtual void setup(context& ctx) override;
   virtual void update(context& ctx) override;
   virtual void draw(context& ctx) const override;
@@ -58,8 +57,8 @@ class PhaseScopeObject : protected GraphicsObject {
   ScopeState state;
 };
 
-static void parse_args(Configurator& patcher, ScopeState& state) {
-  for (const auto& arg : patcher.arguments()) {
+static void parse_args(IConfigurator& configurator, ScopeState& state) {
+  for (const auto& arg : configurator.arguments()) {
     if (arg.name == ARG_LEFT && arg.type == Argument::Types::STRING) {
       state.left = arg.string;
     } else if (arg.name == ARG_RIGHT && arg.type == Argument::Types::STRING) {
@@ -68,9 +67,9 @@ static void parse_args(Configurator& patcher, ScopeState& state) {
   }
 }
 
-void OscScopeObject::create(Configurator& patcher) {
-  parse_args(patcher, state);
-  patcher.request(Configurator::Resources::OUTLET, 1);
+void OscScopeObject::create(IConfigurator& configurator) {
+  parse_args(configurator, state);
+  configurator.request(IConfigurator::Resources::OUTLET, 1);
 }
 
 void OscScopeObject::setup(context& ctx) {
@@ -192,9 +191,9 @@ void OscScopeObject::draw(context& ctx) const {
   glDrawArrays(GL_POINTS, 0, state.buffer_length);
 }
 
-void PhaseScopeObject::create(Configurator& patcher) {
-  parse_args(patcher, state);
-  patcher.request(Configurator::Resources::OUTLET, 1);
+void PhaseScopeObject::create(IConfigurator& configurator) {
+  parse_args(configurator, state);
+  configurator.request(IConfigurator::Resources::OUTLET, 1);
 }
 
 void PhaseScopeObject::setup(context& ctx) {

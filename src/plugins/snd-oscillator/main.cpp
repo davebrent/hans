@@ -1,7 +1,7 @@
 #include <math.h>
 #include <cstdlib>
 #include "./buffers.hpp"
-#include "hans/engine/object.hpp"
+#include "hans/object.hpp"
 
 #define SND_OSC_MAX_CHANNELS 8
 #define ARG_PHASE 0x9c38c179d4311f91       /* phase */
@@ -11,7 +11,6 @@
 #define AUDIO_BUFFER 0x635d6522b5c8c630    /* snd/osc/buffer */
 
 using namespace hans;
-using namespace hans::engine;
 
 struct OscState {
   unsigned samplerate;
@@ -29,11 +28,11 @@ struct OscState {
 };
 
 class OscObject : protected AudioObject {
-  friend class hans::engine::PluginManager;
+  friend class hans::PluginManager;
 
  public:
   using AudioObject::AudioObject;
-  virtual void create(Configurator& patcher) override;
+  virtual void create(IConfigurator& configurator) override;
   virtual void setup(context& ctx) override;
   virtual void update(context& ctx) override {
   }
@@ -43,11 +42,11 @@ class OscObject : protected AudioObject {
   OscState state;
 };
 
-void OscObject::create(Configurator& patcher) {
+void OscObject::create(IConfigurator& configurator) {
   state.phase = 0;
   state.channels = 1;
 
-  for (const auto& arg : patcher.arguments()) {
+  for (const auto& arg : configurator.arguments()) {
     if (arg.name == ARG_CHANNELS && arg.type == Argument::Types::NUMBER) {
       state.channels = arg.number;
     } else if (arg.name == ARG_PHASE && arg.type == Argument::Types::NUMBER) {
@@ -55,7 +54,7 @@ void OscObject::create(Configurator& patcher) {
     }
   }
 
-  patcher.request(Configurator::Resources::OUTLET, state.channels);
+  configurator.request(IConfigurator::Resources::OUTLET, state.channels);
 }
 
 void OscObject::setup(context& ctx) {

@@ -5,17 +5,17 @@
 #include <iostream>
 #include <sstream>
 #include <thread>
-#include "./engine/audio_backend_portaudio.hpp"
-#include "hans/engine/engine.hpp"
-#include "hans/engine/image.hpp"
-#include "hans/engine/primitives.hpp"
-#include "hans/engine/serialize.hpp"
-#include "hans/engine/window.hpp"
-#include "hans/pipeline/input.hpp"
-#include "hans/pipeline/output.hpp"
-#include "hans/sequencer/interpreter.hpp"
-#include "hans/sequencer/sequencer.hpp"
+#include "./audio_backend_portaudio.hpp"
+#include "hans/engine.hpp"
+#include "hans/image.hpp"
+#include "hans/interpreter.hpp"
+#include "hans/primitives.hpp"
+#include "hans/sequencer.hpp"
+#include "hans/serialize.hpp"
 #include "hans/tasks.hpp"
+#include "hans/user_config_compiler.hpp"
+#include "hans/user_config_loader.hpp"
+#include "hans/window.hpp"
 
 using namespace hans;
 
@@ -164,17 +164,17 @@ class KeyControls {
 
 class EngineReloader {
  public:
-  EngineReloader(EngineData& data, engine::AudioBuses& buses) {
-    _bytes = std::calloc(2, sizeof(engine::Engine));
+  EngineReloader(EngineData& data, AudioBuses& buses) {
+    _bytes = std::calloc(2, sizeof(Engine));
     _place = 0;
-    _instance = new (_bytes) engine::Engine(data, buses);
+    _instance = new (_bytes) Engine(data, buses);
   }
 
   ~EngineReloader() {
     std::free(_bytes);
   }
 
-  engine::Engine* get() {
+  Engine* get() {
     return _instance;
   }
 
@@ -182,18 +182,18 @@ class EngineReloader {
     _instance->~Engine();
   }
 
-  engine::Engine* swap(EngineData& data, engine::AudioBuses& buses) {
+  Engine* swap(EngineData& data, AudioBuses& buses) {
     _place = (_place + 1) % 2;
-    auto place = static_cast<char*>(_bytes) + (_place * sizeof(engine::Engine));
+    auto place = static_cast<char*>(_bytes) + (_place * sizeof(Engine));
     _instance->~Engine();
-    _instance = new (place) engine::Engine(data, buses);
+    _instance = new (place) Engine(data, buses);
     return _instance;
   }
 
  private:
   void* _bytes;
   int _place;
-  engine::Engine* _instance;
+  Engine* _instance;
 };
 
 //
@@ -205,16 +205,16 @@ static void command_dump(const EngineData& data) {
 }
 
 static void command_reload(const char* filepath, EngineReloader& reloader,
-                           engine::AudioBuses& buses, engine::Engine** ptr) {
-  pipeline::user_data input;
+                           AudioBuses& buses, Engine** ptr) {
+  user_data input;
   EngineData output;
 
-  if (!pipeline::input(filepath, input)) {
+  if (!hans::load_config(filepath, input)) {
     error("Failed to reload: bad config file");
     return;
   }
 
-  if (!pipeline::output(input, output)) {
+  if (!hans::compile_config(input, output)) {
     error("Failed to reload: bad data");
     return;
   }
@@ -223,19 +223,19 @@ static void command_reload(const char* filepath, EngineReloader& reloader,
   info("Successfully reloaded");
 }
 
-static void command_screenshot(engine::Window& window, Frame& frame) {
+static void command_screenshot(Window& window, Frame& frame) {
   window.capture(frame);
-  engine::image::encode("hans.png", frame);
+  image::encode("hans.png", frame);
 }
 
-static void initialize_sequencer(sequencer::Sequencer& sequencer,
+static void initialize_sequencer(Sequencer& sequencer,
                                  std::vector<Track>& tracks) {
   for (const auto& track : tracks) {
     sequencer.add_track([&](sequencer::Cycle& cycle) -> sequencer::EventList {
-      sequencer::Interpreter itp(cycle, track.instructions);
-      sequencer::interpret(itp);
+      Interpreter itp(cycle, track.instructions);
+      interpret(itp);
       auto value = itp.dstack.pop();
-      return sequencer::to_events(itp.cycle, value.tree);
+      return hans::interpreter::to_events(itp.cycle, value.tree);
     });
   }
 }
@@ -247,14 +247,14 @@ int main(int argc, char* argv[]) {
   }
 
   auto config = argv[1];
-  pipeline::user_data input;
+  user_data input;
   EngineData output;
-  if (!pipeline::input(config, input)) {
+  if (!hans::load_config(config, input)) {
     error("Unable to load config file");
     return 1;
   }
 
-  if (!pipeline::output(input, output)) {
+  if (!hans::compile_config(input, output)) {
     error("Unable to process config file");
     return 1;
   }
@@ -265,30 +265,29 @@ int main(int argc, char* argv[]) {
   // Engine
 
   Frame frame(output.settings.width, output.settings.height);
-  engine::Engine* engine = nullptr;
-  engine::AudioBuses buses(output.settings, 1);
-  engine::Window window;
+  Engine* engine = nullptr;
+  AudioBuses buses(output.settings, 1);
+  Window window;
   if (!window.make("Hans", input.settings.width, input.settings.height)) {
     error("Unable to open window");
     return 1;
   }
 
-  engine::AudioBackendPortAudio audio(output.settings, buses, [&]() {
+  AudioBackendPortAudio audio(output.settings, buses, [&]() {
     if (engine != nullptr) {
       engine->tick_audio();
     }
   });
 
-  sequencer::Sequencer sequencer(
-      task_queue, [&](size_t track, size_t value, bool state) {
-        if (!state || engine == nullptr) {
-          return;
-        }
+  Sequencer sequencer(task_queue, [&](size_t track, size_t value, bool state) {
+    if (!state || engine == nullptr) {
+      return;
+    }
 
-        auto t = output.tracks.at(track);
-        auto v = t.scale * (float)value;
-        engine->set_parameter(t.object, t.parameter, t.component, v);
-      });
+    auto t = output.tracks.at(track);
+    auto v = t.scale * (float)value;
+    engine->set_parameter(t.object, t.parameter, t.component, v);
+  });
   initialize_sequencer(sequencer, output.tracks);
 
   // Watcher
@@ -312,7 +311,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  std::thread sequencer_thread(&sequencer::Sequencer::run_forever, &sequencer);
+  std::thread sequencer_thread(&Sequencer::run_forever, &sequencer);
   std::thread background_thread(&TaskQueue::run_forever, &task_queue);
 
   bool should_wait = false;

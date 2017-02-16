@@ -1,7 +1,7 @@
 #include <vpx/vp8dx.h>
 #include <vpx/vpx_decoder.h>
 #include <fstream>
-#include "hans/engine/object.hpp"
+#include "hans/object.hpp"
 
 #define SHADER_VERT 0x10cfa0bb3018a6fa /* video/shader/vertex */
 #define SHADER_FRAG 0xd45361e24a044b9c /* video/shader/fragment */
@@ -158,23 +158,23 @@ struct VideoState {
   }
 };
 
-class VideoObject : protected engine::GraphicsObject {
-  friend class hans::engine::PluginManager;
+class VideoObject : protected GraphicsObject {
+  friend class hans::PluginManager;
 
  public:
-  using engine::GraphicsObject::GraphicsObject;
-  virtual void create(engine::Configurator& patcher) override;
-  virtual void setup(engine::context& ctx) override;
-  virtual void update(engine::context& ctx) override;
-  virtual void draw(engine::context& ctx) const override;
+  using GraphicsObject::GraphicsObject;
+  virtual void create(IConfigurator& configurator) override;
+  virtual void setup(context& ctx) override;
+  virtual void update(context& ctx) override;
+  virtual void draw(context& ctx) const override;
 
  private:
   VideoState state;
   VideoDecoder _decoder;
 };
 
-void VideoObject::create(engine::Configurator& configurator) {
-  configurator.request(engine::Configurator::Resources::OUTLET, 1);
+void VideoObject::create(IConfigurator& configurator) {
+  configurator.request(IConfigurator::Resources::OUTLET, 1);
   for (const auto& arg : configurator.arguments()) {
     if (arg.name == FILEPATH && arg.type == Argument::Types::STRING) {
       state.filepath = arg.string;
@@ -186,7 +186,7 @@ void VideoObject::create(engine::Configurator& configurator) {
   }
 }
 
-void VideoObject::setup(engine::context& ctx) {
+void VideoObject::setup(context& ctx) {
   auto info = _decoder.open(ctx.strings.lookup(state.filepath));
 
   // Hans
@@ -266,7 +266,7 @@ int vpx_img_plane_height(const vpx_image_t* img, int plane) {
   }
 }
 
-void VideoObject::update(engine::context& ctx) {
+void VideoObject::update(context& ctx) {
   auto img = _decoder.decode();
 
   // YV12 -> RGB
@@ -291,7 +291,7 @@ void VideoObject::update(engine::context& ctx) {
   }
 }
 
-void VideoObject::draw(engine::context& ctx) const {
+void VideoObject::draw(context& ctx) const {
   glUseProgram(state.program.handle);
 
   for (auto i = 0; i < 3; ++i) {
@@ -306,6 +306,6 @@ void VideoObject::draw(engine::context& ctx) const {
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
-HANS_PLUGIN_INIT(engine::PluginManager* manager) {
+HANS_PLUGIN_INIT(PluginManager* manager) {
   manager->add_object<VideoState, VideoObject>("gfx-video");
 }

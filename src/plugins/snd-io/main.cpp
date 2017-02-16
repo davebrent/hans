@@ -1,11 +1,10 @@
-#include "hans/engine/object.hpp"
+#include "hans/object.hpp"
 
 #define IO_MAX_CHANNELS 8
 #define IO_ARG_CHANNEL 0x69de5123fa4a72cb /* channel */
 #define IO_ARG_BUS 0xe327f17e3594b6fd     /* bus */
 
 using namespace hans;
-using namespace hans::engine;
 
 struct IOState {
   uint16_t bus;
@@ -20,11 +19,11 @@ struct IOState {
 };
 
 class InObject : protected AudioObject {
-  friend class hans::engine::PluginManager;
+  friend class hans::PluginManager;
 
  public:
   using AudioObject::AudioObject;
-  virtual void create(Configurator& patcher) override;
+  virtual void create(IConfigurator& configurator) override;
   virtual void setup(context& ctx) override;
   virtual void update(context& ctx) override {
   }
@@ -35,11 +34,11 @@ class InObject : protected AudioObject {
 };
 
 class OutObject : protected AudioObject {
-  friend class hans::engine::PluginManager;
+  friend class hans::PluginManager;
 
  public:
   using AudioObject::AudioObject;
-  virtual void create(Configurator& patcher) override;
+  virtual void create(IConfigurator& configurator) override;
   virtual void setup(context& ctx) override;
   virtual void update(context& ctx) override {
   }
@@ -49,10 +48,10 @@ class OutObject : protected AudioObject {
   IOState state;
 };
 
-static void parse_args(Configurator& patcher, IOState& state) {
+static void parse_args(IConfigurator& configurator, IOState& state) {
   state.channels_len = 0;
 
-  for (const auto& arg : patcher.arguments()) {
+  for (const auto& arg : configurator.arguments()) {
     if (arg.name == IO_ARG_BUS && arg.type == Argument::Types::NUMBER) {
       state.bus = arg.number;
     } else if (arg.name == IO_ARG_CHANNEL &&
@@ -64,9 +63,9 @@ static void parse_args(Configurator& patcher, IOState& state) {
   }
 }
 
-void InObject::create(Configurator& patcher) {
-  parse_args(patcher, state);
-  patcher.request(Configurator::Resources::OUTLET, state.channels_len);
+void InObject::create(IConfigurator& configurator) {
+  parse_args(configurator, state);
+  configurator.request(IConfigurator::Resources::OUTLET, state.channels_len);
 }
 
 void InObject::setup(context& ctx) {
@@ -83,9 +82,9 @@ void InObject::callback(context& ctx) {
   }
 }
 
-void OutObject::create(Configurator& patcher) {
-  parse_args(patcher, state);
-  patcher.request(Configurator::Resources::INLET, state.channels_len);
+void OutObject::create(IConfigurator& configurator) {
+  parse_args(configurator, state);
+  configurator.request(IConfigurator::Resources::INLET, state.channels_len);
 }
 
 void OutObject::setup(context& ctx) {

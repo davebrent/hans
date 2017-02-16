@@ -1,10 +1,9 @@
-#include "hans/engine/object.hpp"
+#include "hans/object.hpp"
 
 #define LIBQUAD_VERT_SHADER 0xb3e177b2033e92a3
 #define LIBQUAD_FRAG_SHADER 0x14702fc4633a84b9
 
 using namespace hans;
-using namespace hans::engine;
 
 static const float VERTICES[] = {-1, 1, -1, -1, 1, -1, 1, 1};
 static const int INDEX[] = {0, 1, 2, 2, 3, 0};
@@ -25,11 +24,11 @@ struct QuadState {
 };
 
 class QuadObject : protected GraphicsObject {
-  friend class hans::engine::PluginManager;
+  friend class hans::PluginManager;
 
  public:
   using GraphicsObject::GraphicsObject;
-  virtual void create(Configurator& patcher) override;
+  virtual void create(IConfigurator& configurator) override;
   virtual void setup(context& ctx) override;
   virtual void update(context& ctx) override {
   }
@@ -39,8 +38,8 @@ class QuadObject : protected GraphicsObject {
   QuadState state;
 };
 
-void QuadObject::create(Configurator& patcher) {
-  patcher.request(Configurator::Resources::INLET, 1);
+void QuadObject::create(IConfigurator& configurator) {
+  configurator.request(IConfigurator::Resources::INLET, 1);
 }
 
 void QuadObject::setup(context& ctx) {

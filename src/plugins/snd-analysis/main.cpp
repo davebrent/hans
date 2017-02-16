@@ -1,6 +1,6 @@
 #include <aubio/aubio.h>
 #include <algorithm>
-#include "hans/engine/object.hpp"
+#include "hans/object.hpp"
 
 #define REAL_BUFF_NAME 0xf3b756f37cabf321  /* snd/fft/real */
 #define IMAG_BUFF_NAME 0x716e5449ebf816b9  /* snd/fft/imag */
@@ -23,7 +23,6 @@
 #define METHOD_ROLLOFF 0x7e13c94680db0c7f  /* rolloff */
 
 using namespace hans;
-using namespace hans::engine;
 
 struct FFTState {
   Register inlet;
@@ -45,12 +44,12 @@ struct FFTState {
 };
 
 class FFTObject : protected AudioObject {
-  friend class hans::engine::PluginManager;
+  friend class hans::PluginManager;
 
  public:
   using AudioObject::AudioObject;
   ~FFTObject();
-  virtual void create(Configurator& patcher) override;
+  virtual void create(IConfigurator& configurator) override;
   virtual void setup(context& ctx) override;
   virtual void update(context& ctx) override {
   }
@@ -71,9 +70,9 @@ FFTObject::~FFTObject() {
   }
 }
 
-void FFTObject::create(Configurator& patcher) {
-  patcher.request(Configurator::Resources::INLET, 1);
-  patcher.request(Configurator::Resources::OUTLET, 2);
+void FFTObject::create(IConfigurator& configurator) {
+  configurator.request(IConfigurator::Resources::INLET, 1);
+  configurator.request(IConfigurator::Resources::OUTLET, 2);
 }
 
 void FFTObject::setup(context& ctx) {
@@ -145,12 +144,12 @@ struct IFFTState {
 };
 
 class IFFTObject : protected AudioObject {
-  friend class hans::engine::PluginManager;
+  friend class hans::PluginManager;
 
  public:
   using AudioObject::AudioObject;
   ~IFFTObject();
-  virtual void create(Configurator& patcher) override;
+  virtual void create(IConfigurator& configurator) override;
   virtual void setup(context& ctx) override;
   virtual void update(context& ctx) override {
   }
@@ -169,9 +168,9 @@ IFFTObject::~IFFTObject() {
   }
 }
 
-void IFFTObject::create(Configurator& patcher) {
-  patcher.request(Configurator::Resources::INLET, 2);
-  patcher.request(Configurator::Resources::OUTLET, 1);
+void IFFTObject::create(IConfigurator& configurator) {
+  configurator.request(IConfigurator::Resources::INLET, 2);
+  configurator.request(IConfigurator::Resources::OUTLET, 1);
 }
 
 void IFFTObject::setup(context& ctx) {
@@ -213,12 +212,12 @@ struct FeatureState {
 };
 
 class FeatureObject : protected AudioObject {
-  friend class hans::engine::PluginManager;
+  friend class hans::PluginManager;
 
  public:
   using AudioObject::AudioObject;
   ~FeatureObject();
-  virtual void create(Configurator& patcher) override;
+  virtual void create(IConfigurator& configurator) override;
   virtual void setup(context& ctx) override;
   virtual void update(context& ctx) override;
   virtual void callback(context& ctx) override {
@@ -244,22 +243,22 @@ const std::vector<hash> METHODS = {
     METHOD_CENTROID, METHOD_SPREAD,   METHOD_SKEWNESS, METHOD_KURTOSIS,
     METHOD_SLOPE,    METHOD_DECREASE, METHOD_ROLLOFF};
 
-void FeatureObject::create(Configurator& patcher) {
-  for (const auto& arg : patcher.arguments()) {
+void FeatureObject::create(IConfigurator& configurator) {
+  for (const auto& arg : configurator.arguments()) {
     if (arg.name == PARAM_METHOD && arg.type == Argument::Types::STRING) {
       state.method = arg.string;
     }
   }
 
   if (!state.method) {
-    patcher.missing("method");
+    configurator.missing("method");
   } else {
     auto it = std::find(METHODS.begin(), METHODS.end(), state.method);
     if (it == METHODS.end()) {
-      patcher.invalid("method");
+      configurator.invalid("method");
     } else {
-      patcher.request(Configurator::Resources::INLET, 1);
-      patcher.request(Configurator::Resources::OUTLET, 1);
+      configurator.request(IConfigurator::Resources::INLET, 1);
+      configurator.request(IConfigurator::Resources::OUTLET, 1);
     }
   }
 }

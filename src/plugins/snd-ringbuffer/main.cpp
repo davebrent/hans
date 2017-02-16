@@ -1,9 +1,8 @@
-#include "hans/engine/object.hpp"
+#include "hans/object.hpp"
 
 #define RB_ARG_NAME 0xd4c943cba60c270b /* name */
 
 using namespace hans;
-using namespace hans::engine;
 
 struct RingBufferState {
   hash name;
@@ -18,11 +17,11 @@ struct RingBufferState {
 };
 
 class RingBufferObject : protected AudioObject {
-  friend class hans::engine::PluginManager;
+  friend class hans::PluginManager;
 
  public:
   using AudioObject::AudioObject;
-  virtual void create(Configurator& patcher) override;
+  virtual void create(IConfigurator& configurator) override;
   virtual void setup(context& ctx) override;
   virtual void update(context& ctx) override {
   }
@@ -32,19 +31,19 @@ class RingBufferObject : protected AudioObject {
   RingBufferState state;
 };
 
-void RingBufferObject::create(Configurator& patcher) {
-  for (const auto& arg : patcher.arguments()) {
+void RingBufferObject::create(IConfigurator& configurator) {
+  for (const auto& arg : configurator.arguments()) {
     if (arg.name == RB_ARG_NAME && arg.type == Argument::Types::STRING) {
       state.name = arg.string;
     }
   }
 
   if (!state.name) {
-    patcher.missing("name");
+    configurator.missing("name");
   } else {
-    patcher.request(Configurator::Resources::INLET, 1);
-    patcher.request(Configurator::Resources::OUTLET, 1);
-    patcher.request(Configurator::Resources::RING_BUFFER, state.name);
+    configurator.request(IConfigurator::Resources::INLET, 1);
+    configurator.request(IConfigurator::Resources::OUTLET, 1);
+    configurator.request(IConfigurator::Resources::RING_BUFFER, state.name);
   }
 }
 

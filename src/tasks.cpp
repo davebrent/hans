@@ -1,0 +1,48 @@
+#include "hans/tasks.hpp"
+#include <thread>
+
+using namespace hans;
+
+TaskQueue::TaskQueue() : _task_ids(0) {
+  _stop.store(false);
+}
+
+TaskQueue::task_id TaskQueue::async(size_t tag,
+                                    std::function<void(void)> thunk) {
+  auto id = _task_ids++;
+
+  {
+    std::lock_guard<std::mutex> lock(_mutex);
+    _tasks.push_back({id, tag, thunk});
+  }
+
+  return id;
+}
+
+void TaskQueue::run_forever() {
+  std::chrono::microseconds resolution(100);
+
+  while (!_stop.load()) {
+    bool empty = true;
+    Task task;
+
+    {
+      std::lock_guard<std::mutex> lock(_mutex);
+      if (!_tasks.empty()) {
+        empty = false;
+        task = _tasks.front();
+        _tasks.pop_front();
+      }
+    }
+
+    if (!empty) {
+      task.thunk();
+    } else {
+      std::this_thread::sleep_for(resolution);
+    }
+  }
+}
+
+void TaskQueue::stop() {
+  _stop.store(true);
+}

@@ -2,7 +2,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/mat4x4.hpp>
 #include <glm/vec3.hpp>
-#include "hans/engine/object.hpp"
+#include "hans/object.hpp"
 
 #define PARAM_ROTATION 0x2060566242789baa      /* rotation */
 #define PARAM_ROTATION_AXIS 0x975878516616e3a4 /* rotation_axis */
@@ -12,7 +12,6 @@
 #define VERT_SHADER 0x62fd67147cf1e377 /* superformula/shader/vertex */
 
 using namespace hans;
-using namespace hans::engine;
 
 class SuperFormulaGeometry {
  public:
@@ -168,11 +167,11 @@ struct FormulaState {
 };
 
 class FormulaObject : protected GraphicsObject {
-  friend class hans::engine::PluginManager;
+  friend class hans::PluginManager;
 
  public:
   using GraphicsObject::GraphicsObject;
-  virtual void create(Configurator& patcher) override;
+  virtual void create(IConfigurator& configurator) override;
   virtual void setup(context& ctx) override;
   virtual void update(context& ctx) override {
   }
@@ -182,8 +181,8 @@ class FormulaObject : protected GraphicsObject {
   FormulaState state;
 };
 
-void FormulaObject::create(Configurator& patcher) {
-  patcher.request(Configurator::Resources::OUTLET, 3);
+void FormulaObject::create(IConfigurator& configurator) {
+  configurator.request(IConfigurator::Resources::OUTLET, 3);
 }
 
 void FormulaObject::setup(context& ctx) {

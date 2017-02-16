@@ -1,16 +1,13 @@
 add_executable(hans-test
-  engine/audio_buses.cpp
-  engine/linear_allocator.cpp
-  engine/modulation.cpp
-  engine/object.cpp
-  engine/parameters.cpp
-  engine/replay.cpp
-  engine/ring_buffers.cpp
-  engine/strings.cpp
-  sequencer/interpreter.cpp
+  audio_buses.cpp
+  linear_allocator.cpp
+  modulation.cpp
+  object.cpp
+  parameters.cpp
+  replay.cpp
+  ring_buffers.cpp
+  strings.cpp
+  interpreter.cpp
   main.cpp)
 
-target_link_libraries(hans-test
-  hansengine
-  hansplugin
-  hanssequencer)
+target_link_libraries(hans-test hans hansplugin)

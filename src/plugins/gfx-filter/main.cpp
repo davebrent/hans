@@ -1,4 +1,4 @@
-#include "hans/engine/object.hpp"
+#include "hans/object.hpp"
 
 #define FILTER 0x357ddc26b51af2ba           /* filter */
 #define AMOUNT 0x11ed734ddeee006c           /* amount */
@@ -20,7 +20,6 @@
 #define NUM_FILTERS 10
 
 using namespace hans;
-using namespace hans::engine;
 
 struct Filter {
   const uint16_t passes;
@@ -108,14 +107,14 @@ float gauss(float x, float sigma2) {
 }
 
 class FilterObject : protected GraphicsObject {
-  friend class hans::engine::PluginManager;
+  friend class hans::PluginManager;
 
  public:
   using GraphicsObject::GraphicsObject;
 
-  virtual void create(Configurator& configurator) override {
-    configurator.request(Configurator::Resources::INLET, 1);
-    configurator.request(Configurator::Resources::OUTLET, 1);
+  virtual void create(IConfigurator& configurator) override {
+    configurator.request(IConfigurator::Resources::INLET, 1);
+    configurator.request(IConfigurator::Resources::OUTLET, 1);
   }
 
   virtual void setup(context& ctx) override {

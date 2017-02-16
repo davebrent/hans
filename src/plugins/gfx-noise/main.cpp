@@ -1,12 +1,11 @@
 #include <noise/noise.h>
-#include "hans/engine/object.hpp"
+#include "hans/object.hpp"
 
 #define FREQUENCY 0xce6a758b9a7e1778   /* frequency */
 #define OCTAVECOUNT 0x7c767977096112b2 /* octavecount */
 #define LACUNARITY 0xb237ff7f8b30410f  /* lacunarity */
 
 using namespace hans;
-using namespace hans::engine;
 
 struct PerlinState {
   Parameter frequency;
@@ -27,13 +26,13 @@ struct PerlinState {
 };
 
 class PerlinObject : protected GraphicsObject {
-  friend class hans::engine::PluginManager;
+  friend class hans::PluginManager;
 
  public:
   using GraphicsObject::GraphicsObject;
 
-  virtual void create(Configurator& configurator) override {
-    configurator.request(Configurator::Resources::OUTLET, 1);
+  virtual void create(IConfigurator& configurator) override {
+    configurator.request(IConfigurator::Resources::OUTLET, 1);
   }
 
   virtual void setup(context& ctx) override {

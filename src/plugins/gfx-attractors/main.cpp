@@ -1,5 +1,5 @@
 #include <cmath>
-#include "hans/engine/object.hpp"
+#include "hans/object.hpp"
 
 #define NUM_PARTICLES 100000
 #define GFX_SHDRS_VERTEX 0x2852785caca700a4   /* attractors/shaders/vert */
@@ -12,7 +12,6 @@
 #define PARAM_NAME_F 0x5647bce94f90d9aa       /* f */
 
 using namespace hans;
-using namespace hans::engine;
 
 struct AttractorsState {
   GLuint vao;
@@ -36,11 +35,11 @@ struct AttractorsState {
 };
 
 class AttractorsObject : protected GraphicsObject {
-  friend class hans::engine::PluginManager;
+  friend class hans::PluginManager;
 
  public:
   using GraphicsObject::GraphicsObject;
-  virtual void create(Configurator& patcher) override;
+  virtual void create(IConfigurator& configurator) override;
   virtual void setup(context& ctx) override;
   virtual void update(context& ctx) override;
   virtual void draw(context& ctx) const override;
@@ -49,8 +48,8 @@ class AttractorsObject : protected GraphicsObject {
   AttractorsState state;
 };
 
-void AttractorsObject::create(Configurator& patcher) {
-  patcher.request(Configurator::Resources::OUTLET, 1);
+void AttractorsObject::create(IConfigurator& configurator) {
+  configurator.request(IConfigurator::Resources::OUTLET, 1);
 }
 
 void AttractorsObject::setup(context& ctx) {

@@ -2,8 +2,8 @@
 #define HANS_SCRIPT_TYPES_H_
 
 #include <libguile.h>
-#include "hans/engine/object.hpp"
-#include "hans/engine/primitives.hpp"
+#include "hans/object.hpp"
+#include "hans/primitives.hpp"
 
 struct ScriptState {
   hans::hash path;
