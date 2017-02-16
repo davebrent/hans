@@ -26,6 +26,7 @@ static bool read_objects(const shared_ptr<table>, user_program&);
 static bool read_audio(const shared_ptr<table>, user_program&);
 static bool read_graphics(const shared_ptr<table>, user_program&);
 static bool read_modulators(const shared_ptr<table>, user_program&);
+static bool read_tracks(const shared_ptr<table>, user_program&);
 
 using top_fn = function<bool(const shared_ptr<table>, user_data&)>;
 using obj_fn = function<bool(const shared_ptr<table>, user_object_template&)>;
@@ -51,6 +52,7 @@ static const pgm_fn pgm_tasks[] = {
   read_audio,
   read_graphics,
   read_modulators,
+  read_tracks,
 };
 // clang-format on
 
@@ -507,6 +509,38 @@ static bool read_modulators(const shared_ptr<table> input,
     }
 
     output.modulators.push_back(m);
+  }
+
+  return true;
+}
+
+static bool read_tracks(const shared_ptr<table> input, user_program& output) {
+  auto sequences = input->get_table_array("tracks");
+  if (!sequences) {
+    return true;
+  }
+
+  for (const auto track : *sequences) {
+    auto sequence = track->get_as<std::string>("sequence");
+    if (!sequence) {
+      return report("Track missing sequence");
+    }
+
+    user_track t;
+    t.sequence = *sequence;
+    t.scale = 1;
+
+    auto scale = track->get_as<double>("scale");
+    if (scale) {
+      t.scale = *scale;
+    }
+
+    auto target = track->get_table("target");
+    if (!read_modulator_port(target, t.target)) {
+      return false;
+    }
+
+    output.tracks.push_back(t);
   }
 
   return true;

@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <cstdlib>
+#include <deque>
 #include <string>
 #include <vector>
 
@@ -207,6 +208,14 @@ struct Modulation {
   Thread graphics;
 };
 
+struct Track {
+  std::deque<uint32_t> instructions;
+  ObjectDef::ID object;
+  hash parameter;
+  Parameter::Length component;
+  float scale;
+};
+
 struct EngineData {
   Settings settings;
   Strings strings;
@@ -220,6 +229,7 @@ struct EngineData {
   std::vector<graphics::FBO> fbos;
   std::vector<graphics::FBO::Attachment> fbos_attachments;
   std::vector<audio::Buffer> audio_buffers;
+  std::vector<Track> tracks;
   Recordings recordings;
 };
 } // namespace hans

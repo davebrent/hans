@@ -73,12 +73,19 @@ struct user_modulator {
   double offset;
 };
 
+struct user_track {
+  std::string sequence;
+  float scale;
+  user_modulation_port target;
+};
+
 struct user_program {
   std::string name;
   std::vector<user_object> objects;
   std::vector<user_connection> audio;
   std::vector<user_connection> graphics;
   std::vector<user_modulator> modulators;
+  std::vector<user_track> tracks;
 };
 
 struct user_object_template {

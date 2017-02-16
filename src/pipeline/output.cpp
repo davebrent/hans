@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -11,6 +12,7 @@
 #include "hans/engine/plugins.hpp"
 #include "hans/engine/primitives.hpp"
 #include "hans/pipeline/config.hpp"
+#include "hans/sequencer/interpreter.hpp"
 
 using namespace hans;
 using namespace hans::pipeline;
@@ -705,6 +707,50 @@ static bool ring_buffers_task(const user_data& input, EngineData& output,
   return true;
 }
 
+static bool tracks_task(const user_data& input, EngineData& output,
+                        context& ctx) {
+  for (const auto& program : input.programs) {
+    auto pgm = ctx.strings.add(program.name);
+    for (const auto& track : program.tracks) {
+      auto obj = ctx.strings.add(track.target.object);
+      std::stringstream ss(track.sequence);
+
+      Track t;
+      t.instructions = sequencer::compile(ss);
+      t.parameter = ctx.strings.add(track.target.parameter);
+      t.component = track.target.component;
+      t.scale = track.scale;
+
+      bool found = false;
+      for (const auto& o : output.programs.graphics.objects) {
+        if (o.program == pgm && o.variable == obj) {
+          t.object = o.id;
+          found = true;
+        }
+      }
+
+      if (!found) {
+        for (const auto& o : output.programs.audio.objects) {
+          if (o.program == pgm && o.variable == obj) {
+            t.object = o.id;
+            found = true;
+          }
+        }
+        if (!found) {
+          std::ostringstream os;
+          os << "Track, failed to find object '";
+          os << track.target.object << "' in program '" << program.name << "'";
+          return report(os.str());
+        }
+      }
+
+      output.tracks.push_back(t);
+    }
+  }
+
+  return true;
+}
+
 // clang-format off
 static const task_fn tasks[] = {
   settings_task,
@@ -718,6 +764,7 @@ static const task_fn tasks[] = {
   audio_buffers_task,
   ring_buffers_task,
   modulators_task,
+  tracks_task,
 };
 // clang-format on
 
