@@ -11,16 +11,19 @@ namespace hans {
 class TaskQueue {
  public:
   using task_id = size_t;
+  enum Tag {
+    SEQUENCER_EVAL,
+  };
 
   TaskQueue();
-  task_id async(size_t tag, std::function<void(void)> thunk);
+  task_id async(Tag tag, std::function<void(void)> thunk);
   void run_forever();
   void stop();
 
  private:
   struct Task {
     size_t id;
-    size_t tag;
+    Tag tag;
     std::function<void(void)> thunk;
   };
 

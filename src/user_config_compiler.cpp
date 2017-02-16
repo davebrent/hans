@@ -712,6 +712,8 @@ static bool tracks_task(const user_data& input, EngineData& output,
                         pipeline_context& ctx) {
   for (const auto& program : input.programs) {
     auto pgm = ctx.strings.add(program.name);
+    auto start = output.sequences.tracks.size();
+
     for (const auto& track : program.tracks) {
       auto obj = ctx.strings.add(track.target.object);
       std::stringstream ss(track.sequence);
@@ -745,8 +747,11 @@ static bool tracks_task(const user_data& input, EngineData& output,
         }
       }
 
-      output.tracks.push_back(t);
+      output.sequences.tracks.push_back(t);
     }
+
+    auto end = output.sequences.tracks.size();
+    output.sequences.ranges.push_back({start, end});
   }
 
   return true;

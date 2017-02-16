@@ -216,6 +216,11 @@ struct Track {
   float scale;
 };
 
+struct Sequences {
+  std::vector<Range> ranges;
+  std::vector<Track> tracks;
+};
+
 struct EngineData {
   Settings settings;
   Strings strings;
@@ -229,7 +234,7 @@ struct EngineData {
   std::vector<graphics::FBO> fbos;
   std::vector<graphics::FBO::Attachment> fbos_attachments;
   std::vector<audio::Buffer> audio_buffers;
-  std::vector<Track> tracks;
+  Sequences sequences;
   Recordings recordings;
 };
 } // namespace hans

@@ -228,16 +228,10 @@ static void command_screenshot(Window& window, Frame& frame) {
   image::encode("hans.png", frame);
 }
 
-static void initialize_sequencer(Sequencer& sequencer,
-                                 std::vector<Track>& tracks) {
-  for (const auto& track : tracks) {
-    sequencer.add_track([&](sequencer::Cycle& cycle) -> sequencer::EventList {
-      Interpreter itp(cycle, track.instructions);
-      interpret(itp);
-      auto value = itp.dstack.pop();
-      return hans::interpreter::to_events(itp.cycle, value.tree);
-    });
-  }
+static void sequencer_handler(Engine* engine, Track& track, size_t value,
+                              bool state) {
+  auto res = track.scale * (float)value;
+  engine->set_parameter(track.object, track.parameter, track.component, res);
 }
 
 int main(int argc, char* argv[]) {
@@ -279,16 +273,11 @@ int main(int argc, char* argv[]) {
     }
   });
 
-  Sequencer sequencer(task_queue, [&](size_t track, size_t value, bool state) {
-    if (!state || engine == nullptr) {
-      return;
-    }
-
-    auto t = output.tracks.at(track);
-    auto v = t.scale * (float)value;
-    engine->set_parameter(t.object, t.parameter, t.component, v);
-  });
-  initialize_sequencer(sequencer, output.tracks);
+  Sequencer sequencer(task_queue,
+                      [&](Track& track, size_t value, bool state) {
+                        sequencer_handler(engine, track, value, state);
+                      },
+                      output.sequences);
 
   // Watcher
 
@@ -332,6 +321,7 @@ int main(int argc, char* argv[]) {
         break;
       case Command::PROGRAM:
         engine->set_program(command.value);
+        sequencer.set_program(command.value);
         break;
       case Command::DUMP:
         command_dump(engine->data());

@@ -7,8 +7,7 @@ TaskQueue::TaskQueue() : _task_ids(0) {
   _stop.store(false);
 }
 
-TaskQueue::task_id TaskQueue::async(size_t tag,
-                                    std::function<void(void)> thunk) {
+TaskQueue::task_id TaskQueue::async(Tag tag, std::function<void(void)> thunk) {
   auto id = _task_ids++;
 
   {

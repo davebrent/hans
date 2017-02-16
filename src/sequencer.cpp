@@ -4,13 +4,12 @@
 #include <cmath>
 #include <functional>
 #include <iostream>
+#include "hans/interpreter.hpp"
 
 using namespace hans;
 using namespace hans::sequencer;
 using namespace hans::sequencer::detail;
 using namespace std::chrono;
-
-static const size_t sequencer_eval_tag = 1;
 
 static void sleep_thread(float ms) {
   std::this_thread::sleep_for(microseconds(static_cast<long>(ms * 1000)));
@@ -60,8 +59,8 @@ void CycleClock::tick() {
   elapsed = duration_cast<microseconds>(now - m_start).count() / 1000.f;
 }
 
-sequencer::detail::Track::Track(uint64_t _id, Callback callback)
-    : id(_id), cycle(0), producer(callback) {
+sequencer::detail::TrackState::TrackState(Track track)
+    : cycle(0), primitive(track) {
   dispatched = 0;
 }
 
@@ -108,8 +107,11 @@ static void add_future_events(EventList& out, EventList& future, Cycle& cycle) {
 }
 
 // Produce events to be dispatched in the next cycle.
-static void _sequencer_eval_task(sequencer::detail::Track& track) {
-  auto events = track.producer(track.cycle);
+static void _sequencer_eval_task(sequencer::detail::TrackState& track) {
+  Interpreter itp(track.cycle, track.primitive.instructions);
+  interpret(itp);
+  auto value = itp.dstack.pop();
+  auto events = interpreter::to_events(itp.cycle, value.tree);
 
   // Sort and filter events
   auto& buffer = track.buffer.get(DoubleBuffer::Caller::WRITER);
@@ -126,7 +128,7 @@ static void _sequencer_eval_task(sequencer::detail::Track& track) {
 
 // Dispatch all start-events, adding them to the end-event list if needed
 static void process_on_events(EventList& on_events,
-                              sequencer::detail::Track& track,
+                              sequencer::detail::TrackState& track,
                               Handler& handler) {
   auto length = on_events.size();
 
@@ -136,7 +138,7 @@ static void process_on_events(EventList& on_events,
       break;
     }
 
-    handler(track.id, event.value, true);
+    handler(track.primitive, event.value, true);
 
     if (event.duration != 0) {
       track.off_events.push_back(event);
@@ -147,8 +149,8 @@ static void process_on_events(EventList& on_events,
 }
 
 // Tick and dispatch end-events
-static void process_off_events(sequencer::detail::Track& track, float delta,
-                               Handler& handler) {
+static void process_off_events(sequencer::detail::TrackState& track,
+                               float delta, Handler& handler) {
   auto removed = 0;
 
   std::sort(
@@ -157,7 +159,7 @@ static void process_off_events(sequencer::detail::Track& track, float delta,
 
   for (auto& event : track.off_events) {
     if (event.duration <= 0) {
-      handler(track.id, event.value, false);
+      handler(track.primitive, event.value, false);
       removed++;
     } else {
       event.duration -= delta;
@@ -170,19 +172,21 @@ static void process_off_events(sequencer::detail::Track& track, float delta,
   }
 }
 
-Sequencer::Sequencer(TaskQueue& task_queue, Handler handler)
-    : _task_queue(task_queue), _global(handler) {
+Sequencer::Sequencer(TaskQueue& task_queue, Handler handler,
+                     Sequences& sequences)
+    : _task_queue(task_queue), _global(handler), _sequences(sequences) {
+  _program.store(0);
+  for (const auto& track : _sequences.tracks) {
+    _tracks.push_back(detail::TrackState(track));
+  }
 }
 
 Sequencer::~Sequencer() {
   stop();
 }
 
-size_t Sequencer::add_track(Callback callback) {
-  auto id = _tracks.size();
-  auto track = detail::Track(id, callback);
-  _tracks.push_back(std::move(track));
-  return id;
+void Sequencer::set_program(uint32_t program) {
+  _program.store(program);
 }
 
 void Sequencer::run_forever() {
@@ -194,7 +198,7 @@ void Sequencer::run_forever() {
 
     // Then start evaluating the next cycle
     track.cycle.number++;
-    _task_queue.async(sequencer_eval_tag,
+    _task_queue.async(TaskQueue::SEQUENCER_EVAL,
                       [&]() { _sequencer_eval_task(track); });
   }
 
@@ -204,7 +208,10 @@ void Sequencer::run_forever() {
 
   // Spin tracks independently
   while (!_global.stop.load()) {
-    for (auto& track : _tracks) {
+    auto range = _sequences.ranges.at(_program.load());
+
+    for (auto i = range.start; i < range.end; ++i) {
+      auto& track = _tracks.at(i);
       track.clock.tick();
 
       auto& on_events = track.buffer.get(DoubleBuffer::Caller::READER);
@@ -217,7 +224,7 @@ void Sequencer::run_forever() {
         track.clock.start();
         track.cycle.number++;
 
-        _task_queue.async(sequencer_eval_tag,
+        _task_queue.async(TaskQueue::SEQUENCER_EVAL,
                           [&]() { _sequencer_eval_task(track); });
       }
     }
@@ -228,7 +235,7 @@ void Sequencer::run_forever() {
   // Flush all off events
   for (auto& track : _tracks) {
     for (auto& event : track.off_events) {
-      _global.handler(track.id, event.value, false);
+      _global.handler(track.primitive, event.value, false);
     }
   }
 }

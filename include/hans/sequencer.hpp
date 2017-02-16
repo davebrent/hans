@@ -46,8 +46,7 @@ using EventList = std::vector<Event>;
 
 namespace detail {
 
-using Callback = std::function<EventList(Cycle&)>;
-using Handler = std::function<void(size_t, size_t, bool)>;
+using Handler = std::function<void(Track&, size_t, bool)>;
 
 struct GlobalState {
   std::atomic<bool> stop;
@@ -82,16 +81,15 @@ class CycleClock {
   std::chrono::high_resolution_clock::time_point m_start;
 };
 
-struct Track {
-  uint64_t id;
+struct TrackState {
   Cycle cycle;
   CycleClock clock;
   DoubleBuffer buffer;
-  detail::Callback producer;
   EventList future;
   EventList off_events;
   uint64_t dispatched;
-  Track(uint64_t _id, detail::Callback callback);
+  Track primitive;
+  TrackState(hans::Track track);
 };
 
 } // namespace detail
@@ -99,16 +97,19 @@ struct Track {
 
 class Sequencer {
  public:
-  Sequencer(TaskQueue& task_queue, sequencer::detail::Handler handler);
+  Sequencer(TaskQueue& task_queue, sequencer::detail::Handler handler,
+            Sequences& sequences);
   ~Sequencer();
-  size_t add_track(sequencer::detail::Callback track);
+  void set_program(uint32_t program);
   void run_forever();
   bool stop();
 
  private:
   sequencer::detail::GlobalState _global;
-  std::vector<sequencer::detail::Track> _tracks;
+  std::vector<sequencer::detail::TrackState> _tracks;
   TaskQueue& _task_queue;
+  Sequences& _sequences;
+  std::atomic<uint32_t> _program;
 };
 
 } // namespace hans
