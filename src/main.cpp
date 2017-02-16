@@ -3,6 +3,8 @@
 #include <efsw/efsw.hpp>
 #include <fstream>
 #include <iostream>
+#include <sstream>
+#include <thread>
 #include "./engine/audio_backend_portaudio.hpp"
 #include "hans/engine/engine.hpp"
 #include "hans/engine/image.hpp"
@@ -11,6 +13,9 @@
 #include "hans/engine/window.hpp"
 #include "hans/pipeline/input.hpp"
 #include "hans/pipeline/output.hpp"
+#include "hans/sequencer/interpreter.hpp"
+#include "hans/sequencer/sequencer.hpp"
+#include "hans/tasks.hpp"
 
 using namespace hans;
 
@@ -191,6 +196,8 @@ class EngineReloader {
   engine::Engine* _instance;
 };
 
+//
+
 static void command_dump(const EngineData& data) {
   std::ofstream fs("hans.xml");
   cereal::XMLOutputArchive ar(fs);
@@ -221,6 +228,18 @@ static void command_screenshot(engine::Window& window, Frame& frame) {
   engine::image::encode("hans.png", frame);
 }
 
+static void initialize_sequencer(sequencer::Sequencer& sequencer,
+                                 std::vector<Track>& tracks) {
+  for (const auto& track : tracks) {
+    sequencer.add_track([&](sequencer::Cycle& cycle) -> sequencer::EventList {
+      sequencer::Interpreter itp(cycle, track.instructions);
+      sequencer::interpret(itp);
+      auto value = itp.dstack.pop();
+      return sequencer::to_events(itp.cycle, value.tree);
+    });
+  }
+}
+
 int main(int argc, char* argv[]) {
   if (argc != 2) {
     std::cout << "usage: " << argv[0] << " <config>" << std::endl;
@@ -240,6 +259,11 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
+  TaskQueue task_queue;
+  std::deque<Command> commands;
+
+  // Engine
+
   Frame frame(output.settings.width, output.settings.height);
   engine::Engine* engine = nullptr;
   engine::AudioBuses buses(output.settings, 1);
@@ -255,7 +279,19 @@ int main(int argc, char* argv[]) {
     }
   });
 
-  std::deque<Command> commands;
+  sequencer::Sequencer sequencer(
+      task_queue, [&](size_t track, size_t value, bool state) {
+        if (!state || engine == nullptr) {
+          return;
+        }
+
+        auto t = output.tracks.at(track);
+        auto v = t.scale * (float)value;
+        engine->set_parameter(t.object, t.parameter, t.component, v);
+      });
+  initialize_sequencer(sequencer, output.tracks);
+
+  // Watcher
 
   auto frame_reload_delay = 2;
   efsw::FileWatcher filewatcher;
@@ -275,6 +311,9 @@ int main(int argc, char* argv[]) {
     std::cerr << "[HANS] Unable to open audio stream" << std::endl;
     return 1;
   }
+
+  std::thread sequencer_thread(&sequencer::Sequencer::run_forever, &sequencer);
+  std::thread background_thread(&TaskQueue::run_forever, &task_queue);
 
   bool should_wait = false;
 
@@ -327,6 +366,12 @@ int main(int argc, char* argv[]) {
       window.update_wait();
     }
   }
+
+  task_queue.stop();
+  background_thread.join();
+
+  sequencer.stop();
+  sequencer_thread.join();
 
   reloader.close();
   audio.close();
