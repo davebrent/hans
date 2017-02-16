@@ -3,11 +3,13 @@
 #include <atomic>
 #include <cmath>
 #include <functional>
-#include <new>
+#include <iostream>
 
 using namespace hans::sequencer;
 using namespace hans::sequencer::detail;
 using namespace std::chrono;
+
+static const size_t sequencer_eval_tag = 1;
 
 static void sleep_thread(float ms) {
   std::this_thread::sleep_for(microseconds(static_cast<long>(ms * 1000)));
@@ -60,26 +62,6 @@ void CycleClock::tick() {
 Track::Track(uint64_t _id, Callback callback)
     : id(_id), cycle(0), producer(callback) {
   dispatched = 0;
-  next_cycle = 0;
-}
-
-static bool sort_by_cycle(const Event& a, const Event& b) {
-  return a.cycle < b.cycle;
-}
-
-static bool sort_by_time(const Event& a, const Event& b) {
-  return a.start < b.start;
-}
-
-static bool sort_by_duration(const Event& a, const Event& b) {
-  return a.duration < b.duration;
-}
-
-static bool parse_events(EventList& output, EventList& list) {
-  for (auto& event : list) {
-    output.push_back(event);
-  }
-  return true;
 }
 
 // Put aside events outside of this cycle into a future list
@@ -108,7 +90,8 @@ static void get_current_events(EventList& output, EventList& future,
 static void add_future_events(EventList& out, EventList& future, Cycle& cycle) {
   auto moved = 0;
 
-  std::sort(future.begin(), future.end(), sort_by_cycle);
+  std::sort(future.begin(), future.end(),
+            [](const Event& a, const Event& b) { return a.cycle < b.cycle; });
 
   for (const auto& event : future) {
     if (event.cycle != cycle.number) {
@@ -123,57 +106,21 @@ static void add_future_events(EventList& out, EventList& future, Cycle& cycle) {
   }
 }
 
-static bool generate_track_events(EventList& events, Track& track,
-                                  uint64_t current_cycle) {
-  // Generate and parse a list of events from scheme
-  auto value = track.producer(track.cycle);
-  if (!parse_events(events, value)) {
-    return false;
-  }
+// Produce events to be dispatched in the next cycle.
+static void _sequencer_eval_task(Track& track) {
+  auto events = track.producer(track.cycle);
 
   // Sort and filter events
   auto& buffer = track.buffer.get(DoubleBuffer::Caller::WRITER);
   get_current_events(buffer, track.future, events, track.cycle);
   add_future_events(buffer, track.future, track.cycle);
-  std::sort(buffer.begin(), buffer.end(), sort_by_time);
+  std::sort(buffer.begin(), buffer.end(),
+            [](const Event& a, const Event& b) { return a.start < b.start; });
   events.clear();
 
   // Swap the tracks buffers
   auto side = track.buffer.swap.load();
   track.buffer.swap.store(!side);
-  return true;
-}
-
-// Produce events to be dispatched in the next cycle.
-// Watches the shared cycle number for triggering processing
-static void produce_events(GlobalState& global, std::vector<Track>& tracks) {
-  auto events = EventList();
-
-  // Initial events
-  for (auto& track : tracks) {
-    track.next_cycle = track.cycle.number.load() + 1;
-    if (!generate_track_events(events, track, 0)) {
-      global.stop.store(true);
-      return;
-    }
-  }
-
-  global.ready.store(true);
-
-  while (!global.stop.load()) {
-    sleep_thread(1);
-
-    for (auto& track : tracks) {
-      auto cycle = track.cycle.number.load();
-      if (cycle == track.next_cycle) {
-        track.next_cycle += 1;
-        if (!generate_track_events(events, track, cycle)) {
-          global.stop.store(true);
-          return;
-        }
-      }
-    }
-  }
 }
 
 // Dispatch all start-events, adding them to the end-event list if needed
@@ -201,7 +148,9 @@ static void process_on_events(EventList& on_events, Track& track,
 static void process_off_events(Track& track, float delta, Handler& handler) {
   auto removed = 0;
 
-  std::sort(track.off_events.begin(), track.off_events.end(), sort_by_duration);
+  std::sort(
+      track.off_events.begin(), track.off_events.end(),
+      [](const Event& a, const Event& b) { return a.duration < b.duration; });
 
   for (auto& event : track.off_events) {
     if (event.duration <= 0) {
@@ -218,57 +167,8 @@ static void process_off_events(Track& track, float delta, Handler& handler) {
   }
 }
 
-// Consume current cycles events, dispatching them back to scheme
-static void consume_events(GlobalState& global, std::vector<Track>& tracks) {
-  auto resolution = 0.32; /* milliseconds */
-
-  // Spin until all tracks are ready
-  while (true) {
-    sleep_thread(1);
-
-    if (global.stop.load()) {
-      return;
-    }
-
-    if (global.ready.load()) {
-      break;
-    }
-  }
-
-  // Start all track clocks
-  for (auto& track : tracks) {
-    track.clock.start();
-  }
-
-  // Spin all tracks independently
-  while (!global.stop.load()) {
-    for (auto& track : tracks) {
-      track.clock.tick();
-
-      auto& on_events = track.buffer.get(DoubleBuffer::Caller::READER);
-      process_on_events(on_events, track, global.handler);
-      process_off_events(track, resolution, global.handler);
-
-      if (track.clock.elapsed >= track.cycle.duration.load()) {
-        on_events.clear();
-        track.dispatched = 0;
-        track.clock.start();
-        track.cycle.number++;
-      }
-    }
-
-    sleep_thread(resolution);
-  }
-
-  // Flush all off events
-  for (auto& track : tracks) {
-    for (auto& event : track.off_events) {
-      global.handler(track.id, event.value, false);
-    }
-  }
-}
-
-Sequencer::Sequencer(Handler handler) : global(handler) {
+Sequencer::Sequencer(TaskQueue& task_queue, Handler handler)
+    : _task_queue(task_queue), _global(handler) {
 }
 
 Sequencer::~Sequencer() {
@@ -276,50 +176,66 @@ Sequencer::~Sequencer() {
 }
 
 size_t Sequencer::add_track(Callback callback) {
-  auto id = tracks.size();
-  tracks.push_back(std::move(Track(id, callback)));
+  auto id = _tracks.size();
+  auto track = Track(id, callback);
+  _tracks.push_back(std::move(track));
   return id;
 }
 
-bool Sequencer::run_forever() {
-  if (m_producer != nullptr || m_consumer != nullptr) {
-    return false;
+void Sequencer::run_forever() {
+  auto resolution = 0.12; /* milliseconds */
+
+  for (auto& track : _tracks) {
+    // Evaluate the first cycle
+    _sequencer_eval_task(track);
+
+    // Then start evaluating the next cycle
+    track.cycle.number++;
+    _task_queue.async(sequencer_eval_tag,
+                      [&]() { _sequencer_eval_task(track); });
   }
 
-  for (auto& track : tracks) {
-    track.cycle.number.store(0);
-    track.buffer.swap.store(false);
-    track.dispatched = 0;
+  for (auto& track : _tracks) {
+    track.clock.start();
   }
 
-  m_producer =
-      new std::thread(produce_events, std::ref(global), std::ref(tracks));
-  m_consumer =
-      new std::thread(consume_events, std::ref(global), std::ref(tracks));
-  return true;
-}
+  // Spin tracks independently
+  while (!_global.stop.load()) {
+    for (auto& track : _tracks) {
+      track.clock.tick();
 
-bool Sequencer::join() {
-  m_producer->join();
-  m_consumer->join();
-  delete m_producer;
-  delete m_consumer;
-  m_producer = nullptr;
-  m_consumer = nullptr;
-  return true;
+      auto& on_events = track.buffer.get(DoubleBuffer::Caller::READER);
+      process_on_events(on_events, track, _global.handler);
+      process_off_events(track, resolution, _global.handler);
+
+      if (track.clock.elapsed >= track.cycle.duration.load()) {
+        on_events.clear();
+        track.dispatched = 0;
+        track.clock.start();
+        track.cycle.number++;
+
+        _task_queue.async(sequencer_eval_tag,
+                          [&]() { _sequencer_eval_task(track); });
+      }
+    }
+
+    sleep_thread(resolution);
+  }
+
+  // Flush all off events
+  for (auto& track : _tracks) {
+    for (auto& event : track.off_events) {
+      _global.handler(track.id, event.value, false);
+    }
+  }
 }
 
 bool Sequencer::stop() {
-  global.stop.store(true);
+  _global.stop.store(true);
 
-  for (auto& track : tracks) {
+  for (auto& track : _tracks) {
     track.buffer.clear();
   }
 
-  if (m_producer == nullptr && m_consumer == nullptr) {
-    return false;
-  }
-
-  join();
   return true;
 }

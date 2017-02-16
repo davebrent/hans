@@ -6,6 +6,7 @@
 #include <functional>
 #include <thread>
 #include "hans/sequencer/primitives.hpp"
+#include "hans/tasks.hpp"
 
 namespace hans {
 namespace sequencer {
@@ -55,7 +56,6 @@ struct Track {
   detail::Callback producer;
   EventList future;
   EventList off_events;
-  uint64_t next_cycle;
   uint64_t dispatched;
   Track(uint64_t _id, detail::Callback callback);
 };
@@ -64,18 +64,16 @@ struct Track {
 
 class Sequencer {
  public:
-  Sequencer(detail::Handler handler);
+  Sequencer(TaskQueue& task_queue, detail::Handler handler);
   ~Sequencer();
   size_t add_track(detail::Callback track);
-  bool run_forever();
+  void run_forever();
   bool stop();
-  bool join();
 
  private:
-  detail::GlobalState global;
-  std::vector<detail::Track> tracks;
-  std::thread* m_producer = nullptr;
-  std::thread* m_consumer = nullptr;
+  detail::GlobalState _global;
+  std::vector<detail::Track> _tracks;
+  TaskQueue& _task_queue;
 };
 
 } // namespace sequencer
