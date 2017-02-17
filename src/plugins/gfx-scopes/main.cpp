@@ -84,9 +84,6 @@ void OscScopeObject::setup(context& ctx) {
   state.samples = new audio::sample[max_points];
   state.buffer_length = max_points;
 
-  auto texture = ctx.fbos.get_color_attachment(state.fbo, 0);
-  ctx.registers.write(state.outlet, &texture);
-
   glGenVertexArrays(1, &state.vao);
   glBindVertexArray(state.vao);
 
@@ -189,6 +186,9 @@ void OscScopeObject::draw(context& ctx) const {
   glBindVertexArray(state.vao);
   glPointSize(3);
   glDrawArrays(GL_POINTS, 0, state.buffer_length);
+
+  auto texture = ctx.fbos.get_color_attachment(state.fbo, 0);
+  ctx.registers.write(state.outlet, texture);
 }
 
 void PhaseScopeObject::create(IConfigurator& configurator) {
@@ -207,9 +207,6 @@ void PhaseScopeObject::setup(context& ctx) {
   state.fbo = ctx.fbos.make(id);
   state.samples = new audio::sample[max_points];
   state.buffer_length = max_points / channels;
-
-  auto texture = ctx.fbos.get_color_attachment(state.fbo, 0);
-  ctx.registers.write(state.outlet, &texture);
 
   glGenVertexArrays(1, &state.vao);
   glBindVertexArray(state.vao);
@@ -272,6 +269,9 @@ void PhaseScopeObject::draw(context& ctx) const {
   glBindVertexArray(state.vao);
   glPointSize(3);
   glDrawArrays(GL_POINTS, 0, state.buffer_length);
+
+  auto texture = ctx.fbos.get_color_attachment(state.fbo, 0);
+  ctx.registers.write(state.outlet, texture);
 }
 
 HANS_PLUGIN_INIT(PluginManager* manager) {

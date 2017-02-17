@@ -56,7 +56,7 @@ void RingBufferObject::setup(context& ctx) {
 void RingBufferObject::callback(context& ctx) {
   auto& inlet = state.inlet;
   auto& outlet = state.outlet;
-  auto samples = static_cast<audio::sample*>(ctx.registers.read(inlet));
+  auto samples = ctx.registers.read_block(inlet);
 
   ctx.ring_buffers.write(state.ringbuffer, samples);
   ctx.registers.write(outlet, samples);

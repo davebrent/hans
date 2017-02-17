@@ -197,9 +197,6 @@ void ScriptObject::setup(context& ctx) {
   state.outlet = ctx.registers.make(id, Register::Types::OUTLET, 0);
   state.fbo = ctx.fbos.make(id);
 
-  auto texture = ctx.fbos.get_color_attachment(state.fbo, 0);
-  ctx.registers.write(state.outlet, &texture);
-
   scm_c_define_gsubr("size", 2, 0, 0, (scm_t_subr)size);
   scm_c_define_gsubr("noloop", 0, 0, 0, (scm_t_subr)noloop);
   scm_c_define_gsubr("save", 0, 0, 0, (scm_t_subr)save);
@@ -242,6 +239,9 @@ void ScriptObject::draw(context& ctx) const {
     scm_call_0(state.draw);
     renderer.end_frame();
   }
+
+  auto texture = ctx.fbos.get_color_attachment(state.fbo, 0);
+  ctx.registers.write(state.outlet, texture);
 }
 
 HANS_PLUGIN_INIT(PluginManager* manager) {

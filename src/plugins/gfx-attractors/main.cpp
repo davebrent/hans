@@ -65,9 +65,6 @@ void AttractorsObject::setup(context& ctx) {
   state.buffer_length = NUM_PARTICLES * 2;
   state.positions = new float[state.buffer_length];
 
-  auto texture = ctx.fbos.get_color_attachment(state.fbo, 0);
-  ctx.registers.write(state.outlet, &texture);
-
   glGenVertexArrays(1, &state.vao);
   glBindVertexArray(state.vao);
 
@@ -147,6 +144,9 @@ void AttractorsObject::draw(context& ctx) const {
   glBindVertexArray(state.vao);
   glPointSize(1);
   glDrawArrays(GL_POINTS, 0, state.buffer_length);
+
+  auto texture = ctx.fbos.get_color_attachment(state.fbo, 0);
+  ctx.registers.write(state.outlet, texture);
 }
 
 HANS_PLUGIN_INIT(PluginManager* manager) {

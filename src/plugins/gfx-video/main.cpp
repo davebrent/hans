@@ -243,10 +243,6 @@ void VideoObject::setup(context& ctx) {
   state.plane_uniforms[0] = glGetUniformLocation(pgm, "y_plane");
   state.plane_uniforms[1] = glGetUniformLocation(pgm, "u_plane");
   state.plane_uniforms[2] = glGetUniformLocation(pgm, "v_plane");
-
-  // Registers
-  auto output = ctx.fbos.get_color_attachment(state.fbo, 0);
-  ctx.registers.write(state.outlet, &output);
 }
 
 // taken from tools_common.c
@@ -304,6 +300,9 @@ void VideoObject::draw(context& ctx) const {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glBindVertexArray(state.vao);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+  auto output = ctx.fbos.get_color_attachment(state.fbo, 0);
+  ctx.registers.write(state.outlet, output);
 }
 
 HANS_PLUGIN_INIT(PluginManager* manager) {

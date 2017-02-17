@@ -28,8 +28,7 @@ class SndTexObject : protected GraphicsObject {
   virtual void create(IConfigurator& configurator) override;
   virtual void setup(context& ctx) override;
   virtual void update(context& ctx) override;
-  virtual void draw(context& ctx) const override {
-  }
+  virtual void draw(context& ctx) const override;
 
  private:
   SndTexState state;
@@ -56,7 +55,6 @@ void SndTexObject::setup(context& ctx) {
   state.samples = new audio::sample[blocksize * MAX_FRAMES];
 
   glGenTextures(1, &state.texture);
-  ctx.registers.write(state.outlet, &state.texture);
 }
 
 void SndTexObject::update(context& ctx) {
@@ -79,6 +77,10 @@ void SndTexObject::update(context& ctx) {
                GL_FLOAT, state.samples);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+}
+
+void SndTexObject::draw(context& ctx) const {
+  ctx.registers.write(state.outlet, state.texture);
 }
 
 HANS_PLUGIN_INIT(PluginManager* manager) {

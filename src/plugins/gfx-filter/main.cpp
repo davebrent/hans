@@ -92,7 +92,6 @@ struct FilterState {
   Register outlet;
   Uniforms uniforms;
   GLuint vao;
-  uint32_t texture;
 
   template <class Archive>
   void serialize(Archive& ar) {
@@ -174,18 +173,21 @@ class FilterObject : protected GraphicsObject {
       auto name = SUBROUTINES[i];
       state.uniforms.subroutines[i] = glGetSubroutineIndex(pgm, shdr, name);
     }
-
-    // Registers
-    auto input = ctx.registers.read(state.inlet);
-    state.texture = *static_cast<uint32_t*>(input);
-    auto output = ctx.fbos.get_color_attachment(state.fbo, 0);
-    ctx.registers.write(state.outlet, &output);
   }
 
   virtual void update(context& ctx) override {
   }
 
   virtual void draw(context& ctx) const override {
+    if (!ctx.registers.has_data(state.inlet)) {
+      ctx.fbos.bind_fbo(state.fbo);
+      glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+      auto texture = ctx.fbos.get_color_attachment(state.fbo, 0);
+      ctx.registers.write(state.outlet, texture);
+      return;
+    }
+
+    auto input = ctx.registers.read(state.inlet);
     auto amount = ctx.parameters.get(state.amount, 0);
 
     // Compute weights for gausian blur filter
@@ -204,7 +206,7 @@ class FilterObject : protected GraphicsObject {
 
     // Activate & bind input texture
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, state.texture);
+    glBindTexture(GL_TEXTURE_2D, input);
     glUniform1i(state.uniforms.texture, 0);
 
     // Calculate uniforms from input texture
@@ -232,6 +234,9 @@ class FilterObject : protected GraphicsObject {
       glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 1, &location);
       glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
     }
+
+    auto texture = ctx.fbos.get_color_attachment(state.fbo, 0);
+    ctx.registers.write(state.outlet, texture);
   }
 
  private:

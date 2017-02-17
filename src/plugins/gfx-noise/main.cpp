@@ -52,7 +52,6 @@ class PerlinObject : protected GraphicsObject {
                  GL_UNSIGNED_BYTE, state.data);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    ctx.registers.write(state.outlet, &state.texture);
   }
 
   virtual void update(context& ctx) override {
@@ -79,6 +78,7 @@ class PerlinObject : protected GraphicsObject {
     glBindTexture(GL_TEXTURE_2D, state.texture);
     glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, state.width, state.height, GL_RED,
                     GL_UNSIGNED_BYTE, state.data);
+    ctx.registers.write(state.outlet, state.texture);
   }
 
  private:

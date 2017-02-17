@@ -16,7 +16,6 @@ struct QuadState {
   graphics::Shader::Instance f_shader;
   graphics::ShaderProgram program;
   Register inlet;
-  uint32_t texture_value;
 
   template <class Archive>
   void serialize(Archive& ar) {
@@ -74,15 +73,20 @@ void QuadObject::setup(context& ctx) {
   GLint pos_attrib = glGetAttribLocation(state.program.handle, "position");
   glVertexAttribPointer(pos_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
   glEnableVertexAttribArray(pos_attrib);
-
-  auto register_value = ctx.registers.read(state.inlet);
-  state.texture_value = *static_cast<uint32_t*>(register_value);
 }
 
 void QuadObject::draw(context& ctx) const {
+  if (!ctx.registers.has_data(state.inlet)) {
+    ctx.fbos.release_fbo();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    return;
+  }
+
+  auto input = ctx.registers.read(state.inlet);
+
   glUseProgram(state.program.handle);
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, state.texture_value);
+  glBindTexture(GL_TEXTURE_2D, input);
   glUniform1i(state.texture, 0);
 
   ctx.fbos.release_fbo();

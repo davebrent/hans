@@ -97,7 +97,7 @@ void OutObject::callback(context& ctx) {
   // Read from inlets and write to audio bus
   for (auto i = 0; i < state.channels_len; ++i) {
     const auto& inlet = state.registers[i];
-    auto samples = static_cast<audio::sample*>(ctx.registers.read(inlet));
+    auto samples = ctx.registers.read_block(inlet);
     ctx.audio_buses.write(state.bus, state.channels[i], samples);
   }
 }

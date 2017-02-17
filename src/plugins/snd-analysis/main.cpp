@@ -92,8 +92,7 @@ void FFTObject::setup(context& ctx) {
 }
 
 void FFTObject::callback(context& ctx) {
-  const auto input = ctx.registers.read(state.inlet);
-  const auto samples = static_cast<audio::sample*>(input);
+  const auto samples = ctx.registers.read_block(state.inlet);
 
   auto original = state.in->data;
   state.in->data = samples;
@@ -186,8 +185,8 @@ void IFFTObject::setup(context& ctx) {
 }
 
 void IFFTObject::callback(context& ctx) {
-  const auto real = static_cast<audio::sample*>(ctx.registers.read(state.real));
-  const auto imag = static_cast<audio::sample*>(ctx.registers.read(state.imag));
+  const auto real = ctx.registers.read_block(state.real);
+  const auto imag = ctx.registers.read_block(state.imag);
 
   realimag_to_compspec(ctx.settings.blocksize, real, imag, state.compspec);
   aubio_fft_rdo_complex(state.fft, state.compspec, state.out);
@@ -279,8 +278,7 @@ void FeatureObject::setup(context& ctx) {
 }
 
 void FeatureObject::update(context& ctx) {
-  const auto sig =
-      static_cast<audio::sample*>(ctx.registers.read(state.signal));
+  const auto sig = ctx.registers.read_block(state.signal);
 
   auto in = state.in->data;
   state.in->data = sig;

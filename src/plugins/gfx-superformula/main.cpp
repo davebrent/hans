@@ -263,15 +263,6 @@ void FormulaObject::setup(context& ctx) {
   }
 
   default_gl_state();
-
-  // Send the textures we will be writing to to the output registers
-  auto color_tex = ctx.fbos.get_color_attachment(state.fbo, 0);
-  auto normal_tex = ctx.fbos.get_color_attachment(state.fbo, 1);
-  auto depth_tex = ctx.fbos.get_depth_attachment(state.fbo);
-
-  ctx.registers.write(state.outlet_colors, &color_tex);
-  ctx.registers.write(state.outlet_normals, &normal_tex);
-  ctx.registers.write(state.outlet_depth, &depth_tex);
 }
 
 void FormulaObject::draw(context& ctx) const {
@@ -308,6 +299,14 @@ void FormulaObject::draw(context& ctx) const {
   glBindVertexArray(state.shape_vao);
   glDrawElements(mode, (state.segments + 1) * (state.segments + 1) * 6,
                  GL_UNSIGNED_INT, 0);
+
+  auto color_tex = ctx.fbos.get_color_attachment(state.fbo, 0);
+  auto normal_tex = ctx.fbos.get_color_attachment(state.fbo, 1);
+  auto depth_tex = ctx.fbos.get_depth_attachment(state.fbo);
+
+  ctx.registers.write(state.outlet_colors, color_tex);
+  ctx.registers.write(state.outlet_normals, normal_tex);
+  ctx.registers.write(state.outlet_depth, depth_tex);
 }
 
 HANS_PLUGIN_INIT(PluginManager* manager) {
