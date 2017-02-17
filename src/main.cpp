@@ -320,8 +320,12 @@ int main(int argc, char* argv[]) {
         should_wait = true;
         break;
       case Command::PROGRAM:
-        engine->set_program(command.value);
-        sequencer.set_program(command.value);
+        if (command.value < engine->data().programs.names.size()) {
+          engine->set_program(command.value);
+          sequencer.set_program(command.value);
+        } else {
+          info("Program out of range");
+        }
         break;
       case Command::DUMP:
         command_dump(engine->data());
