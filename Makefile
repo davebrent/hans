@@ -1,4 +1,4 @@
-.PHONY: check lint format clean
+.PHONY: check lint develop format clean
 
 BUILD_DIR=build
 SRC_DIRS=src include test
@@ -14,6 +14,11 @@ check: $(BUILD_DIR)
 
 lint:
 	@cppcheck --quiet --enable=warning,performance -I include $(SRC_DIRS)
+
+develop: $(BUILD_DIR)
+	@while inotifywait -e modify -r ./src ./include ./test ; do \
+		pushd $(BUILD_DIR) && make ; popd ; \
+	done;
 
 format:
 	@find $(SRC_DIRS) \( -name '*.h' -or \
