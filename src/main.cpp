@@ -55,8 +55,11 @@ struct Command {
 
 class DirectoryListener : public efsw::FileWatchListener {
  public:
-  DirectoryListener(size_t delay, std::deque<Command>& commands)
-      : _delay(delay), _frames(_delay), _last_seen(0), _buffer(commands) {
+  DirectoryListener(user_reload& reload, std::deque<Command>& commands)
+      : _reload(reload),
+        _frames(_reload.delay),
+        _last_seen(0),
+        _buffer(commands) {
     _modified.store(0);
   }
 
@@ -64,10 +67,29 @@ class DirectoryListener : public efsw::FileWatchListener {
                                 const std::string& filename,
                                 efsw::Action action,
                                 std::string oldfilename = "") override {
-    if (dir.find(".git") != std::string::npos) {
+    if (action != efsw::Actions::Modified) {
       return;
     }
-    _modified++;
+
+    for (const auto& exclude : _reload.exclude) {
+      // FIXME: Does not exclude sub-directories
+      if (dir.compare(exclude) == 0) {
+        return;
+      }
+    }
+
+    for (const auto& extension : _reload.extensions) {
+      if (filename.length() < extension.length()) {
+        return;
+      }
+
+      auto endswith = filename.compare(filename.length() - extension.length(),
+                                       extension.length(), extension) == 0;
+      if (endswith) {
+        _modified++;
+        return;
+      }
+    }
   }
 
   void update() {
@@ -88,18 +110,18 @@ class DirectoryListener : public efsw::FileWatchListener {
 
     auto success = _modified.compare_exchange_weak(current, 0);
     if (!success) {
-      _frames = _delay;
+      _frames = _reload.delay;
       return;
     }
 
     _last_seen = 0;
     _modified = 0;
-    _frames = _delay;
+    _frames = _reload.delay;
     _buffer.push_back(Command(Command::RELOAD));
   }
 
  private:
-  size_t _delay;
+  user_reload& _reload;
   size_t _frames;
   size_t _last_seen;
   std::atomic<int> _modified;
@@ -281,10 +303,9 @@ int main(int argc, char* argv[]) {
 
   // Watcher
 
-  auto frame_reload_delay = 2;
   efsw::FileWatcher filewatcher;
-  DirectoryListener listener(frame_reload_delay, commands);
-  for (const auto& path : input.watchers) {
+  DirectoryListener listener(input.reload, commands);
+  for (const auto& path : input.reload.paths) {
     filewatcher.addWatch(path, &listener, true);
   }
   filewatcher.watch();

@@ -103,6 +103,13 @@ struct user_plugin {
   std::vector<user_object_template> objects;
 };
 
+struct user_reload {
+  size_t delay;
+  std::vector<std::string> paths;
+  std::vector<std::string> extensions;
+  std::vector<std::string> exclude;
+};
+
 using user_settings = Settings;
 
 struct user_data {
@@ -110,7 +117,7 @@ struct user_data {
   std::vector<user_plugin> plugins;
   std::vector<user_program> programs;
   std::vector<user_object> objects;
-  std::vector<std::string> watchers;
+  user_reload reload;
 };
 
 } // hans

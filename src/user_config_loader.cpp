@@ -574,13 +574,31 @@ static bool read_programs(const shared_ptr<table> input, user_data& output) {
 }
 
 static bool read_watchers(const shared_ptr<table> input, user_data& output) {
-  auto watchers = input->get_array_of<std::string>("watchers");
-  if (!watchers) {
+  auto reload = input->get_table("reload");
+  if (!reload) {
     return true;
   }
 
-  for (const auto watcher : *watchers) {
-    output.watchers.push_back(watcher);
+  output.reload.delay = 0;
+
+  auto paths = reload->get_array_of<std::string>("paths");
+  if (paths) {
+    output.reload.paths = *paths;
+  }
+
+  auto extensions = reload->get_array_of<std::string>("extensions");
+  if (extensions) {
+    output.reload.extensions = *extensions;
+  }
+
+  auto exclude = reload->get_array_of<std::string>("exclude");
+  if (exclude) {
+    output.reload.exclude = *exclude;
+  }
+
+  auto delay = input->get_as<size_t>("delay");
+  if (delay) {
+    output.reload.delay = *delay;
   }
 
   return true;

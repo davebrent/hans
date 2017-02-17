@@ -1,7 +1,3 @@
-watchers = [
-  "/home/dave/Workspace/davebrent/hans",
-]
-
 plugins = [
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-attractors",
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-filter",
@@ -16,6 +12,12 @@ plugins = [
   "/home/dave/Workspace/davebrent/hans/src/plugins/snd-oscillator",
   "/home/dave/Workspace/davebrent/hans/src/plugins/snd-ringbuffer",
 ]
+
+[reload]
+delay = 3
+extensions = [".toml", ".so", ".a", ".dylib"]
+paths = ["/home/dave/Workspace/davebrent/hans"]
+exclude = ["/home/dave/Workspace/davebrent/hans/.git"]
 
 # Global settings
 
