@@ -18,6 +18,8 @@ class TaskQueue {
   TaskQueue();
   task_id async(Tag tag, std::function<void(void)> thunk);
   void run_forever();
+  void block_and_clear();
+  void unblock();
   void stop();
 
  private:
@@ -31,6 +33,7 @@ class TaskQueue {
   std::mutex _mutex;
   std::deque<Task> _tasks;
   std::atomic<bool> _stop;
+  bool _block;
 };
 
 } // hans

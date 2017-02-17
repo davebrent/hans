@@ -3,7 +3,7 @@
 
 using namespace hans;
 
-TaskQueue::TaskQueue() : _task_ids(0) {
+TaskQueue::TaskQueue() : _task_ids(0), _block(false) {
   _stop.store(false);
 }
 
@@ -12,10 +12,23 @@ TaskQueue::task_id TaskQueue::async(Tag tag, std::function<void(void)> thunk) {
 
   {
     std::lock_guard<std::mutex> lock(_mutex);
-    _tasks.push_back({id, tag, thunk});
+    if (!_block) {
+      _tasks.push_back({id, tag, thunk});
+    }
   }
 
   return id;
+}
+
+void TaskQueue::block_and_clear() {
+  std::lock_guard<std::mutex> lock(_mutex);
+  _block = true;
+  _tasks.clear();
+}
+
+void TaskQueue::unblock() {
+  std::lock_guard<std::mutex> lock(_mutex);
+  _block = false;
 }
 
 void TaskQueue::run_forever() {
