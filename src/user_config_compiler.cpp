@@ -348,7 +348,7 @@ static bool configure_task(const user_data& input, EngineData& output,
 static bool registers_allocate(const std::vector<user_connection>& connections,
                                const std::vector<ObjectDef>& objects,
                                const hans::ObjectDef::Types type,
-                               EngineData& output) {
+                               const hash program, EngineData& output) {
   auto bin = 0;
   for (const auto& connection : connections) {
     auto source = hans::hasher(connection.source.c_str());
@@ -356,7 +356,7 @@ static bool registers_allocate(const std::vector<user_connection>& connections,
     auto found = 0;
 
     for (const auto& object : objects) {
-      if (object.variable == source) {
+      if (object.variable == source && object.program == program) {
         Register reg;
         reg.object = object.id;
         reg.type = type;
@@ -365,7 +365,7 @@ static bool registers_allocate(const std::vector<user_connection>& connections,
         reg.readonly = false;
         output.registers.push_back(reg);
         found++;
-      } else if (object.variable == sink) {
+      } else if (object.variable == sink && object.program == program) {
         Register reg;
         reg.object = object.id;
         reg.type = type;
@@ -388,10 +388,11 @@ static bool registers_allocate(const std::vector<user_connection>& connections,
 static bool registers_task(const user_data& input, EngineData& output,
                            pipeline_context& ctx) {
   for (const auto& program : input.programs) {
+    auto pgm = hans::hasher(program.name.c_str());
     registers_allocate(program.audio, output.programs.audio.objects,
-                       ObjectDef::AUDIO, output);
+                       ObjectDef::AUDIO, pgm, output);
     registers_allocate(program.graphics, output.programs.graphics.objects,
-                       ObjectDef::GRAPHICS, output);
+                       ObjectDef::GRAPHICS, pgm, output);
   }
   return true;
 }
