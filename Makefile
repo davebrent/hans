@@ -7,7 +7,7 @@ all: $(BUILD_DIR)
 
 $(BUILD_DIR):
 	@mkdir $(BUILD_DIR)
-	@cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Release .. && make
+	@cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Debug .. && make
 
 check: $(BUILD_DIR)
 	@cd $(BUILD_DIR) && ./test/hans-test
