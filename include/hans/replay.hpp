@@ -15,8 +15,8 @@ class ReplayRecorder {
   void stop();
 
  private:
-  Recordings& m_recordings;
   std::vector<Parameter::Value>& m_values;
+  Recordings& m_recordings;
   bool m_recording;
 };
 

@@ -47,8 +47,8 @@ class Worker {
   void restore();
 
  private:
-  const Modulation::Thread& m_data;
   std::vector<Parameter::Value>& m_values;
+  const Modulation::Thread& m_data;
   std::vector<Parameter::Value> m_snapshot;
   std::vector<Parameter::Value> m_output;
   size_t m_start;

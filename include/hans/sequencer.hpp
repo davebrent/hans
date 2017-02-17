@@ -105,10 +105,10 @@ class Sequencer {
   bool stop();
 
  private:
-  sequencer::detail::GlobalState _global;
-  std::vector<sequencer::detail::TrackState> _tracks;
   TaskQueue& _task_queue;
+  sequencer::detail::GlobalState _global;
   Sequences& _sequences;
+  std::vector<sequencer::detail::TrackState> _tracks;
   std::atomic<uint32_t> _program;
 };
 

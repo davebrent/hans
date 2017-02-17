@@ -15,7 +15,7 @@ void GraphicsDebug::push(const hash name) const {
   }
 
   auto string = _strings.lookup(name);
-  push(name);
+  push(string);
 }
 
 void GraphicsDebug::push(const char* name) const {

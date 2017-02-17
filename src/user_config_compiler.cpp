@@ -345,7 +345,7 @@ static bool configure_task(const user_data& input, EngineData& output,
 
 // Registers
 
-static bool registers_allocate(const std::vector<user_connection>& connections,
+static void registers_allocate(const std::vector<user_connection>& connections,
                                const std::vector<ObjectDef>& objects,
                                const hans::ObjectDef::Types type,
                                const hash program, EngineData& output) {
@@ -584,8 +584,8 @@ static int parameter_offset(const ObjectDef::ID id, const hash parameter,
   return -1;
 }
 
-static ObjectDef::ID find_object(const EngineData& output, const hash program,
-                                 const hash variable) {
+static int find_object(const EngineData& output, const hash program,
+                       const hash variable) {
   for (const auto& object : output.programs.audio.objects) {
     if (object.program == program && object.variable == variable) {
       return object.id;

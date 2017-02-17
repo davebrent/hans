@@ -8,7 +8,7 @@ using namespace hans;
 bool AudioBackendJack::open() {
   m_bus = m_buses.make();
 
-  jack_options_t options;
+  jack_options_t options = JackNullOption;
   jack_status_t status;
 
   m_client = jack_client_open("Hans", options, &status, nullptr);

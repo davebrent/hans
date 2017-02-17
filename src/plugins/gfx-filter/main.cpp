@@ -162,9 +162,7 @@ class FilterObject : protected GraphicsObject {
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
 
-    auto num = glGetSubroutineIndex(pgm, shdr, "FilterEffect");
     auto loc = glGetSubroutineUniformLocation(pgm, shdr, "FilterEffect");
-
     if (loc == GL_INVALID_INDEX) {
       throw std::runtime_error("gfx-filter, invalid subroutine uniform loc");
     }

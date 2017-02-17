@@ -134,7 +134,6 @@ void ModulationManager::gfx_modulate() {
     }
 
     for (auto p = 0; p < length; ++p) {
-      auto t = snd[p];
       snd[p] /= (Parameter::Value)available;
     }
   }
