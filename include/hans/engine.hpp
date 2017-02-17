@@ -47,20 +47,14 @@ class Engine {
 
   template <typename T>
   void construct(std::vector<T>& output, Graphs& input) {
-    std::vector<T> table;
-    table.reserve(input.objects.size());
-    output.reserve(input.indices.size());
+    output.reserve(input.objects.size());
 
     for (auto i = 0; i < input.objects.size(); ++i) {
       auto& object = input.objects.at(i);
       auto& state = input.states.at(i);
       auto instance = m_plugins.construct(object.name, object.id, state);
       instance->setup(m_ctx);
-      table.push_back(static_cast<T>(instance));
-    }
-
-    for (const auto index : input.indices) {
-      output.push_back(table.at(index));
+      output.push_back(static_cast<T>(instance));
     }
   }
 

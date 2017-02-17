@@ -98,7 +98,7 @@ void serialize(Archive& ar, Range& d) {
 
 template <class Archive>
 void serialize(Archive& ar, Graphs& d) {
-  ar(C(objects), C(states), C(indices), C(ranges));
+  ar(C(objects), C(states), C(ranges));
 }
 
 template <class Archive>

@@ -168,7 +168,6 @@ struct Range {
 struct Graphs {
   std::vector<ObjectDef> objects;
   std::vector<std::string> states;
-  std::vector<size_t> indices;
   std::vector<Range> ranges;
 };
 

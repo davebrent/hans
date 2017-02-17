@@ -274,7 +274,6 @@ static bool programs_task(const user_data& input, EngineData& output,
       o.program = ctx.strings.add(program.name);
 
       snd.objects.push_back(o);
-      snd.indices.push_back(snd.objects.size() - 1);
       ids++;
     }
 
@@ -287,7 +286,6 @@ static bool programs_task(const user_data& input, EngineData& output,
       o.program = ctx.strings.add(program.name);
 
       gfx.objects.push_back(o);
-      gfx.indices.push_back(gfx.objects.size() - 1);
       ids++;
     }
 
