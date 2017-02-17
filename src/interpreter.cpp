@@ -7,9 +7,9 @@
 using namespace hans;
 using namespace hans::interpreter;
 
-Value::Value() : type(UNDEFINED), number(0) {};
+Value::Value() : type(UNDEFINED), number(0){};
 Value::Value(size_t number) : type(NUMBER), number(number){};
-Value::Value(Tree tree) : type(TREE), tree(tree), number(0) {};
+Value::Value(Tree tree) : type(TREE), tree(tree), number(0){};
 
 Value DStack::pop() {
   auto v = buffer.back();
