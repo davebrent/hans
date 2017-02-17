@@ -17,7 +17,7 @@
 
 using namespace hans;
 
-static bool file_exists(const std::string filepath) {
+static bool file_exists(const std::string& filepath) {
   std::ifstream fs(filepath);
   return fs.good();
 }
