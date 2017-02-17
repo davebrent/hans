@@ -363,7 +363,7 @@ static bool registers_allocate(const std::vector<user_connection>& connections,
         reg.index = connection.outlet;
         reg.bin = bin;
         reg.readonly = false;
-        output.registers.push_back(reg);
+        output.registers.handles.push_back(reg);
         found++;
       } else if (object.variable == sink && object.program == program) {
         Register reg;
@@ -372,7 +372,7 @@ static bool registers_allocate(const std::vector<user_connection>& connections,
         reg.index = connection.inlet;
         reg.bin = bin;
         reg.readonly = true;
-        output.registers.push_back(reg);
+        output.registers.handles.push_back(reg);
         found++;
       }
 
@@ -394,6 +394,24 @@ static bool registers_task(const user_data& input, EngineData& output,
     registers_allocate(program.graphics, output.programs.graphics.objects,
                        ObjectDef::GRAPHICS, pgm, output);
   }
+
+  auto num_snd_bins = 0;
+  auto num_gfx_bins = 0;
+
+  for (const auto& reg : output.registers.handles) {
+    if (reg.type == ObjectDef::Types::GRAPHICS) {
+      if (reg.bin > num_gfx_bins) {
+        num_gfx_bins = reg.bin;
+      }
+    } else {
+      if (reg.bin > num_snd_bins) {
+        num_snd_bins = reg.bin;
+      }
+    }
+  }
+
+  output.registers.snd_registers = num_snd_bins + 1;
+  output.registers.gfx_registers = num_gfx_bins + 1;
   return true;
 }
 

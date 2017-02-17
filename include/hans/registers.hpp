@@ -9,8 +9,7 @@ namespace hans {
 class RegisterManager {
  public:
   RegisterManager(const RegisterManager& other) = delete;
-  RegisterManager(const Settings& settings,
-                  const std::vector<Register>& registers);
+  RegisterManager(const Settings& settings, const Registers& registers);
   ~RegisterManager();
 
   Register make(ObjectDef::ID object, Register::Types type, uint16_t index);
@@ -23,7 +22,7 @@ class RegisterManager {
   void write(const Register& reg, const audio::sample* data);
 
  private:
-  const std::vector<Register>& _registers;
+  const Registers& _registers;
   size_t _blocksize;
   uint32_t* _gfx_bins;
   audio::sample* _snd_bins;

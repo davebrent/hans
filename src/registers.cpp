@@ -3,30 +3,13 @@
 
 using namespace hans;
 
-// If an object has empty connection, point all reads & writes to an empty bin
 static uint16_t EMPTY_BIN = 65535;
 
 RegisterManager::RegisterManager(const Settings& settings,
-                                 const std::vector<Register>& registers)
+                                 const Registers& registers)
     : _registers(registers), _blocksize(settings.blocksize) {
-  auto num_snd_bins = 0;
-  auto num_gfx_bins = 0;
-
-  // XXX: Move to compiler
-  for (const auto& reg : _registers) {
-    if (reg.type == ObjectDef::Types::GRAPHICS) {
-      if (reg.bin > num_gfx_bins) {
-        num_gfx_bins = reg.bin;
-      }
-    } else {
-      if (reg.bin > num_snd_bins) {
-        num_snd_bins = reg.bin;
-      }
-    }
-  }
-
-  _gfx_bins = new uint32_t[num_gfx_bins + 1]();
-  _snd_bins = new audio::sample[(num_snd_bins + 1) * _blocksize]();
+  _gfx_bins = new uint32_t[registers.gfx_registers]();
+  _snd_bins = new audio::sample[registers.snd_registers * _blocksize]();
 }
 
 RegisterManager::~RegisterManager() {
@@ -37,7 +20,7 @@ RegisterManager::~RegisterManager() {
 Register RegisterManager::make(ObjectDef::ID object, Register::Types type,
                                uint16_t index) {
   auto readonly = type != Register::Types::OUTLET;
-  for (auto& reg : _registers) {
+  for (auto& reg : _registers.handles) {
     if (reg.object == object && reg.index == index &&
         reg.readonly == readonly) {
       return reg;

@@ -127,6 +127,11 @@ void serialize(Archive& ar, Modulation& d) {
 }
 
 template <class Archive>
+void serialize(Archive& ar, Registers& d) {
+  ar(C(snd_registers), C(gfx_registers), C(handles));
+}
+
+template <class Archive>
 void serialize(Archive& ar, EngineData& d) {
   ar(C(settings), C(strings), C(plugins), C(parameters), C(programs),
      C(modulators), C(registers), C(ring_buffers), C(shaders), C(fbos),

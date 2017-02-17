@@ -220,6 +220,12 @@ struct Sequences {
   std::vector<Track> tracks;
 };
 
+struct Registers {
+  size_t snd_registers;
+  size_t gfx_registers;
+  std::vector<Register> handles;
+};
+
 struct EngineData {
   Settings settings;
   Strings strings;
@@ -227,7 +233,7 @@ struct EngineData {
   Programs programs;
   Parameters parameters;
   Modulation modulators;
-  std::vector<Register> registers;
+  Registers registers;
   std::vector<RingBuffer> ring_buffers;
   std::vector<graphics::Shader> shaders;
   std::vector<graphics::FBO> fbos;
