@@ -1,3 +1,4 @@
+#include <noise/module/perlin.h>
 #include <noise/noise.h>
 #include "hans/object.hpp"
 
@@ -13,7 +14,6 @@ struct PerlinState {
   Parameter octavecount;
   Register outlet;
   uint32_t texture;
-  noise::module::Perlin noise;
   uint8_t* data;
   size_t width;
   size_t height;
@@ -59,15 +59,15 @@ class PerlinObject : protected GraphicsObject {
     auto lacunarity = ctx.parameters.get(state.lacunarity, 0);
     auto octavecount = ctx.parameters.get(state.octavecount, 0);
 
-    state.noise.SetSeed(state.frameno);
-    state.noise.SetFrequency(frequency);
-    state.noise.SetOctaveCount(octavecount);
-    state.noise.SetLacunarity(lacunarity);
+    _noise.SetSeed(state.frameno);
+    _noise.SetFrequency(frequency);
+    _noise.SetOctaveCount(octavecount);
+    _noise.SetLacunarity(lacunarity);
 
     for (auto i = 0; i < state.width * state.height * state.channels; ++i) {
       float x = (i % state.width);
       float y = (i / state.width);
-      auto value = state.noise.GetValue(x / state.width, y / state.height, 0.5);
+      auto value = _noise.GetValue(x / state.width, y / state.height, 0.5);
       state.data[i] = ((value + 1) * 0.5) * 255.f;
     }
 
@@ -83,6 +83,7 @@ class PerlinObject : protected GraphicsObject {
 
  private:
   PerlinState state;
+  noise::module::Perlin _noise;
 };
 
 HANS_PLUGIN_INIT(PluginManager* manager) {

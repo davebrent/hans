@@ -11,8 +11,8 @@ struct user_arg {
   std::string name;
   Argument::Types type;
   std::string string;
-  double number;
-  bool boolean;
+  double number = 0;
+  bool boolean = false;
 };
 
 struct user_parameter {
