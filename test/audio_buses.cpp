@@ -5,9 +5,9 @@ using namespace hans;
 
 TEST_CASE("audio bus manager", "[audiobus]") {
   SECTION("writing data to single bus multiple channels") {
-    Settings settings;
+    Settings::Audio settings;
     settings.blocksize = 4;
-    settings.channels = 2;
+    settings.input_channels = {0, 1};
 
     AudioBuses manager(settings, 1);
     auto bus = manager.make();
@@ -33,9 +33,9 @@ TEST_CASE("audio bus manager", "[audiobus]") {
   }
 
   SECTION("writing data to multipe buses & multiple channels") {
-    Settings settings;
+    Settings::Audio settings;
     settings.blocksize = 4;
-    settings.channels = 2;
+    settings.input_channels = {0, 1};
 
     AudioBuses manager(settings, 2);
     auto bus1 = manager.make();

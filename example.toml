@@ -24,11 +24,17 @@ exclude = ["/home/dave/Workspace/davebrent/hans/.git"]
 # Global settings
 
 [settings]
+[settings.graphics]
 width = 480
 height = 270
-samplerate = 44100
-blocksize = 512
-channels = 2
+[settings.audio]
+backend = "jack"
+input_device = "default"
+output_device = "default"
+samplerate = 48000
+blocksize = 128
+input_channels = [0, 1]
+output_channels = [0, 1]
 
 # Images
 

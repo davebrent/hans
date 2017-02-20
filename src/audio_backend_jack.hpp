@@ -24,10 +24,10 @@ class AudioBackendJack : public AudioBackendBase {
     return 0;
   }
 
-  audio::bus_handle m_bus;
-  jack_client_t* m_client = nullptr;
-  std::vector<jack_port_t*> m_output_ports;
-  std::vector<jack_port_t*> m_input_ports;
+  audio::bus_handle _bus;
+  jack_client_t* _client = nullptr;
+  std::vector<jack_port_t*> _output_ports;
+  std::vector<jack_port_t*> _input_ports;
 };
 
 } // namespace hans

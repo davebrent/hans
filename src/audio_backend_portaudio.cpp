@@ -1,8 +1,10 @@
 #include "./audio_backend_portaudio.hpp"
 #ifdef PORTAUDIO_FOUND
+#include <algorithm>
 #include <chrono>
 #include <stdexcept>
 #include <thread>
+#include "hans/hasher.hpp"
 
 using namespace hans;
 
@@ -23,109 +25,129 @@ bool AudioBackendPortAudio::open() {
     throw std::runtime_error(Pa_GetErrorText(error));
   }
 
-  auto samplerate = m_settings.samplerate;
-  auto channels = m_settings.channels;
-  auto blocksize = m_settings.blocksize;
+  auto input_device = -1;
+  auto output_device = -1;
+  auto num_devices = Pa_GetDeviceCount();
+  for (auto i = 0; i < num_devices; i++) {
+    auto name = hasher(Pa_GetDeviceInfo(i)->name);
+    if (name == _settings.input_device) {
+      input_device = i;
+    }
+    if (name == _settings.output_device) {
+      output_device = i;
+    }
+  }
 
-  m_state = STOPPED;
+  if (input_device == -1) {
+    throw std::runtime_error("Hans unable to find audio device");
+  }
+
+  _state = STOPPED;
 
   PaStreamParameters input;
-  input.device = Pa_GetDefaultInputDevice();
-  input.channelCount = channels;
+  input.device = input_device;
+  input.channelCount = (*std::max_element(_settings.input_channels.begin(),
+                                          _settings.input_channels.end()));
+  input.channelCount += 1;
   input.sampleFormat = paFloat32 | paNonInterleaved;
   input.hostApiSpecificStreamInfo = nullptr;
 
   PaStreamParameters output;
-  output.device = Pa_GetDefaultOutputDevice();
-  output.channelCount = channels;
+  output.device = output_device;
+  output.channelCount = (*std::max_element(_settings.output_channels.begin(),
+                                           _settings.output_channels.end()));
+  output.channelCount += 1;
   output.sampleFormat = paFloat32 | paNonInterleaved;
   output.hostApiSpecificStreamInfo = nullptr;
 
-  m_bus = m_buses.make();
+  _bus = _buses.make();
 
-  error = Pa_OpenStream(&m_stream, &input, &output, samplerate, blocksize,
+  auto samplerate = _settings.samplerate;
+  auto blocksize = _settings.blocksize;
+
+  error = Pa_OpenStream(&_stream, &input, &output, samplerate, blocksize,
                         paClipOff, &_portaudio_callback, this);
   if (error == paNoError) {
     return true;
   }
 
-  m_state = ERROR;
+  _state = ERROR;
   return false;
 }
 
 bool AudioBackendPortAudio::start() {
-  if (m_stream == nullptr) {
+  if (_stream == nullptr) {
     return false;
   }
 
-  m_state = PENDING;
+  _state = PENDING;
 
-  auto error = Pa_StartStream(m_stream);
+  auto error = Pa_StartStream(_stream);
   if (error == paNoError) {
     return true;
   }
 
-  m_state = ERROR;
+  _state = ERROR;
   return false;
 }
 
 void AudioBackendPortAudio::callback(const audio::sample** input,
                                      audio::sample** output) {
-  if (m_state == PENDING) {
-    m_state = STARTED;
+  if (_state == PENDING) {
+    _state = STARTED;
   }
 
-  if (m_state == STOPPED) {
+  if (_state == STOPPED) {
     return;
   }
 
   // Write input data to the default audio bus, channel by channel
-  for (int channel = 0; channel < m_settings.channels; ++channel) {
-    m_buses.write(m_bus, channel, input[channel]);
+  for (auto i = 0; i < _settings.input_channels.size(); ++i) {
+    _buses.write(_bus, i, input[_settings.input_channels[i]]);
   }
 
-  m_buses.set_clean(m_bus);
+  _buses.set_clean(_bus);
 
   // Tick the audio graph
   // XXX: Maybe use a message/signal thats executed immediately to run a cycle
   //      of the audio graph?
-  m_callback();
+  _callback();
 
   // A prorgam wrote some data to the streams bus so should be flushed out
-  if (m_buses.is_dirty(m_bus)) {
+  if (_buses.is_dirty(_bus)) {
     // Read the data on the bus back and send to the sound card
-    for (int channel = 0; channel < m_settings.channels; ++channel) {
-      auto samples = m_buses.read(m_bus, channel);
-      for (int s = 0; s < m_settings.blocksize; ++s) {
-        output[channel][s] = samples[s];
+    for (auto c = 0; c < _settings.output_channels.size(); ++c) {
+      auto samples = _buses.read(_bus, c);
+      for (int s = 0; s < _settings.blocksize; ++s) {
+        output[_settings.output_channels[c]][s] = samples[s];
       }
     }
   }
 }
 
 bool AudioBackendPortAudio::stop() {
-  if (m_stream == nullptr) {
+  if (_stream == nullptr) {
     return true;
   }
 
-  while (m_state == PENDING) {
+  while (_state == PENDING) {
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 
-  auto error = Pa_StopStream(m_stream);
+  auto error = Pa_StopStream(_stream);
   if (error == paNoError) {
-    m_state = STOPPED;
+    _state = STOPPED;
     return true;
   }
 
-  m_state = ERROR;
+  _state = ERROR;
   return false;
 }
 
 bool AudioBackendPortAudio::close() {
   auto success = true;
-  if (m_stream != nullptr) {
-    success = Pa_CloseStream(m_stream) == paNoError;
+  if (_stream != nullptr) {
+    success = Pa_CloseStream(_stream) == paNoError;
   }
 
   Pa_Terminate();

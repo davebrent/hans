@@ -13,8 +13,18 @@ namespace hans {
 #define C(T) cereal::make_nvp(#T, d.T)
 
 template <class Archive>
+void serialize(Archive& ar, Settings::Audio& d) {
+  ar(C(input_channels), C(output_channels), C(samplerate), C(blocksize));
+}
+
+template <class Archive>
+void serialize(Archive& ar, Settings::Graphics& d) {
+  ar(C(width), C(height));
+}
+
+template <class Archive>
 void serialize(Archive& ar, Settings& d) {
-  ar(C(channels), C(samplerate), C(blocksize), C(width), C(height));
+  ar(C(audio), C(graphics));
 }
 
 template <class Archive>

@@ -58,7 +58,7 @@ void OscObject::create(IConfigurator& configurator) {
 }
 
 void OscObject::setup(context& ctx) {
-  state.samplerate = ctx.settings.samplerate;
+  state.samplerate = ctx.settings.audio.samplerate;
   state.waveform = ctx.parameters.make(id, PARAM_WAVEFORM);
   state.frequency = ctx.parameters.make(id, PARAM_FREQUENCY);
   state.buffer = ctx.audio_buffers.make(id, AUDIO_BUFFER);

@@ -7,13 +7,13 @@
 using namespace hans;
 
 bool AudioBackendJack::open() {
-  m_bus = m_buses.make();
+  _bus = _buses.make();
 
   jack_options_t options = JackNullOption;
   jack_status_t status;
 
-  m_client = jack_client_open("Hans", options, &status, nullptr);
-  if (m_client == nullptr) {
+  _client = jack_client_open("Hans", options, &status, nullptr);
+  if (_client == nullptr) {
     return false;
   }
 
@@ -21,33 +21,35 @@ bool AudioBackendJack::open() {
     throw std::runtime_error("Hans unable to connect to JACK server");
   }
 
-  if (jack_get_sample_rate(m_client) != m_settings.samplerate) {
+  if (jack_get_sample_rate(_client) != _settings.samplerate) {
     throw std::runtime_error("Hans samplerate not equal to JACK samplerate");
   }
 
-  jack_set_buffer_size(m_client, m_settings.blocksize);
+  jack_set_buffer_size(_client, _settings.blocksize);
 
-  m_output_ports.reserve(m_settings.channels);
-  m_input_ports.reserve(m_settings.channels);
+  _output_ports.reserve(_settings.output_channels.size());
+  _input_ports.reserve(_settings.input_channels.size());
 
-  for (auto i = 0; i < m_settings.channels; ++i) {
-    auto port = std::to_string(i);
-    auto output_name = "output" + port;
-    auto input_name = "input" + port;
-    m_output_ports.push_back(jack_port_register(m_client, output_name.c_str(),
-                                                JACK_DEFAULT_AUDIO_TYPE,
-                                                JackPortIsOutput, 0));
-    m_input_ports.push_back(jack_port_register(m_client, input_name.c_str(),
-                                               JACK_DEFAULT_AUDIO_TYPE,
-                                               JackPortIsInput, 0));
+  for (const auto c : _settings.input_channels) {
+    auto input_name = "input_" + std::to_string(c);
+    _input_ports.push_back(jack_port_register(_client, input_name.c_str(),
+                                              JACK_DEFAULT_AUDIO_TYPE,
+                                              JackPortIsInput, 0));
   }
 
-  jack_set_process_callback(m_client, jack_callback, this);
+  for (const auto c : _settings.output_channels) {
+    auto output_name = "output_" + std::to_string(c);
+    _output_ports.push_back(jack_port_register(_client, output_name.c_str(),
+                                               JACK_DEFAULT_AUDIO_TYPE,
+                                               JackPortIsOutput, 0));
+  }
+
+  jack_set_process_callback(_client, jack_callback, this);
   return true;
 }
 
 bool AudioBackendJack::start() {
-  jack_activate(m_client);
+  jack_activate(_client);
   return true;
 }
 
@@ -56,30 +58,30 @@ bool AudioBackendJack::stop() {
 }
 
 bool AudioBackendJack::close() {
-  jack_client_close(m_client);
+  jack_client_close(_client);
   return true;
 }
 
 void AudioBackendJack::callback(jack_nframes_t nframes) {
-  assert(m_settings.blocksize == nframes);
+  assert(_settings.blocksize == nframes);
 
   // Write input data to the audio bus
-  for (auto c = 0; c < m_settings.channels; ++c) {
+  for (auto c = 0; c < _settings.input_channels.size(); ++c) {
     auto buffer = static_cast<audio::sample*>(
-        jack_port_get_buffer(m_input_ports.at(c), nframes));
-    m_buses.write(m_bus, c, buffer);
+        jack_port_get_buffer(_input_ports.at(c), nframes));
+    _buses.write(_bus, c, buffer);
   }
 
-  m_buses.set_clean(m_bus);
+  _buses.set_clean(_bus);
   // Tick the audio graph
-  m_callback();
+  _callback();
 
-  if (m_buses.is_dirty(m_bus)) {
+  if (_buses.is_dirty(_bus)) {
     // Read data back off the bus, then send it back out to JACK
-    for (auto c = 0; c < m_settings.channels; ++c) {
+    for (auto c = 0; c < _settings.output_channels.size(); ++c) {
       auto buffer = static_cast<audio::sample*>(
-          jack_port_get_buffer(m_output_ports.at(c), nframes));
-      auto samples = m_buses.read(m_bus, c);
+          jack_port_get_buffer(_output_ports.at(c), nframes));
+      auto samples = _buses.read(_bus, c);
 
       for (auto s = 0; s < nframes; ++s) {
         buffer[s] = samples[s];

@@ -73,7 +73,7 @@ void OscScopeObject::create(IConfigurator& configurator) {
 }
 
 void OscScopeObject::setup(context& ctx) {
-  auto blocksize = ctx.settings.blocksize;
+  auto blocksize = ctx.settings.audio.blocksize;
   auto channels = 2;
   auto max_channel_samples = blocksize * MAX_FRAMES;
   auto max_points = max_channel_samples * channels;
@@ -145,7 +145,7 @@ void OscScopeObject::setup(context& ctx) {
 
 static uint8_t read_ring_buffer(ScopeState& state, context& ctx, hash rb_name,
                                 size_t offset) {
-  auto blocksize = ctx.settings.blocksize;
+  auto blocksize = ctx.settings.audio.blocksize;
   auto framesize = blocksize * sizeof(audio::sample);
   auto available = ctx.ring_buffers.available(rb_name);
 
@@ -163,7 +163,7 @@ static uint8_t read_ring_buffer(ScopeState& state, context& ctx, hash rb_name,
 }
 
 void OscScopeObject::update(context& ctx) {
-  auto blocksize = ctx.settings.blocksize;
+  auto blocksize = ctx.settings.audio.blocksize;
 
   auto read = 0;
   read += read_ring_buffer(state, ctx, state.right, 0);
@@ -197,7 +197,7 @@ void PhaseScopeObject::create(IConfigurator& configurator) {
 }
 
 void PhaseScopeObject::setup(context& ctx) {
-  auto blocksize = ctx.settings.blocksize;
+  auto blocksize = ctx.settings.audio.blocksize;
   auto channels = 2;
 
   auto max_points = blocksize * MAX_FRAMES * channels;
@@ -232,7 +232,7 @@ void PhaseScopeObject::setup(context& ctx) {
 }
 
 void PhaseScopeObject::update(context& ctx) {
-  auto blocksize = ctx.settings.blocksize;
+  auto blocksize = ctx.settings.audio.blocksize;
   auto available = ctx.ring_buffers.available(state.left);
 
   if (available >= MAX_FRAMES) {

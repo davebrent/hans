@@ -13,11 +13,23 @@ namespace hans {
 using hash = uint64_t;
 
 struct Settings {
-  uint16_t channels;
-  uint16_t samplerate;
-  uint16_t blocksize;
-  uint16_t width;
-  uint16_t height;
+  struct Audio {
+    std::vector<uint16_t> input_channels;
+    std::vector<uint16_t> output_channels;
+    uint16_t samplerate;
+    uint16_t blocksize;
+    hash input_device;
+    hash output_device;
+    hash backend;
+  };
+
+  struct Graphics {
+    uint16_t width;
+    uint16_t height;
+  };
+
+  Graphics graphics;
+  Audio audio;
 };
 
 struct ObjectDef {

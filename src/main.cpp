@@ -136,12 +136,13 @@ class KeyControls {
     R = 82,     // toggle record
     S = 83,     // screenshot
     D = 68,     // dump
+    A = 65,     // audio
     ZERO = 48,  // switch/program
     NINE = 57,  // switch/program
   };
 
   KeyControls(std::deque<Command>& buffer)
-      : _buffer(buffer), _recording(false), _paused(false) {
+      : _buffer(buffer), _recording(false), _paused(false), _audio(false) {
   }
 
   void process(int key) {
@@ -159,6 +160,15 @@ class KeyControls {
       } else {
         _paused = true;
         _buffer.push_back(Command(Command::STOP));
+      }
+      break;
+    case A:
+      if (_audio) {
+        _audio = false;
+        _buffer.push_back(Command(Command::AUDIO_OFF));
+      } else {
+        _audio = true;
+        _buffer.push_back(Command(Command::AUDIO_ON));
       }
       break;
     case R:
@@ -183,6 +193,7 @@ class KeyControls {
   std::deque<Command>& _buffer;
   bool _recording;
   bool _paused;
+  bool _audio;
 };
 
 class EngineReloader {
@@ -296,16 +307,17 @@ int realtime_mode(int argc, char* argv[]) {
 
   // Engine
 
-  Frame frame(output.settings.width, output.settings.height);
+  Frame frame(output.settings.graphics.width, output.settings.graphics.height);
   Engine* engine = nullptr;
-  AudioBuses buses(output.settings, 1);
+  AudioBuses buses(output.settings.audio, 1);
   Window window;
-  if (!window.make("Hans", input.settings.width, input.settings.height)) {
+  if (!window.make("Hans", input.settings.graphics.width,
+                   input.settings.graphics.height)) {
     error("Unable to open window");
     return 1;
   }
 
-  auto audio = make_audio_backend(output.settings, buses, [&]() {
+  auto audio = make_audio_backend(output.settings.audio, buses, [&]() {
     if (engine != nullptr) {
       engine->tick_audio();
     }
@@ -421,10 +433,10 @@ int render_mode(int argc, char* argv[]) {
   cereal::PortableBinaryInputArchive ar(fs);
   ar(output);
 
-  auto width = output.settings.width;
-  auto height = output.settings.height;
+  auto width = output.settings.graphics.width;
+  auto height = output.settings.graphics.height;
 
-  AudioBuses buses(output.settings, 1);
+  AudioBuses buses(output.settings.audio, 1);
   Window window;
   if (!window.make("Hans - Render", width, height)) {
     error("Unable to open window");

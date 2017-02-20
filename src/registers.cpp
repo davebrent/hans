@@ -7,7 +7,7 @@ static uint16_t EMPTY_BIN = 65535;
 
 RegisterManager::RegisterManager(const Settings& settings,
                                  const Registers& registers)
-    : _registers(registers), _blocksize(settings.blocksize) {
+    : _registers(registers), _blocksize(settings.audio.blocksize) {
   _gfx_bins = new uint32_t[registers.gfx_registers]();
   _snd_bins = new audio::sample[registers.snd_registers * _blocksize]();
 }

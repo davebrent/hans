@@ -4,57 +4,58 @@
 
 using namespace hans;
 
-AudioBuses::AudioBuses(const Settings& settings, size_t num) {
-  auto blocksize = settings.blocksize;
-  auto channels = settings.channels;
-  auto bytes = num * channels * blocksize * sizeof(audio::sample);
-  m_allocator.reset(bytes);
-  auto data = m_allocator.allocate(bytes, alignof(audio::sample));
+AudioBuses::AudioBuses(const Settings::Audio& settings, size_t num)
+    : _settings(settings) {
+  auto frames = num * settings.input_channels.size() * settings.blocksize;
+  auto bytes = frames * sizeof(audio::sample);
 
-  m_base = static_cast<char*>(data);
-  m_ids = 0;
-  m_channels = channels;
-  m_blocksize = blocksize;
-  m_max = num;
+  _allocator.reset(bytes);
+  auto data = _allocator.allocate(bytes, alignof(audio::sample));
 
-  m_revisions = new uint64_t[num];
+  _base = static_cast<char*>(data);
+  _ids = 0;
+  _max = num;
+
+  _revisions = new uint64_t[num];
 }
 
 AudioBuses::~AudioBuses() {
-  delete[] m_revisions;
+  delete[] _revisions;
 }
 
 audio::bus_handle AudioBuses::make() {
-  if (m_ids == m_max) {
+  if (_ids == _max) {
     throw std::runtime_error("AudioBuses: Exceeded number of buses");
   }
 
-  auto handle = m_ids;
-  m_ids++;
+  auto handle = _ids;
+  _ids++;
   return handle;
 }
 
 bool AudioBuses::write(audio::bus_handle handle, uint8_t channel,
                        const audio::sample* samples) {
   auto size = sizeof(audio::sample);
-  auto offset = handle * m_blocksize * m_channels * size;
-  auto block = m_base + offset + (m_blocksize * channel * size);
-  m_revisions[handle]++;
-  std::memcpy(block, samples, size * m_blocksize);
+  auto offset =
+      handle * _settings.blocksize * _settings.input_channels.size() * size;
+  auto block = _base + offset + (_settings.blocksize * channel * size);
+  _revisions[handle]++;
+  std::memcpy(block, samples, size * _settings.blocksize);
   return true;
 }
 
 audio::sample* AudioBuses::read(audio::bus_handle handle, uint8_t channel) {
   auto size = sizeof(audio::sample);
-  auto offset = handle * m_blocksize * m_channels * size;
-  auto block = m_base + offset + (m_blocksize * channel * size);
+  auto offset =
+      handle * _settings.blocksize * _settings.input_channels.size() * size;
+  auto block = _base + offset + (_settings.blocksize * channel * size);
   return reinterpret_cast<audio::sample*>(block);
 }
 
 bool AudioBuses::is_dirty(audio::bus_handle handle) {
-  return m_revisions[handle] != 0;
+  return _revisions[handle] != 0;
 }
 
 void AudioBuses::set_clean(audio::bus_handle handle) {
-  m_revisions[handle] = 0;
+  _revisions[handle] = 0;
 }

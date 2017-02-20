@@ -49,7 +49,7 @@ void SndTexObject::create(IConfigurator& configurator) {
 }
 
 void SndTexObject::setup(context& ctx) {
-  auto blocksize = ctx.settings.blocksize;
+  auto blocksize = ctx.settings.audio.blocksize;
 
   state.outlet = ctx.registers.make(id, Register::Types::OUTLET, 0);
   state.samples = new audio::sample[blocksize * MAX_FRAMES];
@@ -58,7 +58,7 @@ void SndTexObject::setup(context& ctx) {
 }
 
 void SndTexObject::update(context& ctx) {
-  auto blocksize = ctx.settings.blocksize;
+  auto blocksize = ctx.settings.audio.blocksize;
   auto framesize = blocksize * sizeof(audio::sample);
   auto available = ctx.ring_buffers.available(state.name);
 

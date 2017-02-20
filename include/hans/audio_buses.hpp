@@ -9,9 +9,8 @@ namespace hans {
 
 class AudioBuses {
  public:
-  /// Creates N audio buses
   AudioBuses(const AudioBuses& other) = delete;
-  explicit AudioBuses(const Settings& settings, size_t num);
+  AudioBuses(const Settings::Audio& settings, size_t num);
   ~AudioBuses();
   /// Create an audio bus
   audio::bus_handle make();
@@ -26,13 +25,12 @@ class AudioBuses {
   void set_clean(audio::bus_handle handle);
 
  private:
-  LinearAllocator m_allocator;
-  uint16_t m_blocksize = 0;
-  uint8_t m_channels = 0;
-  char* m_base = nullptr;
-  size_t m_ids = 0;
-  size_t m_max = 0;
-  uint64_t* m_revisions;
+  LinearAllocator _allocator;
+  const Settings::Audio& _settings;
+  char* _base = nullptr;
+  size_t _ids = 0;
+  size_t _max = 0;
+  uint64_t* _revisions;
 };
 
 } // namespace hans

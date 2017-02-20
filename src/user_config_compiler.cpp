@@ -160,7 +160,24 @@ using task_fn =
 
 static bool settings_task(const user_data& input, EngineData& output,
                           pipeline_context& ctx) {
-  output.settings = input.settings;
+  auto graphics = input.settings.graphics;
+  output.settings.graphics.width = graphics.width;
+  output.settings.graphics.height = graphics.height;
+
+  auto audio = input.settings.audio;
+  output.settings.audio.samplerate = audio.samplerate;
+  output.settings.audio.blocksize = audio.blocksize;
+  output.settings.audio.input_channels = audio.input_channels;
+  output.settings.audio.output_channels = audio.output_channels;
+  output.settings.audio.backend = ctx.strings.add(audio.backend);
+  output.settings.audio.input_device = ctx.strings.add(audio.input_device);
+  output.settings.audio.output_device = ctx.strings.add(audio.output_device);
+
+  if (output.settings.audio.input_channels.size() !=
+      output.settings.audio.output_channels.size()) {
+    return report("Input and output channels must be of the same length");
+  }
+
   return true;
 }
 
@@ -462,6 +479,7 @@ static bool frame_buffers_task(const user_data& input, EngineData& output,
   auto color = "color";
   auto depth = "depth";
   auto stencil = "stencil";
+  auto& settings = input.settings.graphics;
 
   for (const auto& object : output.programs.graphics.objects) {
     auto& tpl = ctx.get_object_tpl(object.name);
@@ -481,8 +499,8 @@ static bool frame_buffers_task(const user_data& input, EngineData& output,
 
       for (const auto& att : fbo.attachments) {
         graphics::FBO::Attachment a;
-        a.width = (att.width == 0) ? input.settings.width : att.width;
-        a.height = (att.height == 0) ? input.settings.height : att.height;
+        a.width = (att.width == 0) ? settings.width : att.width;
+        a.height = (att.height == 0) ? settings.height : att.height;
         a.components = att.components;
 
         if (att.type.compare(color) == 0) {
@@ -512,14 +530,15 @@ static bool frame_buffers_task(const user_data& input, EngineData& output,
 static bool audio_buffers_task(const user_data& input, EngineData& output,
                                pipeline_context& ctx) {
   auto offset = 0;
-  auto& settings = output.settings;
+  auto& settings = output.settings.audio;
+  auto default_channels = settings.input_channels.size();
 
   for (const auto& object : output.programs.audio.objects) {
     auto& tpl = ctx.get_object_tpl(object.name);
     for (const auto& buff : tpl.audio_buffers) {
       audio::Buffer b;
       b.name = ctx.strings.add(buff.name);
-      b.channels = (buff.channels == 0) ? settings.channels : buff.channels;
+      b.channels = (buff.channels == 0) ? default_channels : buff.channels;
       b.size = (buff.size == 0) ? settings.blocksize : buff.size;
       b.object = object.id;
       b.offset = offset;

@@ -20,9 +20,9 @@ class AudioBackendPortAudio : public AudioBackendBase {
   void callback(const audio::sample** input, audio::sample** output);
 
  private:
-  State m_state = STOPPED;
-  audio::bus_handle m_bus;
-  PaStream* m_stream = nullptr;
+  State _state = STOPPED;
+  audio::bus_handle _bus;
+  PaStream* _stream = nullptr;
 };
 
 } // namespace hans

@@ -109,7 +109,25 @@ struct user_reload {
   std::vector<std::string> exclude;
 };
 
-using user_settings = Settings;
+struct user_gfx_settings {
+  uint16_t width;
+  uint16_t height;
+};
+
+struct user_snd_settings {
+  uint16_t samplerate;
+  uint16_t blocksize;
+  std::vector<uint16_t> input_channels;
+  std::vector<uint16_t> output_channels;
+  std::string backend;
+  std::string input_device;
+  std::string output_device;
+};
+
+struct user_settings {
+  user_snd_settings audio;
+  user_gfx_settings graphics;
+};
 
 struct user_data {
   user_settings settings;

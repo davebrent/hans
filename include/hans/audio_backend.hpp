@@ -8,7 +8,7 @@
 
 namespace hans {
 
-AudioBackendBase* make_audio_backend(hans::Settings& settings,
+AudioBackendBase* make_audio_backend(hans::Settings::Audio& settings,
                                      hans::AudioBuses& buses,
                                      std::function<void(void)> callback);
 

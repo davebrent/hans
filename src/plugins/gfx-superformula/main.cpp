@@ -277,7 +277,9 @@ void FormulaObject::draw(context& ctx) const {
 
   auto model_view_matrix = glm::mat4();
 
-  auto aspect = (float)ctx.settings.width / (float)ctx.settings.height;
+  auto width = ctx.settings.graphics.width;
+  auto height = ctx.settings.graphics.height;
+  auto aspect = (float)width / (float)height;
   auto projection_matrix = glm::perspective(45.0f, aspect, 0.1f, 100.f);
   model_view_matrix = glm::translate(model_view_matrix, translation);
   model_view_matrix = glm::rotate(model_view_matrix,

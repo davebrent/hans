@@ -82,28 +82,91 @@ size_t required(const std::shared_ptr<cpptoml::table> input,
   return true;
 }
 
+static bool read_settings_graphics(const std::shared_ptr<cpptoml::table> input,
+                                   user_gfx_settings& output) {
+  auto settings = input->get_table("graphics");
+  if (!settings) {
+    return report("Missing audio settings table");
+  }
+
+  if (!required(settings, "width", &output.width)) {
+    return false;
+  }
+
+  if (!required(settings, "height", &output.height)) {
+    return false;
+  }
+
+  return true;
+}
+
+static bool read_settings_audio(const std::shared_ptr<cpptoml::table> input,
+                                user_snd_settings& output) {
+  auto settings = input->get_table("audio");
+
+  output.backend = "";
+  output.output_device = "";
+  output.input_device = "";
+
+  if (!required(settings, "blocksize", &output.blocksize)) {
+    return false;
+  }
+
+  if (!required(settings, "samplerate", &output.samplerate)) {
+    return false;
+  }
+
+  auto input_channels = settings->get_array_of<int64_t>("input_channels");
+  if (!input_channels) {
+    return report("Missing audio channel list");
+  }
+
+  for (const auto c : *input_channels) {
+    output.input_channels.push_back(c);
+  }
+
+  auto output_channels = settings->get_array_of<int64_t>("output_channels");
+  if (!output_channels) {
+    return report("Missing audio channel list");
+  }
+
+  for (const auto c : *output_channels) {
+    output.output_channels.push_back(c);
+  }
+
+  auto backend = settings->get_as<std::string>("backend");
+  if (backend) {
+    output.backend = *backend;
+  }
+
+  auto input_device = settings->get_as<std::string>("input_device");
+  if (input_device) {
+    output.input_device = *input_device;
+  }
+
+  auto output_device = settings->get_as<std::string>("output_device");
+  if (output_device) {
+    output.output_device = *output_device;
+  }
+
+  return true;
+}
+
 static bool read_settings(const std::shared_ptr<cpptoml::table> input,
                           user_data& output) {
   auto settings = input->get_table("settings");
-
   if (!settings) {
     return report("Missing settings table");
   }
-  if (!required(settings, "blocksize", &output.settings.blocksize)) {
+
+  if (!read_settings_audio(settings, output.settings.audio)) {
     return false;
   }
-  if (!required(settings, "samplerate", &output.settings.samplerate)) {
+
+  if (!read_settings_graphics(settings, output.settings.graphics)) {
     return false;
   }
-  if (!required(settings, "channels", &output.settings.channels)) {
-    return false;
-  }
-  if (!required(settings, "width", &output.settings.width)) {
-    return false;
-  }
-  if (!required(settings, "height", &output.settings.height)) {
-    return false;
-  }
+
   return true;
 }
 

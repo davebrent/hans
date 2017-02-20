@@ -10,9 +10,9 @@ namespace hans {
 class AudioBackendBase {
  public:
   AudioBackendBase(const AudioBackendBase& other) = delete;
-  AudioBackendBase(const Settings& settings, AudioBuses& buses,
+  AudioBackendBase(const Settings::Audio& settings, AudioBuses& buses,
                    std::function<void()> callback)
-      : m_settings(settings), m_buses(buses), m_callback(callback){};
+      : _settings(settings), _buses(buses), _callback(callback){};
 
   virtual bool open() = 0;
   virtual bool start() = 0;
@@ -20,9 +20,9 @@ class AudioBackendBase {
   virtual bool close() = 0;
 
  protected:
-  const Settings& m_settings;
-  AudioBuses& m_buses;
-  std::function<void()> m_callback;
+  const Settings::Audio& _settings;
+  AudioBuses& _buses;
+  std::function<void()> _callback;
 };
 
 } // namespace hans
