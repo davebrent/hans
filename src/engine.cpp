@@ -48,11 +48,10 @@ bool Engine::set_program(size_t index) {
   return true;
 }
 
-bool Engine::set_parameter(ObjectDef::ID object, const hash name,
+void Engine::set_parameter(ObjectDef::ID object, const hash name,
                            const Parameter::Length component,
                            const Parameter::Value value) {
-  // FIXME: This needs to be double buffered, then swappend at begin frame
-  return m_ctx.parameters.set(object, name, component, value);
+  m_ctx.parameters.set(object, name, component, value);
 }
 
 void Engine::tick_audio() {
@@ -72,6 +71,7 @@ void Engine::tick_audio() {
 }
 
 void Engine::tick_graphics() {
+  m_ctx.parameters.update();
   auto range = m_data.programs.graphics.ranges.at(m_selected_program);
 
   m_debug.push("update");

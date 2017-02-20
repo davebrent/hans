@@ -2,6 +2,7 @@
 #define HANS_PARAMETERS_H_
 
 #include <cstdint>
+#include <mutex>
 #include <vector>
 #include "hans/primitives.hpp"
 
@@ -25,12 +26,23 @@ class ParameterManager {
   void set(const Parameter& parameter, const Parameter::Length& component,
            const Parameter::Value& value);
 
-  bool set(const ObjectDef::ID object, const hash name,
+  void set(const ObjectDef::ID object, const hash name,
            const Parameter::Length component, const Parameter::Value value);
 
+  void update();
+
  private:
-  std::vector<Parameter>& m_parameters;
-  std::vector<Parameter::Value>& m_values;
+  struct Command {
+    ObjectDef::ID object;
+    hash name;
+    Parameter::Length component;
+    Parameter::Value value;
+  };
+
+  std::vector<Parameter>& _parameters;
+  std::vector<Parameter::Value>& _values;
+  std::vector<Command> _commands;
+  std::mutex _mutex;
 };
 
 } // namespace hans

@@ -59,6 +59,7 @@ TEST_CASE("parameter manager", "[parameters]") {
     ParameterManager manager(parameters, values);
 
     manager.set(1, 0x20, 0, 21);
+    manager.update();
     auto handle = manager.make(1, 0x20);
     REQUIRE(manager.get(handle, 0) == 21);
   }

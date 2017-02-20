@@ -20,7 +20,7 @@ class Engine {
   ~Engine();
   const EngineData& data();
   bool set_program(size_t index);
-  bool set_parameter(ObjectDef::ID object, const hash name,
+  void set_parameter(ObjectDef::ID object, const hash name,
                      const Parameter::Length component,
                      const Parameter::Value value);
   void tick_graphics();

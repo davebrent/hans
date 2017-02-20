@@ -186,6 +186,10 @@ class KeyControls {
 
 class EngineReloader {
  public:
+  std::mutex mutex;
+
+  EngineReloader(const EngineReloader& other) = delete;
+
   EngineReloader(EngineData& data, AudioBuses& buses) {
     _bytes = std::calloc(2, sizeof(Engine));
     _place = 0;
@@ -242,12 +246,13 @@ static void command_reload(const char* filepath, EngineReloader& reloader,
     return;
   }
 
-  task_queue.block_and_clear();
   {
+    std::lock_guard<std::mutex> lck(reloader.mutex);
+    task_queue.block_and_clear();
     sequencer.reload(output.sequences);
     *ptr = reloader.swap(output, buses);
+    task_queue.unblock();
   }
-  task_queue.unblock();
 
   info("Successfully reloaded");
 }
@@ -257,10 +262,15 @@ static void command_screenshot(Window& window, Frame& frame) {
   image::encode("hans.png", frame);
 }
 
-static void sequencer_handler(Engine* engine, const Track& track, size_t value,
-                              bool state) {
+static void sequencer_handler(EngineReloader& reloader, const Track& track,
+                              size_t value, bool state) {
   auto res = track.scale * (float)value;
-  engine->set_parameter(track.object, track.parameter, track.component, res);
+
+  {
+    std::lock_guard<std::mutex> lck(reloader.mutex);
+    auto engine = reloader.get();
+    engine->set_parameter(track.object, track.parameter, track.component, res);
+  }
 }
 
 int main(int argc, char* argv[]) {
@@ -302,11 +312,6 @@ int main(int argc, char* argv[]) {
     }
   });
 
-  Sequencer sequencer(task_queue, output.sequences,
-                      [&](const Track& track, size_t value, bool state) {
-                        sequencer_handler(engine, track, value, state);
-                      });
-
   // Watcher
 
   efsw::FileWatcher filewatcher;
@@ -321,6 +326,11 @@ int main(int argc, char* argv[]) {
 
   EngineReloader reloader(output, buses);
   engine = reloader.get();
+
+  Sequencer sequencer(task_queue, output.sequences,
+                      [&](const Track& track, size_t value, bool state) {
+                        sequencer_handler(reloader, track, value, state);
+                      });
 
   if (!audio.open()) {
     std::cerr << "[HANS] Unable to open audio stream" << std::endl;
