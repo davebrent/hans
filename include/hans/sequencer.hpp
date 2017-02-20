@@ -10,72 +10,71 @@
 
 namespace hans {
 namespace sequencer {
-namespace detail {
 
-using Handler = std::function<void(Track&, size_t, bool)>;
-
-struct GlobalState {
-  std::atomic<bool> stop;
-  std::atomic<bool> ready;
-  detail::Handler handler;
-  GlobalState(detail::Handler handler);
-};
-
-class DoubleBuffer {
+class ForegroundState {
  public:
-  enum class Caller { READER, WRITER };
-  std::atomic<bool> swap;
-  EventList& get(Caller caller);
-  DoubleBuffer();
-  DoubleBuffer(const DoubleBuffer& other);
-  void clear();
-
- private:
-  EventList m_front;
-  EventList m_back;
-};
-
-class CycleClock {
- public:
-  // Elapsed time since start of the cycle (milliseconds)
+  Track& track;
+  float duration;
   float elapsed;
-  void start();
-  void tick();
-  CycleClock();
+  size_t position;
+  EventList on;
+  EventList off;
+
+  ForegroundState(Track& track);
+  bool tick();
+  void reset();
 
  private:
-  std::chrono::high_resolution_clock::time_point m_start;
+  std::chrono::high_resolution_clock::time_point _started;
 };
 
-struct TrackState {
-  Cycle cycle;
-  CycleClock clock;
-  DoubleBuffer buffer;
-  EventList future;
-  EventList off_events;
-  uint64_t dispatched;
-  Track primitive;
-  TrackState(hans::Track track);
+class BackgroundState {
+ public:
+  BackgroundState();
+  void synchronize(ForegroundState& fg);
+  void schedule(size_t cycle, Track& track);
+
+ private:
+  std::atomic<bool> _evaling;
+  std::mutex _overrun;
+  std::mutex _mutex;
+  EventList _events;
+  float _duration;
 };
 
-} // namespace detail
 } // namespace sequencer
 
 class Sequencer {
  public:
-  Sequencer(TaskQueue& task_queue, sequencer::detail::Handler handler,
-            Sequences& sequences);
+  using Handler = std::function<void(const Track&, size_t, bool)>;
+  enum Mode { RELOAD = 0, INIT = 1, RUN = 2 };
+
+  Sequencer(TaskQueue& task_queue, Sequences& sequences, Handler handler);
   ~Sequencer();
+
+  void reload(Sequences& sequences);
+  bool stop();
   void set_program(uint32_t program);
   void run_forever();
-  bool stop();
 
  private:
+  void stop_state();
+  void reload_state();
+  void init_state();
+  void run_state();
+  void process_on_events(sequencer::ForegroundState& state);
+  void process_off_events(sequencer::ForegroundState& state, float delta);
+
   TaskQueue& _task_queue;
-  sequencer::detail::GlobalState _global;
   Sequences& _sequences;
-  std::vector<sequencer::detail::TrackState> _tracks;
-  std::atomic<uint32_t> _program;
+  Handler _handler;
+  size_t _program;
+  std::vector<sequencer::BackgroundState> _bg_states;
+  std::vector<sequencer::ForegroundState> _fg_states;
+  std::vector<size_t> _cycles;
+  std::atomic<bool> _stop;
+  std::atomic<int> _mode;
+  std::mutex _mutex;
 };
 
 } // namespace hans

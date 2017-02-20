@@ -227,7 +227,8 @@ static void command_dump(const EngineData& data) {
 }
 
 static void command_reload(const char* filepath, EngineReloader& reloader,
-                           AudioBuses& buses, Engine** ptr) {
+                           AudioBuses& buses, Engine** ptr,
+                           Sequencer& sequencer, TaskQueue& task_queue) {
   user_data input;
   EngineData output;
 
@@ -241,7 +242,13 @@ static void command_reload(const char* filepath, EngineReloader& reloader,
     return;
   }
 
-  *ptr = reloader.swap(output, buses);
+  task_queue.block_and_clear();
+  {
+    sequencer.reload(output.sequences);
+    *ptr = reloader.swap(output, buses);
+  }
+  task_queue.unblock();
+
   info("Successfully reloaded");
 }
 
@@ -250,7 +257,7 @@ static void command_screenshot(Window& window, Frame& frame) {
   image::encode("hans.png", frame);
 }
 
-static void sequencer_handler(Engine* engine, Track& track, size_t value,
+static void sequencer_handler(Engine* engine, const Track& track, size_t value,
                               bool state) {
   auto res = track.scale * (float)value;
   engine->set_parameter(track.object, track.parameter, track.component, res);
@@ -295,11 +302,10 @@ int main(int argc, char* argv[]) {
     }
   });
 
-  Sequencer sequencer(task_queue,
-                      [&](Track& track, size_t value, bool state) {
+  Sequencer sequencer(task_queue, output.sequences,
+                      [&](const Track& track, size_t value, bool state) {
                         sequencer_handler(engine, track, value, state);
-                      },
-                      output.sequences);
+                      });
 
   // Watcher
 
@@ -352,7 +358,7 @@ int main(int argc, char* argv[]) {
         command_dump(engine->data());
         break;
       case Command::RELOAD:
-        command_reload(config, reloader, buses, &engine);
+        command_reload(config, reloader, buses, &engine, sequencer, task_queue);
         break;
       case Command::SCREENSHOT:
         command_screenshot(window, frame);
