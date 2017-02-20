@@ -67,7 +67,7 @@ sequencer::detail::TrackState::TrackState(Track track)
 // Put aside events outside of this cycle into a future list
 static void get_current_events(EventList& output, EventList& future,
                                EventList& input, Cycle& cycle) {
-  auto duration = cycle.duration.load();
+  auto duration = cycle.duration;
 
   for (auto& event : input) {
     event.cycle = cycle.number;
@@ -218,7 +218,7 @@ void Sequencer::run_forever() {
       process_on_events(on_events, track, _global.handler);
       process_off_events(track, resolution, _global.handler);
 
-      if (track.clock.elapsed >= track.cycle.duration.load()) {
+      if (track.clock.elapsed >= track.cycle.duration) {
         on_events.clear();
         track.dispatched = 0;
         track.clock.start();

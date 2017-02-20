@@ -5,7 +5,6 @@
 
 using namespace hans;
 using namespace hans::interpreter;
-using namespace hans::sequencer;
 
 TEST_CASE("Stack interpreter", "[interpreter]") {
   SECTION("Compiling/lexing?") {
@@ -162,7 +161,7 @@ TEST_CASE("Stack interpreter", "[interpreter]") {
     Interpreter itp(cycle, {12, DURATION});
     interpret(itp);
     REQUIRE(itp.dstack.pointer == 0);
-    REQUIRE(itp.cycle.duration.load() == 12);
+    REQUIRE(itp.cycle.duration == 12);
   }
 
   SECTION("CYCLE code") {

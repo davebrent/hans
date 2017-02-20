@@ -4,7 +4,7 @@
 #include <stddef.h>
 #include <deque>
 #include <vector>
-#include "hans/sequencer.hpp"
+#include "hans/primitives.hpp"
 
 namespace hans {
 namespace interpreter {
@@ -79,16 +79,16 @@ class DStack {
 };
 
 IStack compile(std::istream& is);
-sequencer::EventList to_events(const sequencer::Cycle& cycle, const Tree& tree);
+EventList to_events(const Cycle& cycle, const Tree& tree);
 
 } // namespace interpreter
 
 struct Interpreter {
-  sequencer::Cycle& cycle;
+  Cycle& cycle;
   interpreter::DStack dstack;
   interpreter::IStack istack;
-  Interpreter(sequencer::Cycle& cycle);
-  Interpreter(sequencer::Cycle& cycle, interpreter::IStack istack);
+  Interpreter(Cycle& cycle);
+  Interpreter(Cycle& cycle, interpreter::IStack istack);
 };
 
 void interpret(Interpreter& interpreter);

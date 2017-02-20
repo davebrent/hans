@@ -242,6 +242,33 @@ struct EngineData {
   Sequences sequences;
   Recordings recordings;
 };
+
+struct Cycle {
+  size_t number;
+  float duration;
+
+  Cycle() : number(0), duration(2000) {
+  }
+  Cycle(size_t number_) : number(number_), duration(2000) {
+  }
+  Cycle(size_t number_, float duration_)
+      : number(number_), duration(duration_) {
+  }
+};
+
+struct Event {
+  // The cycle the event should be dispatched in
+  uint64_t cycle;
+  // Start time in milliseconds relative to start of the cycle
+  float start;
+  // Duration of the event in milliseconds
+  float duration;
+  // Value of the event
+  size_t value;
+};
+
+using EventList = std::vector<Event>;
+
 } // namespace hans
 
 #endif // HANS_PRIMITIVES_H_

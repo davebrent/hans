@@ -3,6 +3,7 @@
 #include <istream>
 #include <iterator>
 #include <random>
+#include <stdexcept>
 
 using namespace hans;
 using namespace hans::interpreter;
@@ -34,7 +35,7 @@ bool DStack::empty() {
   return buffer.empty();
 }
 
-Interpreter::Interpreter(sequencer::Cycle& cycle, IStack istack)
+Interpreter::Interpreter(Cycle& cycle, IStack istack)
     : cycle(cycle), istack(istack){};
 
 static void number(Interpreter& itp, uint32_t code) {
@@ -109,8 +110,7 @@ static void ref(Interpreter& itp, uint32_t code) {
 }
 
 static void duration(Interpreter& itp, uint32_t code) {
-  auto dur = itp.dstack.pop().number;
-  itp.cycle.duration.store(dur);
+  itp.cycle.duration = itp.dstack.pop().number;
 }
 
 static void call(Interpreter& itp, uint32_t code) {
@@ -285,9 +285,8 @@ struct Time {
   Time(float start, float duration) : start(start), duration(duration){};
 };
 
-sequencer::EventList hans::interpreter::to_events(const sequencer::Cycle& cycle,
-                                                  const Tree& tree) {
-  sequencer::EventList events;
+EventList hans::interpreter::to_events(const Cycle& cycle, const Tree& tree) {
+  EventList events;
   std::deque<std::pair<Time, Tree>> visit;
   Time start(0, cycle.duration);
   visit.push_back({start, tree});
@@ -300,7 +299,7 @@ sequencer::EventList hans::interpreter::to_events(const sequencer::Cycle& cycle,
     auto& tree = std::get<1>(item);
 
     if (tree.children.size() == 0 && tree.value != 0xffff) {
-      sequencer::Event event;
+      Event event;
       event.cycle = cycle.number;
       event.start = time.start;
       event.duration = time.duration;
