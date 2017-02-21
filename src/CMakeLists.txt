@@ -18,6 +18,7 @@ target_link_libraries(hansplugin ${EPOXY_LIBRARIES})
 install(TARGETS hansplugin DESTINATION lib)
 
 add_library(hans SHARED
+  audio_backend.cpp
   audio_backend_jack.cpp
   audio_backend_portaudio.cpp
   engine.cpp

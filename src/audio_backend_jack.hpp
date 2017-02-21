@@ -1,5 +1,7 @@
 #ifndef HANS_AUDIOBACKEND_JACK_H_
 #define HANS_AUDIOBACKEND_JACK_H_
+#include "hans/config.hpp"
+#ifdef JACK_FOUND
 
 #include <jack/jack.h>
 #include "hans/audio_backend_base.hpp"
@@ -30,4 +32,5 @@ class AudioBackendJack : public AudioBackendBase {
 
 } // namespace hans
 
+#endif // JACK_FOUND
 #endif // HANS_AUDIOBACKEND_JACK_H_

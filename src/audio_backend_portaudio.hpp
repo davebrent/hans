@@ -1,5 +1,7 @@
 #ifndef HANS_AUDIOBACKEND_PORTAUDIO_H_
 #define HANS_AUDIOBACKEND_PORTAUDIO_H_
+#include "hans/config.hpp"
+#ifdef PORTAUDIO_FOUND
 
 #include <portaudio.h>
 #include "hans/audio_backend_base.hpp"
@@ -25,4 +27,5 @@ class AudioBackendPortAudio : public AudioBackendBase {
 
 } // namespace hans
 
+#endif // PORTAUDIO_FOUND
 #endif // HANS_AUDIOBACKEND_PORTAUDIO_H_

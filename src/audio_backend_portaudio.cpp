@@ -1,4 +1,5 @@
 #include "./audio_backend_portaudio.hpp"
+#ifdef PORTAUDIO_FOUND
 #include <chrono>
 #include <stdexcept>
 #include <thread>
@@ -130,3 +131,5 @@ bool AudioBackendPortAudio::close() {
   Pa_Terminate();
   return success;
 }
+
+#endif // PORTAUDIO_FOUND

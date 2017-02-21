@@ -5,7 +5,7 @@
 #include <iostream>
 #include <sstream>
 #include <thread>
-#include "./audio_backend_portaudio.hpp"
+#include "hans/audio_backend.hpp"
 #include "hans/engine.hpp"
 #include "hans/image.hpp"
 #include "hans/interpreter.hpp"
@@ -305,11 +305,16 @@ int realtime_mode(int argc, char* argv[]) {
     return 1;
   }
 
-  AudioBackendPortAudio audio(output.settings, buses, [&]() {
+  auto audio = make_audio_backend(output.settings, buses, [&]() {
     if (engine != nullptr) {
       engine->tick_audio();
     }
   });
+
+  if (!audio) {
+    error("Unknown audio backend");
+    return 1;
+  }
 
   // Watcher
 
@@ -331,8 +336,8 @@ int realtime_mode(int argc, char* argv[]) {
                         sequencer_handler(reloader, track, value, state);
                       });
 
-  if (!audio.open()) {
-    std::cerr << "[HANS] Unable to open audio stream" << std::endl;
+  if (!audio->open()) {
+    error("Unable to open audio backend");
     return 1;
   }
 
@@ -379,10 +384,10 @@ int realtime_mode(int argc, char* argv[]) {
         engine->record_stop();
         break;
       case Command::AUDIO_ON:
-        audio.start();
+        audio->start();
         break;
       case Command::AUDIO_OFF:
-        audio.stop();
+        audio->stop();
         break;
       }
     }
@@ -403,7 +408,7 @@ int realtime_mode(int argc, char* argv[]) {
   sequencer_thread.join();
 
   reloader.close();
-  audio.close();
+  audio->close();
   return 0;
 }
 

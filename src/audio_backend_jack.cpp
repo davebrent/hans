@@ -1,4 +1,5 @@
 #include "./audio_backend_jack.hpp"
+#ifdef JACK_FOUND
 #include <jack/jack.h>
 #include <cassert>
 #include <iostream>
@@ -86,3 +87,5 @@ void AudioBackendJack::callback(jack_nframes_t nframes) {
     }
   }
 }
+
+#endif // JACK_FOUND
