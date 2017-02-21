@@ -1,0 +1,43 @@
+[library]
+name = "libhans.gfx.displace"
+
+[[objects]]
+name = "gfx-displace"
+type = "graphics"
+
+[[objects.parameters]]
+name = "x"
+value = [-100, 580]
+[[objects.parameters]]
+name = "y"
+value = [-100, 370]
+[[objects.parameters]]
+name = "w"
+value = [0, 240]
+[[objects.parameters]]
+name = "h"
+value = [0, 135]
+[[objects.parameters]]
+name = "steps"
+value = [0, 5]
+[[objects.parameters]]
+name = "respawn"
+value = [0.20]
+[[objects.parameters]]
+name = "displace"
+value = [-1.0, 1.0]
+
+[[objects.shaders]]
+name = "displace/shader/vert"
+type = "vertex"
+path = "displace.vert.glsl"
+[[objects.shaders]]
+name = "displace/shader/frag"
+type = "fragment"
+path = "displace.frag.glsl"
+
+[objects.fbo]
+stencil = true
+[[objects.fbo.attachments]]
+type = "color"
+components = 4

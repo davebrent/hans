@@ -1,5 +1,6 @@
 plugins = [
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-attractors",
+  "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-displace",
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-filter",
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-image",
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-noise",
