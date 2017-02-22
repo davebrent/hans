@@ -15,6 +15,7 @@
 #include "hans/tasks.hpp"
 #include "hans/user_config_compiler.hpp"
 #include "hans/user_config_loader.hpp"
+#include "hans/video.hpp"
 #include "hans/window.hpp"
 
 using namespace hans;
@@ -273,7 +274,7 @@ static void sequencer_handler(EngineReloader& reloader, const Track& track,
   }
 }
 
-int main(int argc, char* argv[]) {
+int realtime_mode(int argc, char* argv[]) {
   if (argc != 2) {
     std::cout << "usage: " << argv[0] << " <config>" << std::endl;
     return 0;
@@ -406,4 +407,53 @@ int main(int argc, char* argv[]) {
   reloader.close();
   audio.close();
   return 0;
+}
+
+int render_mode(int argc, char* argv[]) {
+  auto data_path = argv[1];
+  auto output_path = argv[2];
+
+  EngineData output;
+  std::ifstream fs(data_path);
+  cereal::PortableBinaryInputArchive ar(fs);
+  ar(output);
+
+  auto width = output.settings.width;
+  auto height = output.settings.height;
+
+  AudioBuses buses(output.settings, 1);
+  Window window;
+  if (!window.make("Hans - Render", width, height)) {
+    error("Unable to open window");
+    return 1;
+  }
+
+  // FIXME:
+  auto num_frames = 60 * 10;
+  std::ofstream os(output_path, std::ios::binary);
+  VideoEncoder video(os, num_frames, width, height);
+  Engine engine(output, buses);
+  Frame frame(width, height);
+
+  for (auto i = 0; i < num_frames; ++i) {
+    engine.tick_graphics();
+    window.capture(frame);
+    video.encode(frame);
+    window.update();
+  }
+
+  return 0;
+}
+
+int main(int argc, char* argv[]) {
+  switch (argc) {
+  case 2:
+    return realtime_mode(argc, argv);
+  case 3:
+    return render_mode(argc, argv);
+  default:
+    std::cout << "usage: hans <config>" << std::endl;
+    std::cout << "       hans <data> <output>" << std::endl;
+    return 1;
+  }
 }

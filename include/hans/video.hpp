@@ -1,27 +1,25 @@
 #ifndef HANS_VIDEO_H_
 #define HANS_VIDEO_H_
 
-#include <cstring>
-#include <fstream>
+#include <vpx/vpx_encoder.h>
+#include <ostream>
 #include "hans/primitives.hpp"
 
 namespace hans {
 
 class VideoEncoder {
  public:
-  VideoEncoder(const char* path, uint16_t width, uint16_t height);
+  VideoEncoder(std::ostream& os, size_t frames, uint16_t width,
+               uint16_t height);
   ~VideoEncoder();
-  bool encode(const Frame& frame);
-  bool close();
+  void encode(const Frame& frame);
 
  private:
-  std::ofstream m_stream;
-  size_t m_capacity;
-  unsigned char* m_frame;
-  void* m_plane;
-  unsigned char* m_temp_row;
-  uint16_t m_width;
-  uint16_t m_height;
+  size_t _frameno;
+  std::ostream& _os;
+  vpx_image_t _img;
+  vpx_codec_ctx_t _codec;
+  unsigned char* _temp_row;
 };
 
 } // namespace hans
