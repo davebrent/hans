@@ -1,0 +1,11 @@
+[library]
+name = "libhans.gfx.image"
+
+[[objects]]
+name = "gfx-image"
+type = "graphics"
+
+[[objects.parameters]]
+name = "image"
+value = [0]
+help = "Index of image to display"

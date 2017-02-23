@@ -1,5 +1,6 @@
 add_subdirectory(gfx-attractors)
 add_subdirectory(gfx-filter)
+add_subdirectory(gfx-image)
 add_subdirectory(gfx-noise)
 add_subdirectory(gfx-quad)
 add_subdirectory(gfx-scopes)

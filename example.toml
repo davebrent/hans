@@ -1,6 +1,7 @@
 plugins = [
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-attractors",
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-filter",
+  "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-image",
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-noise",
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-quad",
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-scopes",
@@ -27,6 +28,76 @@ height = 270
 samplerate = 44100
 blocksize = 512
 channels = 2
+
+# Images
+
+[[programs]]
+name = "images"
+[programs.objects]
+image  = { object = "gfx-image", args = [ { filepath = "/home/dave/Workspace/davebrent/hans-assets/dist/01.webp" },
+                                          { filepath = "/home/dave/Workspace/davebrent/hans-assets/dist/02.webp" },
+                                          { filepath = "/home/dave/Workspace/davebrent/hans-assets/dist/03.webp" },
+                                          { filepath = "/home/dave/Workspace/davebrent/hans-assets/dist/04.webp" },
+                                          { filepath = "/home/dave/Workspace/davebrent/hans-assets/dist/07.webp" },
+                                          { filepath = "/home/dave/Workspace/davebrent/hans-assets/dist/08.webp" },
+                                          { filepath = "/home/dave/Workspace/davebrent/hans-assets/dist/09.webp" },
+                                          { filepath = "/home/dave/Workspace/davebrent/hans-assets/dist/10.webp" },
+                                          { filepath = "/home/dave/Workspace/davebrent/hans-assets/dist/12.webp" } ] }
+effect = { object = "gfx-filter" }
+effect2 = { object = "gfx-filter" }
+window = { object = "gfx-quad" }
+[[programs.graphics]]
+source = "image"
+outlet = 0
+sink   = "effect"
+inlet  = 0
+[[programs.graphics]]
+source = "effect"
+outlet = 0
+sink   = "effect2"
+inlet  = 0
+[[programs.graphics]]
+source = "effect2"
+outlet = 0
+sink   = "window"
+inlet  = 0
+
+# 0 PASSTHROUGH
+# 1 PIXELATE
+# 2 GREYSCALE
+# 3 INVERT
+# 4 RGB2YUV
+# 5 RGBSPLIT
+# 6 BARRELDISTORT
+# 7 GAUSBLUR
+# 8 HORIZONTAL_CLAMP
+# 9 VERTICAL_CLAMP
+
+[[programs.tracks]]
+sequence = "10000 dur [ 0 1 2 3 [ 4 7 ] 8 9 [ 10 11 ] ]"
+target   = { object = "image", parameter = "image", component = 0 }
+[[programs.tracks]]
+sequence = "10000 dur [ 8 2 0 7 9 0 5 0 ]"
+target   = { object = "effect", parameter = "filter", component = 0 }
+[[programs.tracks]]
+sequence = "500 dur [ 1 2 3 4 5 6 7 8 10 2 3 4 6 9 100 200 300 400 600 400 500 ] palindrome"
+target   = { object = "effect", parameter = "amount", component = 0 }
+scale    = 0.1
+[[programs.tracks]]
+sequence = "500 dur [ 8 7 6 5 4 3 2 1 ]"
+target   = { object = "effect", parameter = "amount", component = 1 }
+scale    = 0.1
+[[programs.tracks]]
+sequence = "20000 dur [ 0 1 5 2 ]"
+target   = { object = "effect2", parameter = "filter", component = 0 }
+[[programs.tracks]]
+sequence = "1000 dur [ 1 2 3 4 5 6 7 8 10 2 3 4 6 9 100 200 300 400 600 400 500 ] palindrome"
+target   = { object = "effect2", parameter = "amount", component = 0 }
+scale    = 0.1
+[[programs.tracks]]
+sequence = "1000 dur [ 8 7 6 5 4 3 2 1 ]"
+target   = { object = "effect2", parameter = "amount", component = 1 }
+scale    = 0.1
 
 # Video playing
 
