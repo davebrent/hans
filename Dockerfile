@@ -19,7 +19,8 @@ RUN apt-get clean && apt-get update && \
   libxcursor-dev \
   librtmidi-dev \
   libglm-dev \
-  libaubio-dev
+  libaubio-dev \
+  libvpx-dev
 
 RUN mkdir -p /app
 WORKDIR /app

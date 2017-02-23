@@ -267,8 +267,7 @@ void VideoObject::update(context& ctx) {
 
   // YV12 -> RGB
   for (auto i = 0; i < 3; ++i) {
-    auto width = vpx_img_plane_width(img, i) *
-                 ((img->fmt & VPX_IMG_FMT_HIGHBITDEPTH) ? 2 : 1);
+    auto width = vpx_img_plane_width(img, i);
     auto height = vpx_img_plane_height(img, i);
 
     // Data in planes is not stored contiguously
