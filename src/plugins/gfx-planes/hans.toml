@@ -1,0 +1,25 @@
+[library]
+name = "libhans.gfx.planes"
+
+[[objects]]
+name = "gfx-planes"
+type = "graphics"
+
+[[objects.shaders]]
+name = "planes/shader/vert"
+type = "vertex"
+path = "planes.vert.glsl"
+[[objects.shaders]]
+name = "planes/shader/frag"
+type = "fragment"
+path = "planes.frag.glsl"
+
+[objects.fbo]
+stencil = true
+[[objects.fbo.attachments]]
+type = "depth"
+components = 4
+help = "Depth buffer"
+[[objects.fbo.attachments]]
+type = "color"
+components = 4

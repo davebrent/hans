@@ -4,6 +4,7 @@ plugins = [
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-filter",
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-image",
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-noise",
+  "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-planes",
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-quad",
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-scopes",
   "/home/dave/Workspace/davebrent/hans/src/plugins/gfx-sndtex",
@@ -17,7 +18,7 @@ plugins = [
 
 [reload]
 delay = 3
-extensions = [".toml", ".so", ".a", ".dylib"]
+extensions = [".toml", ".so", ".a", ".dylib", ".glsl"]
 paths = ["/home/dave/Workspace/davebrent/hans"]
 exclude = ["/home/dave/Workspace/davebrent/hans/.git"]
 
@@ -25,8 +26,8 @@ exclude = ["/home/dave/Workspace/davebrent/hans/.git"]
 
 [settings]
 [settings.graphics]
-width = 480
-height = 270
+width = 960
+height = 540
 [settings.audio]
 backend = "jack"
 input_device = "default"
@@ -35,6 +36,17 @@ samplerate = 48000
 blocksize = 128
 input_channels = [0, 1]
 output_channels = [0, 1]
+
+[[programs]]
+name = "planes"
+[programs.objects]
+planes = { object = "gfx-planes" }
+window = { object = "gfx-quad" }
+[[programs.graphics]]
+source = "planes"
+outlet = 0
+sink   = "window"
+inlet  = 0
 
 # Images
 
