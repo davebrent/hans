@@ -8,22 +8,17 @@
 using namespace hans;
 using namespace hans::interpreter;
 
-Value::Value() : type(UNDEFINED), number(0){};
-Value::Value(size_t number) : type(NUMBER), number(number){};
-Value::Value(Tree tree) : type(TREE), tree(tree), number(0){};
+List::List() : start(0), end(0){};
+List::List(size_t start, size_t end) : start(start), end(end){};
+
+Value::Value(uint32_t number) : type(NUMBER), number(number){};
+Value::Value(List list) : type(LIST), list(list){};
 
 Value DStack::pop() {
   auto v = buffer.back();
   buffer.pop_back();
   pointer--;
   return v;
-}
-
-Value DStack::peek_back() {
-  if (pointer > 0) {
-    return buffer.at(pointer - 1);
-  }
-  return Value();
 }
 
 void DStack::push(Value value) {
@@ -39,7 +34,7 @@ Interpreter::Interpreter(Cycle& cycle, IStack istack)
     : cycle(cycle), istack(istack){};
 
 static void number(Interpreter& itp, uint32_t code) {
-  if (code > REST_VALUE) {
+  if (code > REST) {
     throw std::runtime_error(
         "Unrecognised instruction, remember, values must be unsinged 16bit "
         "integers");
@@ -54,52 +49,34 @@ static void begin(Interpreter& itp, uint32_t code) {
 }
 
 static void end(Interpreter& itp, uint32_t code) {
-  Tree tree;
+  List root;
+  root.start = itp.heap.size();
+
   while (true) {
-    auto previous = itp.dstack.peek_back();
-    if (previous.type == Value::UNDEFINED) {
-      break;
+    auto value = itp.dstack.pop();
+
+    if (value.type == Value::NUMBER && value.number == BEGIN) {
+      auto begin = itp.heap.begin();
+      root.end = itp.heap.size();
+      std::reverse(begin + root.start, begin + root.end);
+      itp.dstack.push(Value(root));
+      return;
     }
 
-    if (previous.type == Value::NUMBER && previous.number == BEGIN) {
-      std::reverse(tree.children.begin(), tree.children.end());
-      Value value(tree);
-      itp.dstack.pop();
-      itp.dstack.push(value);
-      break;
-    }
-
-    if (previous.type == Value::TREE) {
-      tree.children.push_back(itp.dstack.pop().tree);
-    } else if (previous.type == Value::NUMBER) {
-      Tree n;
-      n.value = itp.dstack.pop().number;
-      tree.children.push_back(n);
-    } else {
-      throw std::runtime_error("END stack error, unknown type");
-    }
+    itp.heap.push_back(value);
   }
 }
 
 static void rest(Interpreter& itp, uint32_t code) {
-  Value value(REST_VALUE);
+  Value value(REST);
   itp.dstack.push(value);
 }
 
 static void add(Interpreter& itp, uint32_t code) {
   auto rhs = itp.dstack.pop();
   auto lhs = itp.dstack.pop();
-
-  if (rhs.type == Value::TREE) {
-    Tree tree;
-    tree.children.push_back(lhs.tree);
-    tree.children.push_back(rhs.tree);
-    Value value(tree);
-    itp.dstack.push(value);
-  } else if (rhs.type == Value::NUMBER) {
-    Value value(lhs.number + rhs.number);
-    itp.dstack.push(value);
-  }
+  Value value(lhs.number + rhs.number);
+  itp.dstack.push(value);
 }
 
 static void ref(Interpreter& itp, uint32_t code) {
@@ -120,15 +97,17 @@ static void call(Interpreter& itp, uint32_t code) {
 
 static void repeat(Interpreter& itp, uint32_t code) {
   auto n = itp.dstack.pop().number;
-  auto t = itp.dstack.pop().tree;
+  auto value = itp.dstack.pop();
 
-  Tree tree;
+  List root;
+  root.start = itp.heap.size();
+  root.end = root.start + n;
+
   for (auto i = 0; i < n; ++i) {
-    tree.children.push_back(t);
+    itp.heap.push_back(value);
   }
 
-  Value value(tree);
-  itp.dstack.push(value);
+  itp.dstack.push(Value(root));
 }
 
 static void every(Interpreter& itp, uint32_t code) {
@@ -143,24 +122,31 @@ static void every(Interpreter& itp, uint32_t code) {
 
 static void reverse(Interpreter& itp, uint32_t code) {
   auto value = itp.dstack.pop();
-  std::reverse(value.tree.children.begin(), value.tree.children.end());
+  auto begin = itp.heap.begin();
+  std::reverse(begin + value.list.start, begin + value.list.end);
   itp.dstack.push(value);
 }
 
 static void shuffle(Interpreter& itp, uint32_t code) {
   auto value = itp.dstack.pop();
+  auto begin = itp.heap.begin();
   std::random_device rd;
   std::mt19937 g(rd());
-  std::shuffle(value.tree.children.begin(), value.tree.children.end(), g);
+  std::shuffle(begin + value.list.start, begin + value.list.end, g);
   itp.dstack.push(value);
 }
 
 static void rotate(Interpreter& itp, uint32_t code) {
   auto amount = itp.dstack.pop().number;
   auto value = itp.dstack.pop();
-  amount %= value.tree.children.size();
-  std::rotate(value.tree.children.begin(), value.tree.children.begin() + amount,
-              value.tree.children.end());
+
+  if (value.list.start != value.list.end) {
+    amount %= value.list.end - value.list.start;
+    auto begin = itp.heap.begin();
+    std::rotate(begin + value.list.start, begin + value.list.start + amount,
+                begin + value.list.end);
+  }
+
   itp.dstack.push(value);
 }
 
@@ -172,10 +158,11 @@ static void degrade(Interpreter& itp, uint32_t code) {
   std::mt19937 gen(rd());
   std::uniform_int_distribution<> dis(0, 100);
 
-  for (auto& node : value.tree.children) {
-    if (dis(gen) < amount) {
-      node.value = REST_VALUE;
-      node.children.clear();
+  auto begin = itp.heap.begin();
+  for (auto it = begin + value.list.start; it != begin + value.list.end; ++it) {
+    if (it->type != Value::NUMBER && it->number != REST && dis(gen) < amount) {
+      it->type = Value::NUMBER;
+      it->number = REST;
     }
   }
 
@@ -183,10 +170,11 @@ static void degrade(Interpreter& itp, uint32_t code) {
 }
 
 static void cycle(Interpreter& itp, uint32_t code) {
-  auto tree = itp.dstack.pop().tree;
-  auto index = itp.cycle.number % tree.children.size();
-  Value value(tree.children.at(index));
-  itp.dstack.push(value);
+  auto list = itp.dstack.pop().list;
+  if (list.end != list.start) {
+    auto i = itp.cycle.number % (list.end - list.start);
+    itp.dstack.push(itp.heap.at(i));
+  }
 }
 
 static void palindrome(Interpreter& itp, uint32_t code) {
@@ -213,7 +201,7 @@ IStack hans::interpreter::compile(std::istream& is) {
       if (it == Words.end()) {
         throw std::runtime_error("Bad token");
       }
-      istack.push_back((it - Words.begin()) + 0x10000);
+      istack.push_back((it - Words.begin()) + REST);
     }
   }
 
@@ -271,10 +259,9 @@ void hans::interpret(Interpreter& itp) {
     case PALINDROME:
       palindrome(itp, code);
       break;
-    default: {
+    default:
       number(itp, code);
       break;
-    }
     };
   }
 }
@@ -285,34 +272,47 @@ struct Time {
   Time(float start, float duration) : start(start), duration(duration){};
 };
 
-EventList hans::interpreter::to_events(const Cycle& cycle, const Tree& tree) {
+EventList hans::interpreter::to_events(const Cycle& cycle,
+                                       const std::vector<Value>& heap,
+                                       const Value& root) {
   EventList events;
-  std::deque<std::pair<Time, Tree>> visit;
-  Time start(0, cycle.duration);
-  visit.push_back({start, tree});
+  std::deque<std::pair<Time, Value>> visit;
+  visit.push_back({Time(0, cycle.duration), root});
 
   while (!visit.empty()) {
     auto item = visit.front();
     visit.pop_front();
 
     auto& time = std::get<0>(item);
-    auto& tree = std::get<1>(item);
+    auto& value = std::get<1>(item);
 
-    if (tree.children.size() == 0 && tree.value != 0xffff) {
+    switch (value.type) {
+    case Value::LIST: {
+      if (value.list.start == value.list.end) {
+        break;
+      }
+      auto start = time.start;
+      auto interval = time.duration / (value.list.end - value.list.start);
+      auto begin = heap.begin();
+      for (auto it = begin + value.list.start; it != begin + value.list.end;
+           ++it) {
+        visit.push_back({Time(start, interval), *it});
+        start += interval;
+      }
+      break;
+    }
+
+    case Value::NUMBER:
+      if (value.number == REST) {
+        break;
+      }
       Event event;
       event.cycle = cycle.number;
       event.start = time.start;
       event.duration = time.duration;
-      event.value = tree.value;
+      event.value = value.number;
       events.push_back(event);
-    } else {
-      auto interval = time.duration / tree.children.size();
-      auto start = time.start;
-
-      for (const auto& child : tree.children) {
-        visit.push_back({Time(start, interval), child});
-        start += interval;
-      }
+      break;
     }
   }
 

@@ -9,25 +9,23 @@
 namespace hans {
 namespace interpreter {
 
-static const auto REST_VALUE = 0xffff;
-
 // clang-format off
 enum Code {
-  REST       = 0x10000,
-  BEGIN      = 0x10001,
-  END        = 0x10002,
-  ADD        = 0x10003,
-  REF        = 0x10004,
-  DURATION   = 0x10005,
-  CALL       = 0x10006,
-  REPEAT     = 0x10007,
-  REVERSE    = 0x10008,
-  EVERY      = 0x10009,
-  SHUFFLE    = 0x1000A,
-  ROTATE     = 0x1000B,
-  DEGRADE    = 0x1000C,
-  CYCLE      = 0x1000D,
-  PALINDROME = 0x1000E,
+  REST       = 0xFFFF,
+  BEGIN      = 0x10000,
+  END        = 0x10001,
+  ADD        = 0x10002,
+  REF        = 0x10003,
+  DURATION   = 0x10004,
+  CALL       = 0x10005,
+  REPEAT     = 0x10006,
+  REVERSE    = 0x10007,
+  EVERY      = 0x10008,
+  SHUFFLE    = 0x10009,
+  ROTATE     = 0x1000A,
+  DEGRADE    = 0x1000B,
+  CYCLE      = 0x1000C,
+  PALINDROME = 0x1000D,
 };
 
 static const std::vector<const char*> Words = {
@@ -49,19 +47,23 @@ static const std::vector<const char*> Words = {
 };
 // clang-format on
 
-struct Tree {
-  uint16_t value = 0;
-  std::vector<Tree> children;
+struct List {
+  size_t start;
+  size_t end;
+  List();
+  List(size_t start, size_t end);
 };
 
 struct Value {
-  enum Type { TREE, NUMBER, UNDEFINED };
+  enum Type { NUMBER, LIST };
   Type type;
-  Tree tree;
-  size_t number;
-  Value();
-  Value(Tree tree);
-  Value(size_t number);
+  union {
+    uint32_t number;
+    List list;
+  };
+
+  Value(List list);
+  Value(uint32_t number);
 };
 
 using IStack = std::deque<uint32_t>;
@@ -70,7 +72,6 @@ class DStack {
  public:
   size_t pointer = 0;
   Value pop();
-  Value peek_back();
   void push(Value value);
   bool empty();
 
@@ -79,7 +80,8 @@ class DStack {
 };
 
 IStack compile(std::istream& is);
-EventList to_events(const Cycle& cycle, const Tree& tree);
+EventList to_events(const Cycle& cycle, const std::vector<Value>& heap,
+                    const Value& value);
 
 } // namespace interpreter
 
@@ -87,6 +89,7 @@ struct Interpreter {
   Cycle& cycle;
   interpreter::DStack dstack;
   interpreter::IStack istack;
+  std::vector<interpreter::Value> heap;
   Interpreter(Cycle& cycle);
   Interpreter(Cycle& cycle, interpreter::IStack istack);
 };
