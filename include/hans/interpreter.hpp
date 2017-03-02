@@ -2,86 +2,64 @@
 #define HANS_INTERPRETER_H_
 
 #include <stddef.h>
-#include <deque>
 #include <vector>
 #include "hans/primitives.hpp"
 
 namespace hans {
 namespace interpreter {
 
-// clang-format off
+struct Integer {
+  static const uint32_t max = 0xFFFFFFF;
+  static uint32_t make(int32_t number);
+  static int32_t get(uint32_t integer);
+  static bool predicate(uint32_t integer);
+};
+
+struct Float {
+  static const uint32_t max = 0x4000;
+  static uint32_t make(float number);
+  static float get(uint32_t integer);
+  static bool predicate(uint32_t integer);
+};
+
+struct Instruction {
+  static const uint32_t max = 0xFFFFFFF;
+  static uint32_t make(int32_t number);
+  static bool predicate(uint32_t value);
+};
+
+struct Pair {
+  static const uint32_t max = 0x7FFE;
+  static uint32_t make(uint32_t head, uint32_t tail);
+  static uint32_t head(uint32_t pair);
+  static uint32_t tail(uint32_t pair);
+  static bool predicate(uint32_t integer);
+};
+
 enum Code {
-  REST       = 0xFFFF,
-  BEGIN      = 0x10000,
-  END        = 0x10001,
-  ADD        = 0x10002,
-  REF        = 0x10003,
-  DURATION   = 0x10004,
-  CALL       = 0x10005,
-  REPEAT     = 0x10006,
-  REVERSE    = 0x10007,
-  EVERY      = 0x10008,
-  SHUFFLE    = 0x10009,
-  ROTATE     = 0x1000A,
-  DEGRADE    = 0x1000B,
-  CYCLE      = 0x1000C,
-  PALINDROME = 0x1000D,
+  PUSH,
+  BEGIN,
+  END,
+  ADD,
+  REST,
+  DURATION,
+  CALL,
+  REPEAT,
+  REVERSE,
+  EVERY,
+  SHUFFLE,
+  ROTATE,
+  DEGRADE,
+  CYCLE,
+  PALINDROME,
 };
 
-static const std::vector<const char*> Words = {
-  ".",
-  "[",
-  "]",
-  "add",
-  "&",
-  "dur",
-  "call",
-  "repeat",
-  "reverse",
-  "every",
-  "shuffle",
-  "rotate",
-  "degrade",
-  "cycle",
-  "palindrome",
-};
-// clang-format on
-
-struct List {
-  size_t start;
-  size_t end;
-  List();
-  List(size_t start, size_t end);
-};
-
-struct Value {
-  enum Type { NUMBER, LIST };
-  Type type;
-  union {
-    uint32_t number;
-    List list;
-  };
-
-  Value(List list);
-  Value(uint32_t number);
-};
-
-using IStack = std::deque<uint32_t>;
-
-class DStack {
- public:
-  size_t pointer = 0;
-  Value pop();
-  void push(Value value);
-  bool empty();
-
- private:
-  std::vector<Value> buffer;
-};
+using IStack = std::vector<uint32_t>;
+using DStack = std::vector<uint32_t>;
 
 IStack compile(std::istream& is);
-EventList to_events(const Cycle& cycle, const std::vector<Value>& heap,
-                    const Value& value);
+EventList to_events(const Cycle& cycle, const std::vector<uint32_t>& heap,
+                    const uint32_t root);
 
 } // namespace interpreter
 
@@ -89,7 +67,7 @@ struct Interpreter {
   Cycle& cycle;
   interpreter::DStack dstack;
   interpreter::IStack istack;
-  std::vector<interpreter::Value> heap;
+  std::vector<uint32_t> heap;
   Interpreter(Cycle& cycle);
   Interpreter(Cycle& cycle, interpreter::IStack istack);
 };

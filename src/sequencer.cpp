@@ -49,7 +49,7 @@ void BackgroundState::schedule(size_t number, Track& track) {
   Cycle cycle(number);
   Interpreter itp(cycle, track.instructions);
   interpret(itp);
-  auto events = interpreter::to_events(itp.cycle, itp.heap, itp.dstack.pop());
+  auto events = interpreter::to_events(itp.cycle, itp.heap, itp.dstack.back());
   std::sort(events.begin(), events.end(),
             [](const Event& a, const Event& b) { return a.start < b.start; });
 

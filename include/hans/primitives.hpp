@@ -208,7 +208,7 @@ struct Modulation {
 };
 
 struct Track {
-  std::deque<uint32_t> instructions;
+  std::vector<uint32_t> instructions;
   ObjectDef::ID object;
   hash parameter;
   Parameter::Length component;

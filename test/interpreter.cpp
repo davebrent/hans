@@ -6,20 +6,22 @@
 using namespace hans;
 using namespace hans::interpreter;
 
-void print(const Value& value) {
-  switch (value.type) {
-  case Value::LIST:
-    std::cout << "LIST (" << value.list.start << ", " << value.list.end << ")";
-    break;
-  case Value::NUMBER:
-    std::cout << "NUMBER (" << value.number << ")";
-    break;
+void print(const uint32_t value) {
+  if (Pair::predicate(value)) {
+    std::cout << "LIST (" << Pair::head(value);
+    std::cout << ", " << Pair::tail(value) << ")";
+  } else {
+    if (Instruction::predicate(value)) {
+      std::cout << "INSTRUCTION (" << Integer::get(value) << ")";
+    } else {
+      std::cout << "NUMBER (" << Integer::get(value) << ")";
+    }
   }
 }
 
-void print(const std::vector<Value>& values) {
+void print(const std::vector<uint32_t>& values) {
   int index = 0;
-  for (const auto& value : values) {
+  for (const auto value : values) {
     std::cout << "[" << index << "] ";
     index++;
     print(value);
@@ -27,20 +29,22 @@ void print(const std::vector<Value>& values) {
   }
 }
 
-static std::vector<Value> flatten(Interpreter& itp) {
-  std::vector<Value> output;
-  std::deque<Value> visit;
-  visit.push_back(itp.dstack.pop());
+static std::vector<uint32_t> flatten(Interpreter& itp) {
+  std::vector<uint32_t> output;
+  std::deque<uint32_t> visit;
+  visit.push_back(itp.dstack.back());
+  itp.dstack.pop_back();
 
   while (!visit.empty()) {
     auto value = visit.front();
     visit.pop_front();
-
     output.push_back(value);
-    if (value.type == Value::LIST) {
+
+    if (Pair::predicate(value)) {
       auto begin = itp.heap.begin();
-      for (auto it = begin + value.list.end - 1;
-           it != begin + value.list.start - 1; --it) {
+      auto head = Pair::head(value);
+      auto tail = Pair::tail(value);
+      for (auto it = begin + tail - 1; it != begin + head - 1; --it) {
         visit.push_front(*it);
       }
     }
@@ -49,206 +53,216 @@ static std::vector<Value> flatten(Interpreter& itp) {
   return output;
 }
 
-static bool equals(const Value& a, const Value& b) {
-  if (a.type != b.type) {
-    return false;
-  }
-
-  switch (a.type) {
-  case Value::LIST:
-    return a.list.start == b.list.start && a.list.end == b.list.end;
-  case Value::NUMBER:
-    return a.number == b.number;
-  }
-
-  return false;
-}
-
-static bool equals(const std::vector<Value>& a, const std::vector<Value>& b) {
-  if (a.size() != b.size()) {
-    return false;
-  }
-
-  for (auto i = 0; i < a.size(); ++i) {
-    if (!equals(a.at(i), b.at(i))) {
-      return false;
-    }
-  }
-
-  return true;
+static IStack exp(const std::string& code) {
+  std::istringstream ss(code);
+  return compile(ss);
 }
 
 TEST_CASE("Stack interpreter", "[interpreter]") {
-  SECTION("Compiling/lexing?") {
-    std::istringstream ss("[ 12 2 3 ] [ 2 3 ] 50 degrade");
-    auto tokens = compile(ss);
-    IStack expected = {BEGIN, 12, 2, 3, END, BEGIN, 2, 3, END, 50, DEGRADE};
-    REQUIRE(tokens == expected);
+  SECTION("Instruction format") {
+    uint32_t negative = Integer::make(-122);
+    REQUIRE(Integer::get(negative) == -122);
+    REQUIRE(Integer::get(Instruction::make(-122)) == -122);
+
+    uint32_t positive = Integer::make(122);
+    REQUIRE(positive == 122);
+    REQUIRE(Integer::get(positive) == 122);
+    REQUIRE(Integer::get(Instruction::make(positive)) == 122);
+
+    REQUIRE(Instruction::predicate(Instruction::make(100)) == true);
+    REQUIRE(Float::get(Float::make(-3210.145)) == Approx(-3210.145));
+
+    REQUIRE(Integer::predicate(Integer::make(20)) == true);
+    REQUIRE(Float::predicate(Float::make(-3210.145)) == true);
+    REQUIRE(Float::predicate(Integer::make(100)) == false);
   }
 
-  SECTION("Compiling/lexing with newlines") {
-    std::istringstream ss("[ 12 2 3 ] \n [ 2 3 ] 50 degrade");
-    auto tokens = compile(ss);
-    IStack expected = {BEGIN, 12, 2, 3, END, BEGIN, 2, 3, END, 50, DEGRADE};
-    REQUIRE(tokens == expected);
+  SECTION("Pairs") {
+    uint32_t pair = Pair::make(200, 400);
+    REQUIRE(Pair::head(pair) == 200);
+    REQUIRE(Pair::tail(pair) == 400);
   }
 
-  SECTION("BEGIN and END codes") {
-    // [ 1 . . [ 2 . 3 ] ]
-    Cycle cycle;
-    Interpreter itp(cycle, {BEGIN, 1, REST, REST, BEGIN, 2, REST, 3, END, END});
-    interpret(itp);
-    REQUIRE(itp.dstack.pointer == 1);
-    // clang-format off
-    auto expected = {
-      Value(List(3, 7)),
-      Value(1),
-      Value(REST),
-      Value(REST),
-      Value(List(0, 3)),
-      Value(2),
-      Value(REST),
-      Value(3)
+  SECTION("Assembling") {
+    auto tokens = exp("[ 12 2 3 ] [ 2 3 ] 50 degrade");
+    IStack expected = {
+        Instruction::make(DEGRADE),
+        50,
+        Instruction::make(PUSH),
+        Instruction::make(END),
+        3,
+        Instruction::make(PUSH),
+        2,
+        Instruction::make(PUSH),
+        Instruction::make(BEGIN),
+        Instruction::make(END),
+        3,
+        Instruction::make(PUSH),
+        2,
+        Instruction::make(PUSH),
+        12,
+        Instruction::make(PUSH),
+        Instruction::make(BEGIN),
     };
-    // clang-format on
-    REQUIRE(equals(expected, flatten(itp)));
+    REQUIRE(tokens == expected);
+  }
+
+  SECTION("Assembling with newlines") {
+    auto tokens = exp("[ 12 2 3 ] \n [ 2 3 ] 50 degrade");
+    IStack expected = {
+        Instruction::make(DEGRADE),
+        50,
+        Instruction::make(PUSH),
+        Instruction::make(END),
+        3,
+        Instruction::make(PUSH),
+        2,
+        Instruction::make(PUSH),
+        Instruction::make(BEGIN),
+        Instruction::make(END),
+        3,
+        Instruction::make(PUSH),
+        2,
+        Instruction::make(PUSH),
+        12,
+        Instruction::make(PUSH),
+        Instruction::make(BEGIN),
+    };
+    REQUIRE(tokens == expected);
   }
 
   SECTION("ADD codes") {
-    // 1 2 add
     Cycle cycle;
-    Interpreter itp(cycle, {1, 2, ADD});
+    Interpreter itp(cycle, exp("1 2 add"));
     interpret(itp);
-    REQUIRE(itp.dstack.pointer == 1);
-    auto expected = {Value(3)};
-    REQUIRE(equals(expected, flatten(itp)));
+    REQUIRE(itp.dstack.size() == 1);
+    std::vector<uint32_t> expected{3};
+    auto actual = flatten(itp);
+    REQUIRE(expected == actual);
+  }
+
+  SECTION("ADD negative values") {
+    Cycle cycle;
+    Interpreter itp(cycle, exp("1 -10 add"));
+    interpret(itp);
+    REQUIRE(itp.dstack.size() == 1);
+    REQUIRE(Integer::get(flatten(itp).at(0)) == -9);
+  }
+
+  SECTION("BEGIN and END codes") {
+    Cycle cycle;
+    Interpreter itp(cycle, exp("[ 1 . ]"));
+    interpret(itp);
+    REQUIRE(itp.dstack.size() == 1);
+
+    std::vector<uint32_t> expected{Pair::make(0, 2), 1,
+                                   Instruction::make(REST)};
+
+    auto actual = flatten(itp);
+    REQUIRE(expected == actual);
+  }
+
+  SECTION("nested BEGIN and END codes") {
+    Cycle cycle;
+    Interpreter itp(cycle, exp("[ 100 [ 2 300 ] ]"));
+    interpret(itp);
+    REQUIRE(itp.dstack.size() == 1);
+    std::vector<uint32_t> expected{Pair::make(2, 4), 100, Pair::make(0, 2), 2,
+                                   300};
+    auto actual = flatten(itp);
+    REQUIRE(expected == actual);
   }
 
   SECTION("REF & CALL codes") {
-    // 1 2 & add call
     Cycle cycle;
-    Interpreter itp(cycle, {1, 2, REF, ADD, CALL});
+    Interpreter itp(cycle, exp("1 2 push add call"));
     interpret(itp);
-    REQUIRE(itp.dstack.pointer == 1);
-    auto expected = {Value(3)};
-    REQUIRE(equals(expected, flatten(itp)));
+    REQUIRE(itp.dstack.size() == 1);
+    std::vector<uint32_t> expected{3};
+    auto actual = flatten(itp);
+    REQUIRE(expected == actual);
   }
 
   SECTION("REPEAT code") {
-    // [ 1 . ] 3 repeat
     Cycle cycle;
-    Interpreter itp(cycle, {BEGIN, 1, REST, END, 3, REPEAT});
+    Interpreter itp(cycle, exp("[ 1 . ] 3 repeat"));
     interpret(itp);
-    REQUIRE(itp.dstack.pointer == 1);
-    // clang-format off
-    auto expected = {
-      Value(List(2, 5)),
-      Value(List(0, 2)),
-      Value(1),
-      Value(REST),
-      Value(List(0, 2)),
-      Value(1),
-      Value(REST),
-      Value(List(0, 2)),
-      Value(1),
-      Value(REST),
-    };
-    // clang-format on
+    REQUIRE(itp.dstack.size() == 1);
+    std::vector<uint32_t> expected{Pair::make(2, 5),        Pair::make(0, 2), 1,
+                                   Instruction::make(REST), Pair::make(0, 2), 1,
+                                   Instruction::make(REST), Pair::make(0, 2), 1,
+                                   Instruction::make(REST)};
+
     auto actual = flatten(itp);
-    REQUIRE(equals(expected, actual));
+    REQUIRE(expected == actual);
   }
 
   SECTION("EVERY code") {
-    // [ 1 ] 3 & repeat [ . ] 4 every
     Cycle cycle;
     cycle.number = 4;
-    // clang-format off
-    Interpreter itp(cycle, {
-      BEGIN, 1, END, 3, REF, REPEAT, BEGIN, REST, END, 4, EVERY
-    });
+    Interpreter itp(cycle, exp("[ 1 ] 3 push repeat [ . ] 4 every"));
     interpret(itp);
-    REQUIRE(itp.dstack.pointer == 1);
-    auto expected = {
-      Value(List(2, 5)),
-      Value(List(0, 1)),
-      Value(1),
-      Value(List(0, 1)),
-      Value(1),
-      Value(List(0, 1)),
-      Value(1)
-    };
-    // clang-format on
-    REQUIRE(equals(expected, flatten(itp)));
+    REQUIRE(itp.dstack.size() == 1);
+    std::vector<uint32_t> expected{Pair::make(2, 5),
+                                   Pair::make(0, 1),
+                                   1,
+                                   Pair::make(0, 1),
+                                   1,
+                                   Pair::make(0, 1),
+                                   1};
+    auto actual = flatten(itp);
+    REQUIRE(expected == actual);
   }
 
   SECTION("REVERSE code") {
-    // [ 1 . . ] reverse
     Cycle cycle;
-    Interpreter itp(cycle, {BEGIN, 1, REST, REST, END, REVERSE});
+    Interpreter itp(cycle, exp("[ 1 . . ] reverse"));
     interpret(itp);
-    REQUIRE(itp.dstack.pointer == 1);
-    // clang-format off
-    auto expected = {
-      Value(List(0, 3)),
-      Value(REST),
-      Value(REST),
-      Value(1),
+    REQUIRE(itp.dstack.size() == 1);
+    std::vector<uint32_t> expected{
+        Pair::make(0, 3), Instruction::make(REST), Instruction::make(REST), 1,
     };
-    // clang-format on
-    REQUIRE(equals(expected, flatten(itp)));
+    auto actual = flatten(itp);
+    REQUIRE(expected == actual);
   }
 
   SECTION("ROTATE code") {
-    // [ 1 2 3 ] 4 rotate
     Cycle cycle;
-    Interpreter itp(cycle, {BEGIN, 1, 2, 3, END, 4, ROTATE});
+    Interpreter itp(cycle, exp("[ 1 2 3 ] 4 rotate"));
     interpret(itp);
-    REQUIRE(itp.dstack.pointer == 1);
-    // clang-format off
-    auto expected = {
-      Value(List(0, 3)),
-      Value(2),
-      Value(3),
-      Value(1),
-    };
-    // clang-format on
-    REQUIRE(equals(expected, flatten(itp)));
+    REQUIRE(itp.dstack.size() == 1);
+    std::vector<uint32_t> expected{Pair::make(0, 3), 2, 3, 1};
+    auto actual = flatten(itp);
+    REQUIRE(expected == actual);
   }
 
   SECTION("DURATION code") {
-    // 12 dur
     Cycle cycle;
-    Interpreter itp(cycle, {12, DURATION});
+    Interpreter itp(cycle, exp("12 dur"));
     interpret(itp);
-    REQUIRE(itp.dstack.pointer == 0);
+    REQUIRE(itp.dstack.size() == 0);
     REQUIRE(itp.cycle.duration == 12);
   }
 
   SECTION("CYCLE code") {
-    // [ 1 2 ] cycle
     Cycle cycle;
-    Interpreter itp(cycle, {BEGIN, 1, 2, END, CYCLE});
+    Interpreter itp(cycle, exp("[ 1 2 ] cycle"));
     itp.cycle.number = 1;
     interpret(itp);
-    REQUIRE(itp.dstack.pointer == 1);
-    auto expected = {Value(2)};
-    REQUIRE(equals(expected, flatten(itp)));
+    REQUIRE(itp.dstack.size() == 1);
+    std::vector<uint32_t> expected{2};
+    auto actual = flatten(itp);
+    REQUIRE(expected == actual);
   }
 
   SECTION("PALINDROME code") {
-    // [ 1 2 ] palindrome
     Cycle cycle;
-    Interpreter itp(cycle, {BEGIN, 1, 2, END, PALINDROME});
+    Interpreter itp(cycle, exp("[ 1 2 ] palindrome"));
     itp.cycle.number = 1;
     interpret(itp);
-    REQUIRE(itp.dstack.pointer == 1);
-    // clang-format off
-    auto expected = {
-      Value(List(0, 2)),
-      Value(2),
-      Value(1),
-    };
-    // clang-format on
-    REQUIRE(equals(expected, flatten(itp)));
+    REQUIRE(itp.dstack.size() == 1);
+    std::vector<uint32_t> expected{Pair::make(0, 2), 2, 1};
+    auto actual = flatten(itp);
+    REQUIRE(expected == actual);
   }
 }
