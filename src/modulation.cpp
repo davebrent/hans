@@ -101,7 +101,6 @@ void Worker::restore() {
 ModulationManager::ModulationManager(const Modulation& modulation,
                                      Parameters& parameters)
     : m_modulation(modulation),
-      m_parameters(parameters),
       m_double_buffer(modulation.graphics.cross.size()),
       m_ring_buffer(modulation.audio.cross.size(), 100),
       m_snd(modulation.audio, parameters.buffer, 0, parameters.split),

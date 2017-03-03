@@ -68,7 +68,6 @@ class ModulationManager {
 
  private:
   const Modulation& m_modulation;
-  const Parameters& m_parameters;
 
   modulation::DoubleBuffer m_double_buffer;
   modulation::RingBuffer m_ring_buffer;
