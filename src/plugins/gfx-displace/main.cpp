@@ -217,7 +217,7 @@ class DisplaceObject : protected GraphicsObject {
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
     auto texture = ctx.fbos.get_color_attachment(state.fbo, 0);
-    ctx.registers.write(state.outlet, displace);
+    ctx.registers.write(state.outlet, texture);
   }
 
  private:
