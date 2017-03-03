@@ -36,6 +36,7 @@ add_library(hans SHARED
   window.cpp)
 
 target_link_libraries(hans
+  hansplugin
   ${EPOXY_LIBRARIES}
   ${FREEIMAGE_LIBRARIES}
   ${GLFW_LIBRARIES}
@@ -49,6 +50,6 @@ target_link_libraries(hans
 install(TARGETS hans DESTINATION lib)
 
 add_executable(hans-bin main.cpp)
-target_link_libraries(hans-bin hans hansplugin)
+target_link_libraries(hans-bin hans)
 set_target_properties(hans-bin PROPERTIES OUTPUT_NAME hans)
 install(TARGETS hans DESTINATION lib)
