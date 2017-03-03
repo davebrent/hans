@@ -528,12 +528,6 @@ static bool read_tracks(const shared_ptr<table> input, user_program& output) {
 
     user_track t;
     t.sequence = *sequence;
-    t.scale = 1;
-
-    auto scale = track->get_as<double>("scale");
-    if (scale) {
-      t.scale = *scale;
-    }
 
     auto target = track->get_table("target");
     if (!read_modulator_port(target, t.target)) {

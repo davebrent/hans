@@ -212,7 +212,6 @@ struct Track {
   ObjectDef::ID object;
   hash parameter;
   Parameter::Length component;
-  float scale;
 };
 
 struct Sequences {
@@ -264,7 +263,7 @@ struct Event {
   // Duration of the event in milliseconds
   float duration;
   // Value of the event
-  size_t value;
+  float value;
 };
 
 using EventList = std::vector<Event>;

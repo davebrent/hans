@@ -46,7 +46,7 @@ class BackgroundState {
 
 class Sequencer {
  public:
-  using Handler = std::function<void(const Track&, size_t, bool)>;
+  using Handler = std::function<void(const Track&, float, bool)>;
   enum Mode { RELOAD = 0, INIT = 1, RUN = 2 };
 
   Sequencer(TaskQueue& task_queue, Sequences& sequences, Handler handler);

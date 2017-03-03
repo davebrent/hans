@@ -81,31 +81,27 @@ target   = { object = "image", parameter = "image", component = 0 }
 sequence = "10000 dur [ 8 2 0 7 9 0 5 0 ]"
 target   = { object = "effect", parameter = "filter", component = 0 }
 [[programs.tracks]]
-sequence = "500 dur [ 1 2 3 4 5 6 7 8 10 2 3 4 6 9 100 200 300 400 600 400 500 ] palindrome"
+sequence = "500 dur [ 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 1 0.2 0.3 0.4 0.6 0.9 10 20 30 40 60 40 50 ] palindrome"
 target   = { object = "effect", parameter = "amount", component = 0 }
-scale    = 0.1
 [[programs.tracks]]
-sequence = "500 dur [ 8 7 6 5 4 3 2 1 ]"
+sequence = "500 dur [ 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1 ]"
 target   = { object = "effect", parameter = "amount", component = 1 }
-scale    = 0.1
 [[programs.tracks]]
 sequence = "20000 dur [ 0 1 5 2 ]"
 target   = { object = "effect2", parameter = "filter", component = 0 }
 [[programs.tracks]]
-sequence = "1000 dur [ 1 2 3 4 5 6 7 8 10 2 3 4 6 9 100 200 300 400 600 400 500 ] palindrome"
+sequence = "1000 dur [ 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 1 0.2 0.3 0.4 0.6 0.9 10 20 30 40 60 40 50 ] palindrome"
 target   = { object = "effect2", parameter = "amount", component = 0 }
-scale    = 0.1
 [[programs.tracks]]
-sequence = "1000 dur [ 8 7 6 5 4 3 2 1 ]"
+sequence = "1000 dur [ 0.8 0.7 0.6 0.5 0.4 0.3 0.2 0.1 ]"
 target   = { object = "effect2", parameter = "amount", component = 1 }
-scale    = 0.1
 
 # Video playing
 
 [[programs]]
 name = "video"
 [programs.objects]
-video  = { object = "gfx-video", args = [ { filepath = "/home/dave/Workspace/davebrent/output.ivf" } ] }
+video  = { object = "gfx-video", args = [ { filepath = "/home/dave/Workspace/davebrent/hans-assets/output.ivf" } ] }
 effect = { object = "gfx-filter" }
 window = { object = "gfx-quad" }
 [[programs.graphics]]

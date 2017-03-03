@@ -264,13 +264,11 @@ static void command_screenshot(Window& window, Frame& frame) {
 }
 
 static void sequencer_handler(EngineReloader& reloader, const Track& track,
-                              size_t value, bool state) {
-  auto res = track.scale * (float)value;
-
+                              float val, bool state) {
   {
     std::lock_guard<std::mutex> lck(reloader.mutex);
     auto engine = reloader.get();
-    engine->set_parameter(track.object, track.parameter, track.component, res);
+    engine->set_parameter(track.object, track.parameter, track.component, val);
   }
 }
 
@@ -329,7 +327,7 @@ int realtime_mode(int argc, char* argv[]) {
   engine = reloader.get();
 
   Sequencer sequencer(task_queue, output.sequences,
-                      [&](const Track& track, size_t value, bool state) {
+                      [&](const Track& track, float value, bool state) {
                         sequencer_handler(reloader, track, value, state);
                       });
 

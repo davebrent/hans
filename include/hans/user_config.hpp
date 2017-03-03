@@ -74,7 +74,6 @@ struct user_modulator {
 
 struct user_track {
   std::string sequence;
-  float scale;
   user_modulation_port target;
 };
 

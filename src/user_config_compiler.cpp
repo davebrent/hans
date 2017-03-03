@@ -739,7 +739,6 @@ static bool tracks_task(const user_data& input, EngineData& output,
       t.instructions = interpreter::compile(ss);
       t.parameter = ctx.strings.add(track.target.parameter);
       t.component = track.target.component;
-      t.scale = track.scale;
 
       bool found = false;
       for (const auto& o : output.programs.graphics.objects) {
