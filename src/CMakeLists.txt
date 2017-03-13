@@ -1,3 +1,4 @@
+add_subdirectory(gui)
 add_subdirectory(plugins)
 
 add_library(hansplugin SHARED
