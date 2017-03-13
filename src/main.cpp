@@ -420,7 +420,11 @@ int realtime_mode(int argc, char* argv[]) {
   sequencer_thread.join();
 
   reloader.close();
-  audio->close();
+
+  if (audio) {
+    audio->close();
+  }
+
   return 0;
 }
 

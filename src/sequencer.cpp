@@ -113,10 +113,6 @@ Sequencer::Sequencer(TaskQueue& task_queue, Sequences& sequences,
   _mode.store(RELOAD);
 }
 
-Sequencer::~Sequencer() {
-  stop_state();
-}
-
 void Sequencer::set_program(uint32_t program) {
   std::lock_guard<std::mutex> lck(_mutex);
   if (program < _sequences.ranges.size()) {

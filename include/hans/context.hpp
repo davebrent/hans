@@ -7,6 +7,7 @@
 #include "hans/fbos.hpp"
 #include "hans/parameters.hpp"
 #include "hans/plugins.hpp"
+#include "hans/primitives.hpp"
 #include "hans/registers.hpp"
 #include "hans/ring_buffers.hpp"
 #include "hans/shaders.hpp"
@@ -16,6 +17,7 @@ namespace hans {
 
 struct context {
   Settings settings;
+  Display window;
   StringManager strings;
   RegisterManager registers;
   ParameterManager parameters;

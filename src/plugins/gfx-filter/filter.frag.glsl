@@ -7,8 +7,8 @@ subroutine vec4 FilterFunc(vec2 uv);
 subroutine uniform FilterFunc FilterEffect;
 
 uniform sampler2D image;
-uniform vec2 resolution;
-uniform vec2 center;
+uniform vec2 screen_size;
+uniform vec2 texture_size;
 uniform vec2 amount;
 uniform float weights[5];
 
@@ -29,7 +29,7 @@ vec4 pixelate_filter(vec2 uv) {
   // amount ranges from resolution.x -> 0, the larger the number the
   // clearer the image.
   float pixel_size = 1.0 / amount.x;
-  float aspect = resolution.x / resolution.y;
+  float aspect = screen_size.x / screen_size.y;
 
   // Round to the nearest interval of pixel_size
   uv.x = floor(uv.x / pixel_size) * pixel_size;
@@ -76,7 +76,7 @@ subroutine(FilterFunc)
 vec4 rgbsplit_filter(vec2 uv) {
   float x_offset = 10.0; // px
   float y_offset = 10.0; // px
-  vec2 delta = vec2(x_offset / resolution.x, y_offset / resolution.y);
+  vec2 delta = vec2(x_offset / screen_size.x, y_offset / screen_size.y);
   vec4 c1 = texture(image, uv + delta);
   vec4 c2 = texture(image, uv);
   vec4 c3 = texture(image, uv - delta);
@@ -92,7 +92,7 @@ vec4 barrel_distort_filter(vec2 uv) {
 
 subroutine(FilterFunc)
 vec4 gaus_filter_1(vec2 uv) {
-  float dy = 1.0 / resolution.y;
+  float dy = 1.0 / screen_size.y;
   vec4 sum = texture(image, uv) * weights[0];
 
   for (int i = 1; i < 5; i++) {
@@ -106,7 +106,7 @@ vec4 gaus_filter_1(vec2 uv) {
 
 subroutine(FilterFunc)
 vec4 gaus_filter_2(vec2 uv) {
-  float dx = 1.0 / resolution.x;
+  float dx = 1.0 / screen_size.x;
   vec4 sum = texture(image, uv) * weights[0];
 
   for (int i = 1; i < 5; i++) {

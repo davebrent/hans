@@ -50,7 +50,6 @@ class Sequencer {
   enum Mode { RELOAD = 0, INIT = 1, RUN = 2 };
 
   Sequencer(TaskQueue& task_queue, Sequences& sequences, Handler handler);
-  ~Sequencer();
 
   void reload(Sequences& sequences);
   bool stop();

@@ -19,6 +19,7 @@ class Engine {
   Engine(EngineData data, AudioBuses& buses);
   ~Engine();
   const EngineData& data();
+  void set_display(const Display& window);
   bool set_program(size_t index);
   void set_parameter(ObjectDef::ID object, const hash name,
                      const Parameter::Length component,

@@ -76,8 +76,8 @@ static constexpr const FilterInfo FILTER_INFO = {
 
 struct Uniforms {
   GLuint texture;
-  GLuint center;
-  GLuint resolution;
+  GLuint screen_size;
+  GLuint texture_size;
   GLuint amount;
   GLuint weights;
   GLuint subroutines[NUM_SUBROUTINES];
@@ -153,8 +153,8 @@ class FilterObject : protected GraphicsObject {
     auto pgm = state.program.handle;
     auto shdr = GL_FRAGMENT_SHADER;
 
-    state.uniforms.resolution = glGetUniformLocation(pgm, "resolution");
-    state.uniforms.center = glGetUniformLocation(pgm, "center");
+    state.uniforms.screen_size = glGetUniformLocation(pgm, "screen_size");
+    state.uniforms.texture_size = glGetUniformLocation(pgm, "texture_size");
     state.uniforms.texture = glGetUniformLocation(pgm, "image");
     state.uniforms.amount = glGetUniformLocation(pgm, "amount");
     state.uniforms.weights = glGetUniformLocation(pgm, "weights");
@@ -212,8 +212,9 @@ class FilterObject : protected GraphicsObject {
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width);
     glGetTexLevelParameteriv(GL_TEXTURE_2D, 0, GL_TEXTURE_HEIGHT, &height);
 
-    glUniform2f(state.uniforms.resolution, width, height);
-    glUniform2f(state.uniforms.center, width / 2.f, height / 2.f);
+    glUniform2f(state.uniforms.texture_size, width, height);
+    glUniform2f(state.uniforms.screen_size, ctx.settings.graphics.width,
+                ctx.settings.graphics.height);
     glUniform2f(state.uniforms.amount, amount,
                 ctx.parameters.get(state.amount, 1));
     glUniform1fv(state.uniforms.weights, 5, weights);

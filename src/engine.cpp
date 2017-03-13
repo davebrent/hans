@@ -43,6 +43,12 @@ const EngineData& Engine::data() {
   return m_data;
 }
 
+void Engine::set_display(const Display& window) {
+  m_ctx.window.width = window.width;
+  m_ctx.window.height = window.height;
+  m_ctx.window.fbo = window.fbo;
+}
+
 bool Engine::set_program(size_t index) {
   m_selected_program = index;
   return true;

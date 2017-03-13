@@ -18,10 +18,8 @@ class FrameBufferManager {
   /// Create an objects frame buffer and corresponding attachments
   graphics::FBO make(ObjectDef::ID object);
 
-  /// Bind to the windows default frame buffer
   /// Calls glBindFramebuffer on the requested frame buffer
   void bind_fbo(const graphics::FBO& fbo) const;
-  void release_fbo() const;
 
   uint32_t get_color_attachment(const graphics::FBO& handle, uint16_t i) const;
   uint32_t get_depth_attachment(const graphics::FBO& handle) const;

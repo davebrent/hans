@@ -32,6 +32,12 @@ struct Settings {
   Audio audio;
 };
 
+struct Display {
+  uint16_t width;
+  uint16_t height;
+  size_t fbo;
+};
+
 struct ObjectDef {
   enum Types { AUDIO, GRAPHICS };
   using ID = uint32_t;

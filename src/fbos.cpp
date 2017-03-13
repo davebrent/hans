@@ -99,10 +99,6 @@ FBO FrameBufferManager::make(ObjectDef::ID object) {
   throw std::runtime_error("Unable to find object");
 }
 
-void FrameBufferManager::release_fbo() const {
-  glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
 void FrameBufferManager::bind_fbo(const FBO& fbo) const {
   auto i = 0;
   for (const auto& f : m_fbos) {

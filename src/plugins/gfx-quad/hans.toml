@@ -15,7 +15,7 @@ type = "fragment"
 path = "quad.frag"
 
 [objects.fbo]
-stencil = true
+stencil = false
 [[objects.fbo.attachments]]
 type = "color"
 components = 4

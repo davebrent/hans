@@ -77,21 +77,22 @@ void QuadObject::setup(context& ctx) {
 
 void QuadObject::draw(context& ctx) const {
   if (!ctx.registers.has_data(state.inlet)) {
-    ctx.fbos.release_fbo();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     return;
   }
 
-  auto input = ctx.registers.read(state.inlet);
+  auto x = (ctx.window.width * 0.5) - (ctx.settings.graphics.width * 0.5);
+  auto y = (ctx.window.height * 0.5) - (ctx.settings.graphics.height * 0.5);
 
   glUseProgram(state.program.handle);
   glActiveTexture(GL_TEXTURE0);
-  glBindTexture(GL_TEXTURE_2D, input);
+  glBindTexture(GL_TEXTURE_2D, ctx.registers.read(state.inlet));
   glUniform1i(state.texture, 0);
-
-  ctx.fbos.release_fbo();
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glBindVertexArray(state.vao);
+
+  glBindFramebuffer(GL_FRAMEBUFFER, ctx.window.fbo);
+  glEnable(GL_SCISSOR_TEST);
+  glScissor(x, y, ctx.settings.graphics.width, ctx.settings.graphics.height);
+  glViewport(x, y, ctx.settings.graphics.width, ctx.settings.graphics.height);
   glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 }
 
