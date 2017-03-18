@@ -8,4 +8,5 @@ type = "graphics"
 [[objects.parameters]]
 name = "image"
 value = [0]
+step = 1
 help = "Index of image to display"

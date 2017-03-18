@@ -17,6 +17,10 @@ struct user_arg {
 
 struct user_parameter {
   std::string name;
+  std::string help;
+  double step;
+  std::vector<double> min;
+  std::vector<double> max;
   std::vector<double> value;
 };
 

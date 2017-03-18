@@ -12,6 +12,9 @@ help = "The amount of filter to apply"
 [[objects.parameters]]
 name = "filter"
 value = [7]
+min = [0]
+max = [9]
+step = 1
 help = "The selected filter"
 
 [[objects.shaders]]

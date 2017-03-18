@@ -256,6 +256,28 @@ static bool read_parameters(const shared_ptr<table> input,
       p.value = *value;
     }
 
+    auto step = parameter->get_as<double>("step");
+    if (step) {
+      p.step = *step;
+    } else {
+      p.step = 0;
+    }
+
+    auto min = parameter->get_array_of<double>("min");
+    if (min) {
+      p.min = *min;
+    }
+
+    auto max = parameter->get_array_of<double>("max");
+    if (max) {
+      p.max = *max;
+    }
+
+    auto help = parameter->get_as<std::string>("help");
+    if (help) {
+      p.help = *help;
+    }
+
     output.parameters.push_back(p);
   }
 
