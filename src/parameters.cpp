@@ -36,6 +36,7 @@ void ParameterManager::update() {
       }
     }
   }
+  _commands.clear();
 }
 
 void ParameterManager::set(const ObjectDef::ID object, const hash name,
