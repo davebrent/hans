@@ -74,8 +74,8 @@ vec4 rgb_to_yuv_filter(vec2 uv) {
 
 subroutine(FilterFunc)
 vec4 rgbsplit_filter(vec2 uv) {
-  float x_offset = 10.0; // px
-  float y_offset = 10.0; // px
+  float x_offset = amount.x; // px
+  float y_offset = amount.y; // px
   vec2 delta = vec2(x_offset / screen_size.x, y_offset / screen_size.y);
   vec4 c1 = texture(image, uv + delta);
   vec4 c2 = texture(image, uv);
