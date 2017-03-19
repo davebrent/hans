@@ -20,11 +20,11 @@ class ParameterManager {
 
   /// Retrieve the value for a parameters component
   Parameter::Value get(const Parameter& parameter,
-                       const Parameter::Length& component) const;
+                       const Parameter::Length component) const;
 
   /// Set the value of a parameters component
-  void set(const Parameter& parameter, const Parameter::Length& component,
-           const Parameter::Value& value);
+  void set(const Parameter& parameter, const Parameter::Length component,
+           const Parameter::Value value);
 
   void set(const ObjectDef::ID object, const hash name,
            const Parameter::Length component, const Parameter::Value value);

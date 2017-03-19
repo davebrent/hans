@@ -20,8 +20,8 @@ Parameter ParameterManager::make(const ObjectDef::ID object,
 }
 
 void ParameterManager::set(const Parameter& parameter,
-                           const Parameter::Length& component,
-                           const Parameter::Value& value) {
+                           const Parameter::Length component,
+                           const Parameter::Value value) {
   assert(parameter.offset + component < _values.size());
   _values[parameter.offset + component] = value;
 }
@@ -55,7 +55,7 @@ void ParameterManager::set(const ObjectDef::ID object, const hash name,
 }
 
 Parameter::Value ParameterManager::get(
-    const Parameter& parameter, const Parameter::Length& component) const {
+    const Parameter& parameter, const Parameter::Length component) const {
   assert(parameter.offset + component < _values.size());
   return _values[parameter.offset + component];
 }
