@@ -305,12 +305,38 @@ static bool assemble_integer(IStack& istack, const std::string& token) {
   return true;
 }
 
+static void tokenize(std::vector<std::string>& out, std::istream& iter) {
+  std::istreambuf_iterator<char> it(iter);
+  std::istreambuf_iterator<char> end;
+  std::vector<char> buff;
+
+  while (it != end) {
+    switch (*it) {
+    case '\n':
+    case ' ':
+      it++;
+      break;
+    case ';':
+      while (*it != '\n' && it != end) {
+        it++;
+      }
+      break;
+    default:
+      while (*it != ' ' && *it != '\n' && it != end) {
+        buff.push_back(*it++);
+      }
+      out.push_back(std::string(buff.begin(), buff.end()));
+      buff.clear();
+      break;
+    }
+  }
+}
+
 IStack hans::interpreter::compile(std::istream& is) {
   IStack istack;
 
   std::vector<std::string> tokens;
-  std::copy(std::istream_iterator<std::string>(is),
-            std::istream_iterator<std::string>(), std::back_inserter(tokens));
+  tokenize(tokens, is);
 
   for (const auto& token : tokens) {
     if (assemble_instruction(istack, token)) {
