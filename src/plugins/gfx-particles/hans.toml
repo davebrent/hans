@@ -1,0 +1,25 @@
+[library]
+name = "libhans.gfx.particles"
+
+[[objects]]
+name = "gfx-particles"
+type = "graphics"
+
+[[objects.shaders]]
+name = "particles/points/vertex"
+type = "vertex"
+path = "points.vert.glsl"
+[[objects.shaders]]
+name = "particles/points/fragment"
+type = "fragment"
+path = "points.frag.glsl"
+[[objects.shaders]]
+name = "particles/points/geometry"
+type = "geometry"
+path = "points.geom.glsl"
+
+[objects.fbo]
+stencil = true
+[[objects.fbo.attachments]]
+type = "color"
+components = 4

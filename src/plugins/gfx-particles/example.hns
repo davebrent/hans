@@ -1,0 +1,28 @@
+; distribute-linear
+; distribute-rect
+; distribute-grid
+; distribute-ellipse
+; distribute-cube
+; distribute-sphere
+
+setup:
+  ;; Create a buffer with 2 channels (position & color) & store in a variable
+  2         ;; Position
+  4         ;; Color
+  2         ;; Number of channels
+  200 buffer  ;; Number of items
+  =buff
+
+update:
+  ;; Randomize position and color channels
+  ; @buff [ 0.5 0.5 ]         0 buffer-fill
+  ; @buff 0 random-noise
+
+  @buff 0 0 -1.0 1.0 distribute-linear
+  @buff [ 0.0 0.0 1.0 1.0 ] 1 buffer-fill
+
+  ;@buff 0 random-noise
+  ;@buff 1 random-noise
+
+  ;; Draw the buffer using the points visualiser
+  @buff [ $position 0 $color 1 ] $points render
