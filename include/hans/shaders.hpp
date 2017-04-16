@@ -20,6 +20,9 @@ class ShaderManager {
   const char* validate(const hash uri);
 
   graphics::Shader::Instance create(const hash uri);
+  graphics::ShaderProgram create(const graphics::Shader::Instance& geometry,
+                                 const graphics::Shader::Instance& vertex,
+                                 const graphics::Shader::Instance& fragment);
   graphics::ShaderProgram create(const graphics::Shader::Instance& vertex,
                                  const graphics::Shader::Instance& fragment);
 

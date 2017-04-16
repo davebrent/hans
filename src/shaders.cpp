@@ -60,6 +60,9 @@ Shader::Instance ShaderManager::create(const hash name) {
     case Shader::Types::FRAGMENT:
       instance.handle = glCreateShader(GL_FRAGMENT_SHADER);
       break;
+    case Shader::Types::GEOMETRY:
+      instance.handle = glCreateShader(GL_GEOMETRY_SHADER);
+      break;
     default:
       throw std::runtime_error("Shader not recognised");
     }
@@ -83,6 +86,20 @@ ShaderProgram ShaderManager::create(const Shader::Instance& vertex,
   program.handle = glCreateProgram();
   m_program_handles.push_back(program.handle);
 
+  glAttachShader(program.handle, vertex.handle);
+  glAttachShader(program.handle, fragment.handle);
+  glLinkProgram(program.handle);
+  return program;
+}
+
+ShaderProgram ShaderManager::create(const Shader::Instance& geometry,
+                                    const Shader::Instance& vertex,
+                                    const Shader::Instance& fragment) {
+  ShaderProgram program;
+  program.handle = glCreateProgram();
+  m_program_handles.push_back(program.handle);
+
+  glAttachShader(program.handle, geometry.handle);
   glAttachShader(program.handle, vertex.handle);
   glAttachShader(program.handle, fragment.handle);
   glLinkProgram(program.handle);

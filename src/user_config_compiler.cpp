@@ -438,6 +438,7 @@ static bool shaders_task(const user_data& input, EngineData& output,
                          pipeline_context& ctx) {
   auto vertex = "vertex";
   auto fragment = "fragment";
+  auto geometry = "geometry";
   std::vector<hash> seen;
 
   for (const auto& object : input.objects) {
@@ -458,6 +459,8 @@ static bool shaders_task(const user_data& input, EngineData& output,
         s.type = graphics::Shader::VERTEX;
       } else if (shader.type.compare(fragment) == 0) {
         s.type = graphics::Shader::FRAGMENT;
+      } else if (shader.type.compare(geometry) == 0) {
+        s.type = graphics::Shader::GEOMETRY;
       } else {
         std::ostringstream os;
         os << "Invalid shader type for " << shader.name << " in ";

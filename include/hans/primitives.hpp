@@ -127,7 +127,7 @@ using bus_handle = size_t;
 namespace graphics {
 struct Shader {
   using Handle = uint16_t;
-  enum Types { VERTEX, FRAGMENT };
+  enum Types { VERTEX, FRAGMENT, GEOMETRY };
   Types type;
   hash name;
   hash code;
